@@ -152,7 +152,6 @@ export default function Login() {
                   className={`w-full px-4 py-3 pr-12 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.password ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
                   placeholder="Enter your password"
                 />
-                {/* Eye Toggle Button */}
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
@@ -197,7 +196,6 @@ export default function Login() {
               <div className="flex-1 border-t border-gray-300"></div>
             </div>
 
-            {/* Google Login Button */}
             <div className="flex justify-center">
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
@@ -208,7 +206,6 @@ export default function Login() {
                 text="continue_with"
                 width="100%"
                 logo_alignment="left"
-                disabled={googleLoading || isLoading}
               />
             </div>
 

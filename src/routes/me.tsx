@@ -1,10 +1,12 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { api } from '../utils/axios'
+import { APIAuthRoutes } from '../constants/route.constant'
 
 export const Route = createFileRoute('/me')({
   beforeLoad: async () => {
     try {
-      const res = await api.get('/auth/me')
+      const res = await api.get(APIAuthRoutes.ME)
+      console.log(res.data)
 
       if (!res.data.success) {
         throw redirect({ to: '/auth/login' })

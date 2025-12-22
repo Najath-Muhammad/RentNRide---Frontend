@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from '@tanstack/react-router';
-import axios from 'axios';
 import { api } from '../../utils/axios';
 import { APIAuthRoutes } from '../../constants/route.constant';
 import { useAuthStore } from '../../stores/authStore';

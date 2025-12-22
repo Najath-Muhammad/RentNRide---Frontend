@@ -218,7 +218,7 @@ const UserManagementPage: React.FC = () => {
     <div className="flex h-screen bg-gray-50">
       <AdminSidebar activeItem="User Management" />
 
-      Main content with left margin to account for fixed sidebar
+
       <div className="ml-64 flex-1">
         <AdminTable
           data={formattedUsers}
