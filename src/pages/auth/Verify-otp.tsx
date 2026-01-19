@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { type AxiosError } from 'axios';
 import { useLocation, useNavigate } from '@tanstack/react-router';
-import { api } from '../../utils/axios';
-import { APIAuthRoutes } from '../../constants/route.constant';
+import { AuthApi } from '../../services/api/auth/verify.otp.api';
 import { useAuthStore } from '../../stores/authStore';
 
 export default function VerifyOtp() {
@@ -12,13 +12,13 @@ export default function VerifyOtp() {
   const [resendTimer, setResendTimer] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
-  const { email } = location.state
+  const email = (location.state as { email?: string })?.email;
   useEffect(() => {
     const storedExpiry = localStorage.getItem("otp_expiry");
-  
+
     if (storedExpiry) {
       const remaining = Math.floor((+storedExpiry - Date.now()) / 1000);
-  
+
       if (remaining > 0) {
         setResendTimer(remaining);
         return;
@@ -34,7 +34,7 @@ export default function VerifyOtp() {
       const interval = setInterval(() => {
         setResendTimer((prev) => prev - 1);
       }, 1000);
-  
+
       return () => clearInterval(interval);
     }
   }, [resendTimer])
@@ -71,28 +71,29 @@ export default function VerifyOtp() {
     setIsLoading(true);
 
     try {
-      const response = await api.post(APIAuthRoutes.VERIFY_OTP, {
+      const response = await AuthApi.verifyOtp({
         otp: otp,
-        email: email
+        email: email as string
       });
 
-      if (response.data.success) {
-        setSuccess(response.data.message);
-        useAuthStore.getState().setUser(response.data.user);
-        
+      if (response.success) {
+        setSuccess(response.message);
+        useAuthStore.getState().setUser(response.user);
+
         // if (response.data.user) {
         //   localStorage.setItem('user', JSON.stringify(response.data.user));
         //   localStorage.setItem('token', response.data.token); 
         // }
-        
+
         setTimeout(() => {
-          navigate({to:"/"});
+          navigate({ to: "/" });
         }, 1000);
       }
-      
-    } catch (error: any) {
+
+    } catch (err) {
+      const error = err as AxiosError<{ message: string }>;
       console.error('Verification failed:', error);
-      
+
       if (error.response?.data?.message) {
         setError(error.response.data.message);
       } else if (error.message === 'Network Error') {
@@ -113,17 +114,18 @@ export default function VerifyOtp() {
     setSuccess('');
 
     try {
-      const response = await api.post(APIAuthRoutes.RESEND_OTP, {
-        email: email
+      const response = await AuthApi.resendOtp({
+        email: email as string
       });
 
-      if (response.data.success) {
+      if (response.success) {
         setSuccess('New OTP sent to your email!');
-        setResendTimer(30); 
+        setResendTimer(30);
       }
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as AxiosError<{ message: string }>;
       console.error('Resend OTP failed:', error);
-      
+
       if (error.response?.data?.message) {
         setError(error.response.data.message);
       } else {

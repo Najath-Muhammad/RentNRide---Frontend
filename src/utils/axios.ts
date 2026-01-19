@@ -1,6 +1,8 @@
 import axios from "axios";
+import type { WaitingRequest } from "../types/axios.types";
 import { useAuthStore } from "../stores/authStore";
-import { Navigate } from "@tanstack/react-router";
+import { router } from "../route";
+
 import { APIAuthRoutes } from "../constants/route.constant";
 
 export const api = axios.create({
@@ -9,18 +11,25 @@ export const api = axios.create({
 });
 
 let refreshing = false
-let waitingList: any[] = []
+let waitingList: WaitingRequest[] = []
 
-function runWaitingList(error: any, ok: boolean = false) {
-  waitingList.forEach((item: any) => {
-    error ? item.reject(error) : item.resolve(ok);
+function runWaitingList(error: unknown, ok: boolean = false) {
+  waitingList.forEach((item: WaitingRequest) => {
+    if (error) {
+      item.reject(error);
+    } else {
+      item.resolve(ok);
+    }
   });
   waitingList = [];
 }
 
+
+
 function goToLogin() {
+  console.log('goToLogin called - Logging out user via axios interceptor.');
   const user = useAuthStore.getState().user;
-  Navigate({ to: user?.role === "admin" ? "/auth/admin-login" : "/auth/login" });
+  router.navigate({ to: user?.role === "admin" ? "/auth/admin-login" : "/auth/login" });
   useAuthStore.getState().setUser(null);
   localStorage.clear();
 }
@@ -29,6 +38,9 @@ api.interceptors.response.use(
   (res) => res,
 
   async (err) => {
+    console.log('>>> Axios response interceptor triggered (any error)', err);
+    console.log('>>> Status:', err.response?.status);
+    console.log('>>> URL:', err.config?.url);
     const req = err.config;
     const res = err.response;
 
@@ -36,7 +48,7 @@ api.interceptors.response.use(
       req._blockedHandled = true;
       useAuthStore.getState().setUser(null);
       localStorage.clear();
-      api.post(APIAuthRoutes.LOGOUT, {}, { withCredentials: true }).catch(() => {});
+      api.post(APIAuthRoutes.LOGOUT, {}, { withCredentials: true }).catch(() => { });
       goToLogin();
       return Promise.reject(err);
     }
@@ -60,6 +72,12 @@ api.interceptors.response.use(
       return Promise.reject(err);
     }
 
+    if (req._skipAuthRefresh) {
+      return Promise.reject(err);
+    }
+
+    console.log('Intercepted 401 for:', req.url);
+
     req._retry = true;
 
     if (req.url.includes("/auth/refresh") || req.url.includes(APIAuthRoutes.LOGOUT)) {
@@ -81,6 +99,7 @@ api.interceptors.response.use(
       await api.post("/auth/refresh", {}, { withCredentials: true });
 
       const me = await api.get("/auth/me");
+      console.log('this /me respone in the interceptor', me)
       useAuthStore.getState().setUser(me.data.user);
 
       runWaitingList(null, true);

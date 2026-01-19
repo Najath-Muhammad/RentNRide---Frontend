@@ -1,8 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { uploadToS3 } from '../../utils/s3';
-import { api } from '../../utils/axios';
+import { UserVehicleApi } from '../../services/api/user/vehicle.api';
 import Navbar from '../../components/user/Navbar';
-import {  useNavigate } from '@tanstack/react-router';
+import { useNavigate } from '@tanstack/react-router';
+import AddressAutocomplete from '../../components/user/AddressAutocomplete';
+import { reverseGeocode } from '../../utils/locationiq';
 
 interface VehicleFormData {
   category: string;
@@ -20,6 +22,7 @@ interface VehicleFormData {
   insuranceExpiryDate: string;
   pickupAddress: string;
   regionalContact: string;
+  coordinates?: { lat: number; lon: number };
 }
 
 interface ValidationErrors {
@@ -40,6 +43,7 @@ const InputField = React.memo(function InputField({
   onBlur,
   error,
   touched,
+  optional = false,
 }: {
   label: string;
   name: string;
@@ -50,11 +54,12 @@ const InputField = React.memo(function InputField({
   onBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
   error?: string;
   touched?: boolean;
+  optional?: boolean;
 }) {
   return (
     <div className="mb-4">
       <label className="block text-sm font-medium text-gray-700 mb-1">
-        {label}
+        {label} {optional && <span className="text-gray-400 text-xs">(Optional)</span>}
       </label>
       <input
         type={type}
@@ -63,9 +68,8 @@ const InputField = React.memo(function InputField({
         onChange={onChange}
         onBlur={onBlur}
         placeholder={placeholder}
-        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-          touched && error ? 'border-red-500' : 'border-gray-300'
-        }`}
+        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${touched && error ? 'border-red-500' : 'border-gray-300'
+          }`}
       />
       {touched && error && (
         <p className="text-red-500 text-xs mt-1">{error}</p>
@@ -74,10 +78,8 @@ const InputField = React.memo(function InputField({
   );
 });
 
-
-
 const AddVehicleForm: React.FC = () => {
-  const navigate =  useNavigate()
+  const navigate = useNavigate()
   const [formData, setFormData] = useState<VehicleFormData>({
     category: '',
     brand: '',
@@ -94,11 +96,13 @@ const AddVehicleForm: React.FC = () => {
     insuranceExpiryDate: '',
     pickupAddress: '',
     regionalContact: '',
+    coordinates: undefined,
   });
 
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [touched, setTouched] = useState<TouchedFields>({});
   const [legalAcknowledgement, setLegalAcknowledgement] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Image upload states
   const [vehicleImageUrls, setVehicleImageUrls] = useState<string[]>([]);
@@ -119,23 +123,28 @@ const AddVehicleForm: React.FC = () => {
       case 'fuelType':
         return value.trim() === '' ? 'This field is required' : '';
 
-      case 'seatCapacity':
-        if (value.trim() === '') return 'Seat capacity is required';
+      case 'seatCapacity': {
+        // Optional field - only validate if value is provided
+        if (value.trim() === '') return '';
         const seats = parseInt(value);
         if (isNaN(seats) || seats < 1 || seats > 50) return 'Enter valid seat capacity (1-50)';
         return '';
+      }
 
-      case 'pricePerDay':
+      case 'pricePerDay': {
         if (value.trim() === '') return 'Price per day is required';
         const price = parseFloat(value);
         if (isNaN(price) || price <= 0) return 'Enter valid price (greater than 0)';
         return '';
+      }
 
-      case 'doors':
-        if (value.trim() === '') return 'Number of doors is required';
+      case 'doors': {
+        // Optional field - only validate if value is provided
+        if (value.trim() === '') return '';
         const doors = parseInt(value);
         if (isNaN(doors) || doors < 2 || doors > 6) return 'Enter valid doors (2-6)';
         return '';
+      }
 
       case 'rcNumber':
         if (value.trim() === '') return 'RC number is required';
@@ -145,13 +154,14 @@ const AddVehicleForm: React.FC = () => {
         return '';
 
       case 'rcExpiryDate':
-      case 'insuranceExpiryDate':
+      case 'insuranceExpiryDate': {
         if (value.trim() === '') return 'Date is required';
         const date = new Date(value);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         if (date < today) return 'Date cannot be in the past';
         return '';
+      }
 
       case 'insuranceProvider':
         return value.trim() === '' ? 'Insurance provider is required' : '';
@@ -308,8 +318,10 @@ const AddVehicleForm: React.FC = () => {
 
   const handleSubmit = async () => {
     const newErrors: ValidationErrors = {};
+
     Object.keys(formData).forEach(key => {
-      const error = validateField(key, formData[key as keyof VehicleFormData]);
+      if (key === 'coordinates') return;
+      const error = validateField(key, formData[key as keyof VehicleFormData] as string);
       if (error) newErrors[key] = error;
     });
 
@@ -334,36 +346,57 @@ const AddVehicleForm: React.FC = () => {
     setTouched(Object.keys(formData).reduce((acc, key) => ({ ...acc, [key]: true }), {}));
 
     if (Object.keys(newErrors).length === 0) {
-      const payload = {
+      if (!formData.coordinates) {
+        alert('Please select a valid address from the suggestions to capture location coordinates.');
+        return;
+      }
+
+      const payload: Record<string, unknown> = {
         category: formData.category,
         brand: formData.brand,
-        modelName: formData.model,                    
+        modelName: formData.model,
         category2: formData.category2,
         fuelType: formData.fuelType,
-        seatingCapacity: parseInt(formData.seatCapacity), 
         pricePerDay: parseFloat(formData.pricePerDay),
-        doors: parseInt(formData.doors),             
         vehicleImages: vehicleImageUrls,
         rcNumber: formData.rcNumber,
         rcExpiryDate: formData.rcExpiryDate,
-        rcImage: rcBookImageUrl,                     
+        rcImage: rcBookImageUrl,
         insuranceProvider: formData.insuranceProvider,
         insurancePolicyNumber: formData.insurancePolicyNumber,
         insuranceExpiryDate: formData.insuranceExpiryDate,
-        insuranceImage: insuranceImageUrl,            
+        insuranceImage: insuranceImageUrl,
         pickupAddress: formData.pickupAddress,
         regionalContact: formData.regionalContact,
+        location: {
+          type: 'Point',
+          coordinates: [formData.coordinates.lon, formData.coordinates.lat]
+        }
       };
 
+      // Only include optional fields if they have values
+      if (formData.seatCapacity.trim() !== '') {
+        payload.seatingCapacity = parseInt(formData.seatCapacity);
+      }
+      if (formData.doors.trim() !== '') {
+        payload.doors = parseInt(formData.doors);
+      }
+
+      setIsSubmitting(true);
       try {
-        const response = await api.post('vehicles/createVehicle', payload);
-        if (response.data.success) {
-          navigate({to:'/'})
+        const response = await UserVehicleApi.createVehicle(payload);
+        if (response.success) {
+          const successMessage = response.message || 'Vehicle added successfully!';
+          alert(successMessage);
+          navigate({ to: '/' });
         }
-        console.log(response.data);
-      } catch (err: any) {
+        console.log(response);
+      } catch (err: unknown) {
         console.error(err);
-        alert(err.response?.data?.message || 'Failed to submit. Please try again.');
+        const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message;
+        alert(message || 'Failed to submit. Please try again.');
+      } finally {
+        setIsSubmitting(false);
       }
     }
   };
@@ -385,12 +418,28 @@ const AddVehicleForm: React.FC = () => {
     }
   };
 
+  // Check if required fields are filled
+  const requiredFieldsFilled =
+    formData.category.trim() !== '' &&
+    formData.brand.trim() !== '' &&
+    formData.model.trim() !== '' &&
+    formData.category2.trim() !== '' &&
+    formData.fuelType.trim() !== '' &&
+    formData.pricePerDay.trim() !== '' &&
+    formData.rcNumber.trim() !== '' &&
+    formData.rcExpiryDate.trim() !== '' &&
+    formData.insuranceProvider.trim() !== '' &&
+    formData.insurancePolicyNumber.trim() !== '' &&
+    formData.insuranceExpiryDate.trim() !== '' &&
+    formData.pickupAddress.trim() !== '' &&
+    formData.regionalContact.trim() !== '';
+
   const isFormValid =
     vehicleImageUrls.length === 3 &&
     insuranceImageUrl !== '' &&
     rcBookImageUrl !== '' &&
     legalAcknowledgement &&
-    Object.values(formData).every(value => value.trim() !== '') &&
+    requiredFieldsFilled &&
     Object.values(errors).every(error => error === '');
 
   return (
@@ -409,11 +458,11 @@ const AddVehicleForm: React.FC = () => {
               <InputField label="Category" name="category" placeholder="Category" value={formData.category} onChange={handleChange} onBlur={handleBlur} error={errors.category} touched={touched.category} />
               <InputField label="Brand" name="brand" placeholder="Brand" value={formData.brand} onChange={handleChange} onBlur={handleBlur} error={errors.brand} touched={touched.brand} />
               <InputField label="Model" name="model" placeholder="Model" value={formData.model} onChange={handleChange} onBlur={handleBlur} error={errors.model} touched={touched.model} />
-              <InputField label="Category 2" name="category2" placeholder="e.g., SUV, Sedan" value={formData.category2} onChange={handleChange} onBlur={handleBlur} error={errors.category2} touched={touched.category2} />
-              <InputField label="Fuel Type" name="fuelType" placeholder="Diesel / CNG / Petrol" value={formData.fuelType} onChange={handleChange} onBlur={handleBlur} error={errors.fuelType} touched={touched.fuelType} />
-              <InputField label="Seating Capacity" name="seatCapacity" type="number" placeholder="E.g., 5" value={formData.seatCapacity} onChange={handleChange} onBlur={handleBlur} error={errors.seatCapacity} touched={touched.seatCapacity} />
+              <InputField label="Category 2" name="category2" placeholder="e.g., SUV, Sedan, Bike" value={formData.category2} onChange={handleChange} onBlur={handleBlur} error={errors.category2} touched={touched.category2} />
+              <InputField label="Fuel Type" name="fuelType" placeholder="Diesel / CNG / Petrol / Electric" value={formData.fuelType} onChange={handleChange} onBlur={handleBlur} error={errors.fuelType} touched={touched.fuelType} />
+              <InputField label="Seating Capacity" name="seatCapacity" type="number" placeholder="E.g., 5 (leave empty for bikes)" value={formData.seatCapacity} onChange={handleChange} onBlur={handleBlur} error={errors.seatCapacity} touched={touched.seatCapacity} optional />
               <InputField label="Price Per Day" name="pricePerDay" type="number" placeholder="E.g., 2000" value={formData.pricePerDay} onChange={handleChange} onBlur={handleBlur} error={errors.pricePerDay} touched={touched.pricePerDay} />
-              <InputField label="Number of Doors" name="doors" type="number" placeholder="E.g., 4" value={formData.doors} onChange={handleChange} onBlur={handleBlur} error={errors.doors} touched={touched.doors} />
+              <InputField label="Number of Doors" name="doors" type="number" placeholder="E.g., 4 (leave empty for bikes)" value={formData.doors} onChange={handleChange} onBlur={handleBlur} error={errors.doors} touched={touched.doors} optional />
             </div>
 
             <div className="border-b pb-4 mb-6">
@@ -486,8 +535,79 @@ const AddVehicleForm: React.FC = () => {
 
             <div className="mb-6">
               <h2 className="font-semibold mb-4">Pickup Information</h2>
-              <InputField label="Pickup Address Location" name="pickupAddress" placeholder="e.g., Kanchipuram, Tamil Nadu" value={formData.pickupAddress} onChange={handleChange} onBlur={handleBlur} error={errors.pickupAddress} touched={touched.pickupAddress} />
-              <InputField label="Regional Contact" name="regionalContact" type="tel" placeholder="e.g., 9445678210" value={formData.regionalContact} onChange={handleChange} onBlur={handleBlur} error={errors.regionalContact} touched={touched.regionalContact} />
+
+              <div className="mb-4">
+                <button
+                  type="button"
+
+                  onClick={async () => {
+                    if (!navigator.geolocation) {
+                      alert('Geolocation is not supported by your browser');
+                      return;
+                    }
+
+                    navigator.geolocation.getCurrentPosition(
+                      async (position) => {
+                        try {
+                          const { latitude, longitude } = position.coords;
+                          const data = await reverseGeocode(latitude, longitude);
+                          const address = data.display_name || `Near ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+
+                          setFormData(prev => ({
+                            ...prev,
+                            pickupAddress: address,
+                            coordinates: { lat: latitude, lon: longitude }
+                          }));
+                          setErrors(prev => ({ ...prev, pickupAddress: '' }));
+                        } catch (err) {
+                          console.error(err);
+                          alert('Could not fetch address from location');
+                        }
+                      },
+                      () => alert('Location access denied')
+                    );
+                  }}
+                  className="text-sm text-blue-600 hover:underline mb-3 flex items-center gap-1"
+                >
+                  📍 Use my current location
+                </button>
+
+                <AddressAutocomplete
+                  value={formData.pickupAddress}
+                  onChange={(newValue) =>
+                    handleChange({
+                      target: { name: 'pickupAddress', value: newValue },
+                    } as React.ChangeEvent<HTMLInputElement>)
+                  }
+                  onSelect={(suggestion) => {
+                    if (suggestion.lat && suggestion.lon) {
+                      setFormData(prev => ({
+                        ...prev,
+                        coordinates: {
+                          lat: parseFloat(suggestion.lat),
+                          lon: parseFloat(suggestion.lon)
+                        }
+                      }));
+                    }
+                  }}
+                  onBlur={handleBlur}
+                  placeholder="Search or select address..."
+                  error={errors.pickupAddress}
+                  touched={touched.pickupAddress}
+                />
+              </div>
+
+              <InputField
+                label="Regional Contact"
+                name="regionalContact"
+                type="tel"
+                placeholder="e.g., 9445678210"
+                value={formData.regionalContact}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={errors.regionalContact}
+                touched={touched.regionalContact}
+              />
             </div>
 
             <div className="border-t pt-6 mb-6">
@@ -508,25 +628,24 @@ const AddVehicleForm: React.FC = () => {
             </div>
 
             <div className="flex gap-3 justify-end">
-              <button type="button" onClick={handleCancel} className="px-6 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50">
+              <button type="button" onClick={handleCancel} disabled={isSubmitting} className={`px-6 py-2 border border-gray-300 rounded-md text-sm ${isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}>
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleSubmit}
-                disabled={!isFormValid}
-                className={`px-6 py-2 rounded-md text-sm ${
-                  isFormValid
-                    ? 'bg-blue-600 text-white hover:bg-blue-700'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
+                disabled={!isFormValid || isSubmitting}
+                className={`px-6 py-2 rounded-md text-sm ${isFormValid && !isSubmitting
+                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
               >
-                Submit
+                {isSubmitting ? 'Submitting...' : 'Submit'}
               </button>
             </div>
           </div>
         </div>
-      </div>
+      </div >
     </>
   );
 };

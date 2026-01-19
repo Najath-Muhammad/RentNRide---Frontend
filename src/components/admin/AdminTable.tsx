@@ -3,8 +3,8 @@ import React from "react";
 import { ChevronDown, Search, ChevronLeft, ChevronRight, MoreVertical } from "lucide-react";
 
 interface Column {
-  key: string;
-  label: string;
+  readonly key: string;
+  readonly label: string;
 }
 
 interface Action {
@@ -14,36 +14,36 @@ interface Action {
 }
 
 interface Filter {
-  key: string;
-  label: string;
-  options: string[];
+  readonly key: string;
+  readonly label: string;
+  readonly options: readonly string[];
 }
 
-interface AdminTableProps {
-  data: any[];
-  columns: Column[];
+interface AdminTableProps<T> {
+  data: T[];
+  columns: readonly Column[];
   title: string;
-  
+
 
   searchValue: string;
   onSearch: (value: string) => void;
   searchPlaceholder?: string;
 
-  filters?: Filter[];
+  filters?: readonly Filter[];
   onFilterChange?: (filterKey: string, value: string) => void;
   activeFilters?: Record<string, string>;
-  
+
   page: number;
   totalPages: number;
   onPageChange: (page: number) => void;
   totalItems?: number;
-  
-  actions?: (item: any) => Action[];
-  
+
+  actions?: (item: T) => Action[];
+
   isLoading?: boolean;
 }
 
-const AdminTable: React.FC<AdminTableProps> = ({
+const AdminTable = <T extends { _id?: string } & Record<string, unknown>>({
   data,
   columns,
   title,
@@ -59,7 +59,7 @@ const AdminTable: React.FC<AdminTableProps> = ({
   totalItems,
   actions,
   isLoading = false,
-}) => {
+}: AdminTableProps<T>) => {
   const [openDropdowns, setOpenDropdowns] = React.useState<Record<string, boolean>>({});
   const [openActionMenus, setOpenActionMenus] = React.useState<Record<string, boolean>>({});
 
@@ -78,7 +78,7 @@ const AdminTable: React.FC<AdminTableProps> = ({
     const handleClickOutside = () => {
       setOpenActionMenus({});
     };
-    
+
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
@@ -142,6 +142,7 @@ const AdminTable: React.FC<AdminTableProps> = ({
                         key={option}
                         onClick={() => handleFilterSelect(filter.key, option === "All" ? "" : option)}
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
+                        style={{ borderBottomWidth: 0 }} /* Fixed style from previous potential lint */
                       >
                         {option}
                       </button>
@@ -207,7 +208,7 @@ const AdminTable: React.FC<AdminTableProps> = ({
                     <tr key={item._id || index} className="hover:bg-gray-50">
                       {columns.map((column) => (
                         <td key={column.key} className="px-6 py-4 text-sm text-gray-900">
-                          {item[column.key]}
+                          {String(item[column.key])}
                         </td>
                       ))}
 
@@ -217,26 +218,25 @@ const AdminTable: React.FC<AdminTableProps> = ({
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                toggleActionMenu(item._id);
+                                if (item._id) toggleActionMenu(item._id);
                               }}
                               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                             >
                               <MoreVertical size={18} className="text-gray-600" />
                             </button>
 
-                            {openActionMenus[item._id] && (
+                            {item._id && openActionMenus[item._id] && (
                               <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-30">
                                 {actions(item).map((action, i) => (
                                   <button
                                     key={i}
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      action.onClick(item._id);
+                                      if (item._id) action.onClick(item._id);
                                       setOpenActionMenus({});
                                     }}
-                                    className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg border-b last:border-b-0 ${
-                                      action.className || "text-gray-700"
-                                    }`}
+                                    className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg border-b last:border-b-0 ${action.className || "text-gray-700"
+                                      }`}
                                   >
                                     {action.label}
                                   </button>
@@ -264,11 +264,10 @@ const AdminTable: React.FC<AdminTableProps> = ({
                 <button
                   onClick={() => onPageChange(page - 1)}
                   disabled={!canGoPrevious}
-                  className={`flex items-center gap-1 px-3 py-2 border rounded-lg text-sm ${
-                    canGoPrevious
-                      ? "border-gray-300 hover:bg-gray-50 text-gray-700"
-                      : "border-gray-200 text-gray-400 cursor-not-allowed"
-                  }`}
+                  className={`flex items-center gap-1 px-3 py-2 border rounded-lg text-sm ${canGoPrevious
+                    ? "border-gray-300 hover:bg-gray-50 text-gray-700"
+                    : "border-gray-200 text-gray-400 cursor-not-allowed"
+                    }`}
                 >
                   <ChevronLeft size={16} />
                   Previous
@@ -278,7 +277,7 @@ const AdminTable: React.FC<AdminTableProps> = ({
                 <div className="flex items-center gap-1">
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                     let pageNum: number;
-                    
+
                     if (totalPages <= 5) {
                       pageNum = i + 1;
                     } else if (page <= 3) {
@@ -293,11 +292,10 @@ const AdminTable: React.FC<AdminTableProps> = ({
                       <button
                         key={pageNum}
                         onClick={() => onPageChange(pageNum)}
-                        className={`px-3 py-2 border rounded-lg text-sm ${
-                          page === pageNum
-                            ? "bg-emerald-600 text-white border-emerald-600"
-                            : "border-gray-300 hover:bg-gray-50 text-gray-700"
-                        }`}
+                        className={`px-3 py-2 border rounded-lg text-sm ${page === pageNum
+                          ? "bg-emerald-600 text-white border-emerald-600"
+                          : "border-gray-300 hover:bg-gray-50 text-gray-700"
+                          }`}
                       >
                         {pageNum}
                       </button>
@@ -308,11 +306,10 @@ const AdminTable: React.FC<AdminTableProps> = ({
                 <button
                   onClick={() => onPageChange(page + 1)}
                   disabled={!canGoNext}
-                  className={`flex items-center gap-1 px-3 py-2 border rounded-lg text-sm ${
-                    canGoNext
-                      ? "border-gray-300 hover:bg-gray-50 text-gray-700"
-                      : "border-gray-200 text-gray-400 cursor-not-allowed"
-                  }`}
+                  className={`flex items-center gap-1 px-3 py-2 border rounded-lg text-sm ${canGoNext
+                    ? "border-gray-300 hover:bg-gray-50 text-gray-700"
+                    : "border-gray-200 text-gray-400 cursor-not-allowed"
+                    }`}
                 >
                   Next
                   <ChevronRight size={16} />

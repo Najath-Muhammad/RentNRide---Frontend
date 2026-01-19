@@ -1,13 +1,9 @@
 import React, { useState } from 'react';
-import { api } from '../../utils/axios';
-import { useNavigate } from '@tanstack/react-router'; // Import useNavigate hook
-import { ADMINRoutes } from '../../constants/route.constant';
+import { useNavigate } from '@tanstack/react-router';
 import { useAuthStore } from '../../stores/authStore';
-
-interface FormData {
-  email: string;
-  password: string;
-}
+import { type LoginFormData } from '../../types/auth.types';
+import { type AxiosError } from 'axios';
+import { LoginApi } from '../../services/api/admin/login.api';
 
 interface FormErrors {
   email?: string;
@@ -15,15 +11,10 @@ interface FormErrors {
   general?: string;
 }
 
-// interface ApiResponse {
-//   success: boolean;
-//   message?: string;
-//   error?: string;
-//   data?: any;
-// }
+
 
 const AdminLogin: React.FC = () => {
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<LoginFormData>({
     email: '',
     password: ''
   });
@@ -33,8 +24,7 @@ const AdminLogin: React.FC = () => {
     password: false
   });
   const [isLoading, setIsLoading] = useState(false);
-  
-  // Use the useNavigate hook
+
   const navigate = useNavigate();
 
   const validateEmail = (email: string): string | undefined => {
@@ -62,7 +52,6 @@ const AdminLogin: React.FC = () => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
 
-    // Clear general errors when user starts typing
     if (errors.general) {
       setErrors(prev => ({ ...prev, general: undefined }));
     }
@@ -125,18 +114,17 @@ const AdminLogin: React.FC = () => {
     if (Object.keys(newErrors).length === 0) {
       setIsLoading(true);
       try {
-        const response = await api.post(ADMINRoutes.LOGIN, {
-          email: formData.email,
-          password: formData.password
-        });
-
+        // const response = await api.post(ADMINRoutes.LOGIN, {
+        //   email: formData.email,
+        //   password: formData.password
+        // });
+        const response = await LoginApi.adminLogin(formData.email, formData.password)
         const responseData = response.data;
 
         if (responseData.success) {
-          //console.log('Login successful:', responseData);
+          console.log('Login successful:', responseData);
           useAuthStore.getState().setUser(responseData.user);
-          navigate({ to: '/admin/dashboard' });
-          
+          navigate({ to: '/admin/dashboard'});
         } else {
           if (responseData.error === 'You are not admin') {
             setErrors({ general: 'Access denied: You are not authorized as admin.' });
@@ -148,10 +136,9 @@ const AdminLogin: React.FC = () => {
             setErrors({ general: responseData.error || responseData.message || 'Login failed. Please try again.' });
           }
         }
-      } catch (error: any) {
+      } catch (err) {
+        const error = err as AxiosError<{ error: string, message: string }>;
         console.error('Login error:', error);
-        
-        // Handle axios error response
         if (error.response && error.response.data) {
           const errorData = error.response.data;
           if (errorData.error === 'You are not admin') {

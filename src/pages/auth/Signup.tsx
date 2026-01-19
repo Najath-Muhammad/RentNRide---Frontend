@@ -1,16 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { GoogleLogin } from '@react-oauth/google';
-import { APIAuthRoutes } from '../../constants/route.constant';
-import { api } from '../../utils/axios';
+import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
+import { type AxiosError } from "axios";
+import { AuthApi } from '../../services/api/auth/signup.api';
 import { useAuthStore } from '../../stores/authStore';
+import type { SignupFormState } from '../../types/auth.types';
 
-interface FormData {
-  name: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-}
 
 const calculatePasswordStrength = (password: string) => {
   let score = 0;
@@ -29,7 +24,7 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).+$/;
 
 export default function SignupPage() {
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<SignupFormState>({
     name: '',
     email: '',
     password: '',
@@ -79,37 +74,39 @@ export default function SignupPage() {
     }
 
     try {
-      const res = await api.post(APIAuthRoutes.SIGNUP, {
+      const res = await AuthApi.signup({
         name: formData.name.trim(),
         email: formData.email.trim(),
         password: formData.password
       });
 
-      if (res.data.success) {
+      if (res.success) {
         navigate({ to: "/auth/verify-otp", state: { email: formData.email } });
       }
-    } catch (error: any) {
-      setErrors([error.response?.data?.message || "Signup failed. Please try again."]);
+    } catch (error) {
+      const err = error as AxiosError<{ message: string }>;
+      setErrors([err.response?.data?.message || "Signup failed. Please try again."]);
     }
   };
 
-  const handleGoogleSuccess = async (credentialResponse: any) => {
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     if (!credentialResponse?.credential) return;
 
     setGoogleLoading(true);
     setErrors([]);
 
     try {
-      const res = await api.post(APIAuthRoutes.GOOGLE, {
+      const res = await AuthApi.googleLogin({
         credential: credentialResponse.credential
-      }, { withCredentials: true });
+      });
 
-      if (res.data.success) {
+      if (res.success) {
         navigate({ to: "/" });
-        useAuthStore.getState().setUser(res.data.user)
+        useAuthStore.getState().setUser(res.user)
       }
-    } catch (error: any) {
-      setErrors([error.response?.data?.message || "Google signup failed. Try again."]);
+    } catch (error) {
+      const err = error as AxiosError<{ message: string }>;
+      setErrors([err.response?.data?.message || "Google signup failed. Try again."]);
     } finally {
       setGoogleLoading(false);
     }

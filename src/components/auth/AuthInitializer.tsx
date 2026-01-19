@@ -1,8 +1,7 @@
-
 import { useEffect } from 'react';
-import { api } from '../../utils/axios';
-import { useAuthStore } from '../../stores/authStore'; 
-import { APIAuthRoutes } from '../../constants/route.constant';
+import { AuthApi } from '../../services/api/auth/login.api';
+import { useAuthStore } from '../../stores/authStore';
+//import type { AxiosError } from 'axios';
 
 export const AuthInitializer = () => {
   const { setUser, setLoading, isAuthenticated } = useAuthStore();
@@ -10,10 +9,18 @@ export const AuthInitializer = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await api.get(APIAuthRoutes.ME);
-        setUser(res.data);
-      } catch (err:any) {
-        if (err.response?.status === 401 || err.response?.status === 403) {
+        const res = await AuthApi.getCurrentUser();
+        setUser(res.user as any);
+      } catch (err: unknown) {
+        if (
+          err &&
+          typeof err === 'object' &&
+          'response' in err &&
+          err.response &&
+          typeof err.response === 'object' &&
+          'status' in err.response &&
+          (err.response.status === 401 || err.response.status === 403)
+        ) {
           setUser(null);
         } else {
           console.error('Unexpected error checking auth', err);
@@ -26,7 +33,7 @@ export const AuthInitializer = () => {
     checkAuth();
   }, [setUser, setLoading]);
 
-  console.log(`is user authernticated: ${isAuthenticated }`)
+  //console.log(`is user authenticated: ${isAuthenticated}`);
 
   return null;
 };

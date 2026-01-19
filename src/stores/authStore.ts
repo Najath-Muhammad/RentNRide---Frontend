@@ -1,28 +1,16 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-type User = {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-};
-
-type AuthState = {
-  user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  setUser: (user: User | null) => void;
-  setLoading: (loading: boolean) => void;
-  logout?: () => void; 
-};
+import type { AuthState } from '../types/auth.types';
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
       isAuthenticated: false,
-      isLoading: true, 
+      isLoading: true,
+      location: 'India',
+      coordinates: undefined,
 
       setUser: (user) =>
         set({
@@ -33,15 +21,29 @@ export const useAuthStore = create<AuthState>()(
 
       setLoading: (loading) => set({ isLoading: loading }),
 
-      logout: () =>
+      setLocation: (location) => set({ location }),
+
+      setCoordinates: (coordinates) => set({ coordinates }),
+
+      logout: () => {
         set({
           user: null,
           isAuthenticated: false,
           isLoading: false,
-        }),
+          location: 'India',
+          coordinates: undefined,
+        });
+        localStorage.clear();
+      },
     }),
     {
-      name: 'auth-store', 
+      name: 'auth-store',
+      partialize: (state) => ({
+        user: state.user,
+        isAuthenticated: state.isAuthenticated,
+        location: state.location,
+        coordinates: state.coordinates,
+      }),
     }
   )
 );

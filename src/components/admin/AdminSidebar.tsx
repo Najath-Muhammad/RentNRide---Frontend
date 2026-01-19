@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { useAuthStore } from '../../stores/authStore'; 
-import { api } from '../../utils/axios';
-import { ADMINRoutes } from '../../constants/route.constant';
+import { useAuthStore } from '../../stores/authStore';
+import { LoginApi } from '../../services/api/admin/login.api';
 
 
 const DashboardIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -104,7 +103,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   const menuItems: MenuItem[] = [
     { id: 'dashboard', label: 'Dashboard', icon: <DashboardIcon />, path: '/admin/dashboard' },
     { id: 'user-management', label: 'User Management', icon: <UsersIcon />, path: '/admin/user-management' },
-    { id: 'vehicle-management', label: 'Vehicle Management', icon: <CarIcon />, path: '/admin/vehicles' },
+    { id: 'vehicle-management', label: 'Vehicle Management', icon: <CarIcon />, path: '/admin/vehicle-management' },
     { id: 'booking-management', label: 'Booking Management', icon: <CalendarIcon />, path: '/admin/bookings' },
     { id: 'payments', label: 'Payments & Subscriptions', icon: <CreditCardIcon />, path: '/admin/payments' },
     { id: 'reports', label: 'Reports & Analytics', icon: <ChartIcon />, path: '/admin/reports' },
@@ -124,9 +123,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   };
 
   const confirmLogout = async () => {
-    setIsLoggingOut(true);
+    setIsLoggingOut(true)
     try {
-      await api.post(ADMINRoutes.LOGOUT, {}, { withCredentials: true });
+      await LoginApi.logout();
       setUser(null);
 
       navigate({ to: '/auth/admin-login' });
@@ -146,13 +145,12 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     return (
       <button
         onClick={() => handleItemClick(item)}
-        className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-all duration-200 ${
-          isActive
+        className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-all duration-200 ${isActive
             ? 'bg-teal-50 text-teal-700 border-l-4 border-teal-600 font-medium'
             : isLogout
-            ? 'text-red-600 hover:bg-red-50'
-            : 'text-gray-600 hover:bg-gray-50 border-l-4 border-transparent'
-        }`}
+              ? 'text-red-600 hover:bg-red-50'
+              : 'text-gray-600 hover:bg-gray-50 border-l-4 border-transparent'
+          }`}
       >
         <span className={isActive ? 'text-teal-600' : isLogout ? 'text-red-600' : 'text-gray-500'}>
           {item.icon}

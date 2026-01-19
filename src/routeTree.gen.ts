@@ -14,7 +14,10 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as VehicleVehicle_listingRouteImport } from './routes/vehicle/vehicle_listing'
+import { Route as VehiclesVehicle_listingRouteImport } from './routes/vehicles/vehicle_listing'
+import { Route as VehiclesMyVehiclesRouteImport } from './routes/vehicles/my-vehicles'
+import { Route as VehiclesIdRouteImport } from './routes/vehicles/$id'
+import { Route as UserProfileRouteImport } from './routes/user/profile'
 import { Route as AuthVerifyOtpForgotRouteImport } from './routes/auth/verify-otp-forgot'
 import { Route as AuthVerifyOtpRouteImport } from './routes/auth/verify-otp'
 import { Route as AuthSignupRouteImport } from './routes/auth/signup'
@@ -22,8 +25,11 @@ import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth/forgot-password'
 import { Route as AuthConfirmPasswordRouteImport } from './routes/auth/confirm-password'
 import { Route as AuthAdminLoginRouteImport } from './routes/auth/admin-login'
+import { Route as AdminVehicleManagementIndexRouteImport } from './routes/admin/vehicle-management/index'
 import { Route as AdminUserManagementIndexRouteImport } from './routes/admin/user-management/index'
 import { Route as AdminDashboardIndexRouteImport } from './routes/admin/dashboard/index'
+import { Route as VehiclesEditIdRouteImport } from './routes/vehicles/edit/$id'
+import { Route as AdminVehicleManagementIdRouteImport } from './routes/admin/vehicle-management/$id'
 
 const MeRoute = MeRouteImport.update({
   id: '/me',
@@ -50,9 +56,24 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VehicleVehicle_listingRoute = VehicleVehicle_listingRouteImport.update({
-  id: '/vehicle/vehicle_listing',
-  path: '/vehicle/vehicle_listing',
+const VehiclesVehicle_listingRoute = VehiclesVehicle_listingRouteImport.update({
+  id: '/vehicles/vehicle_listing',
+  path: '/vehicles/vehicle_listing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VehiclesMyVehiclesRoute = VehiclesMyVehiclesRouteImport.update({
+  id: '/vehicles/my-vehicles',
+  path: '/vehicles/my-vehicles',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VehiclesIdRoute = VehiclesIdRouteImport.update({
+  id: '/vehicles/$id',
+  path: '/vehicles/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UserProfileRoute = UserProfileRouteImport.update({
+  id: '/user/profile',
+  path: '/user/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthVerifyOtpForgotRoute = AuthVerifyOtpForgotRouteImport.update({
@@ -90,6 +111,12 @@ const AuthAdminLoginRoute = AuthAdminLoginRouteImport.update({
   path: '/admin-login',
   getParentRoute: () => AuthRoute,
 } as any)
+const AdminVehicleManagementIndexRoute =
+  AdminVehicleManagementIndexRouteImport.update({
+    id: '/vehicle-management/',
+    path: '/vehicle-management/',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AdminUserManagementIndexRoute =
   AdminUserManagementIndexRouteImport.update({
     id: '/user-management/',
@@ -101,6 +128,17 @@ const AdminDashboardIndexRoute = AdminDashboardIndexRouteImport.update({
   path: '/dashboard/',
   getParentRoute: () => AdminRoute,
 } as any)
+const VehiclesEditIdRoute = VehiclesEditIdRouteImport.update({
+  id: '/vehicles/edit/$id',
+  path: '/vehicles/edit/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminVehicleManagementIdRoute =
+  AdminVehicleManagementIdRouteImport.update({
+    id: '/vehicle-management/$id',
+    path: '/vehicle-management/$id',
+    getParentRoute: () => AdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -115,9 +153,15 @@ export interface FileRoutesByFullPath {
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify-otp': typeof AuthVerifyOtpRoute
   '/auth/verify-otp-forgot': typeof AuthVerifyOtpForgotRoute
-  '/vehicle/vehicle_listing': typeof VehicleVehicle_listingRoute
+  '/user/profile': typeof UserProfileRoute
+  '/vehicles/$id': typeof VehiclesIdRoute
+  '/vehicles/my-vehicles': typeof VehiclesMyVehiclesRoute
+  '/vehicles/vehicle_listing': typeof VehiclesVehicle_listingRoute
+  '/admin/vehicle-management/$id': typeof AdminVehicleManagementIdRoute
+  '/vehicles/edit/$id': typeof VehiclesEditIdRoute
   '/admin/dashboard': typeof AdminDashboardIndexRoute
   '/admin/user-management': typeof AdminUserManagementIndexRoute
+  '/admin/vehicle-management': typeof AdminVehicleManagementIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -132,9 +176,15 @@ export interface FileRoutesByTo {
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify-otp': typeof AuthVerifyOtpRoute
   '/auth/verify-otp-forgot': typeof AuthVerifyOtpForgotRoute
-  '/vehicle/vehicle_listing': typeof VehicleVehicle_listingRoute
+  '/user/profile': typeof UserProfileRoute
+  '/vehicles/$id': typeof VehiclesIdRoute
+  '/vehicles/my-vehicles': typeof VehiclesMyVehiclesRoute
+  '/vehicles/vehicle_listing': typeof VehiclesVehicle_listingRoute
+  '/admin/vehicle-management/$id': typeof AdminVehicleManagementIdRoute
+  '/vehicles/edit/$id': typeof VehiclesEditIdRoute
   '/admin/dashboard': typeof AdminDashboardIndexRoute
   '/admin/user-management': typeof AdminUserManagementIndexRoute
+  '/admin/vehicle-management': typeof AdminVehicleManagementIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -150,9 +200,15 @@ export interface FileRoutesById {
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify-otp': typeof AuthVerifyOtpRoute
   '/auth/verify-otp-forgot': typeof AuthVerifyOtpForgotRoute
-  '/vehicle/vehicle_listing': typeof VehicleVehicle_listingRoute
+  '/user/profile': typeof UserProfileRoute
+  '/vehicles/$id': typeof VehiclesIdRoute
+  '/vehicles/my-vehicles': typeof VehiclesMyVehiclesRoute
+  '/vehicles/vehicle_listing': typeof VehiclesVehicle_listingRoute
+  '/admin/vehicle-management/$id': typeof AdminVehicleManagementIdRoute
+  '/vehicles/edit/$id': typeof VehiclesEditIdRoute
   '/admin/dashboard/': typeof AdminDashboardIndexRoute
   '/admin/user-management/': typeof AdminUserManagementIndexRoute
+  '/admin/vehicle-management/': typeof AdminVehicleManagementIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -169,9 +225,15 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/auth/verify-otp'
     | '/auth/verify-otp-forgot'
-    | '/vehicle/vehicle_listing'
+    | '/user/profile'
+    | '/vehicles/$id'
+    | '/vehicles/my-vehicles'
+    | '/vehicles/vehicle_listing'
+    | '/admin/vehicle-management/$id'
+    | '/vehicles/edit/$id'
     | '/admin/dashboard'
     | '/admin/user-management'
+    | '/admin/vehicle-management'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -186,9 +248,15 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/auth/verify-otp'
     | '/auth/verify-otp-forgot'
-    | '/vehicle/vehicle_listing'
+    | '/user/profile'
+    | '/vehicles/$id'
+    | '/vehicles/my-vehicles'
+    | '/vehicles/vehicle_listing'
+    | '/admin/vehicle-management/$id'
+    | '/vehicles/edit/$id'
     | '/admin/dashboard'
     | '/admin/user-management'
+    | '/admin/vehicle-management'
   id:
     | '__root__'
     | '/'
@@ -203,9 +271,15 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/auth/verify-otp'
     | '/auth/verify-otp-forgot'
-    | '/vehicle/vehicle_listing'
+    | '/user/profile'
+    | '/vehicles/$id'
+    | '/vehicles/my-vehicles'
+    | '/vehicles/vehicle_listing'
+    | '/admin/vehicle-management/$id'
+    | '/vehicles/edit/$id'
     | '/admin/dashboard/'
     | '/admin/user-management/'
+    | '/admin/vehicle-management/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -214,7 +288,11 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
   MeRoute: typeof MeRoute
-  VehicleVehicle_listingRoute: typeof VehicleVehicle_listingRoute
+  UserProfileRoute: typeof UserProfileRoute
+  VehiclesIdRoute: typeof VehiclesIdRoute
+  VehiclesMyVehiclesRoute: typeof VehiclesMyVehiclesRoute
+  VehiclesVehicle_listingRoute: typeof VehiclesVehicle_listingRoute
+  VehiclesEditIdRoute: typeof VehiclesEditIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -254,11 +332,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/vehicle/vehicle_listing': {
-      id: '/vehicle/vehicle_listing'
-      path: '/vehicle/vehicle_listing'
-      fullPath: '/vehicle/vehicle_listing'
-      preLoaderRoute: typeof VehicleVehicle_listingRouteImport
+    '/vehicles/vehicle_listing': {
+      id: '/vehicles/vehicle_listing'
+      path: '/vehicles/vehicle_listing'
+      fullPath: '/vehicles/vehicle_listing'
+      preLoaderRoute: typeof VehiclesVehicle_listingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vehicles/my-vehicles': {
+      id: '/vehicles/my-vehicles'
+      path: '/vehicles/my-vehicles'
+      fullPath: '/vehicles/my-vehicles'
+      preLoaderRoute: typeof VehiclesMyVehiclesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vehicles/$id': {
+      id: '/vehicles/$id'
+      path: '/vehicles/$id'
+      fullPath: '/vehicles/$id'
+      preLoaderRoute: typeof VehiclesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/user/profile': {
+      id: '/user/profile'
+      path: '/user/profile'
+      fullPath: '/user/profile'
+      preLoaderRoute: typeof UserProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/verify-otp-forgot': {
@@ -310,6 +409,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthAdminLoginRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/admin/vehicle-management/': {
+      id: '/admin/vehicle-management/'
+      path: '/vehicle-management'
+      fullPath: '/admin/vehicle-management'
+      preLoaderRoute: typeof AdminVehicleManagementIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/user-management/': {
       id: '/admin/user-management/'
       path: '/user-management'
@@ -324,17 +430,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDashboardIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/vehicles/edit/$id': {
+      id: '/vehicles/edit/$id'
+      path: '/vehicles/edit/$id'
+      fullPath: '/vehicles/edit/$id'
+      preLoaderRoute: typeof VehiclesEditIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/vehicle-management/$id': {
+      id: '/admin/vehicle-management/$id'
+      path: '/vehicle-management/$id'
+      fullPath: '/admin/vehicle-management/$id'
+      preLoaderRoute: typeof AdminVehicleManagementIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
+  AdminVehicleManagementIdRoute: typeof AdminVehicleManagementIdRoute
   AdminDashboardIndexRoute: typeof AdminDashboardIndexRoute
   AdminUserManagementIndexRoute: typeof AdminUserManagementIndexRoute
+  AdminVehicleManagementIndexRoute: typeof AdminVehicleManagementIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminVehicleManagementIdRoute: AdminVehicleManagementIdRoute,
   AdminDashboardIndexRoute: AdminDashboardIndexRoute,
   AdminUserManagementIndexRoute: AdminUserManagementIndexRoute,
+  AdminVehicleManagementIndexRoute: AdminVehicleManagementIndexRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
@@ -367,7 +491,11 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   MeRoute: MeRoute,
-  VehicleVehicle_listingRoute: VehicleVehicle_listingRoute,
+  UserProfileRoute: UserProfileRoute,
+  VehiclesIdRoute: VehiclesIdRoute,
+  VehiclesMyVehiclesRoute: VehiclesMyVehiclesRoute,
+  VehiclesVehicle_listingRoute: VehiclesVehicle_listingRoute,
+  VehiclesEditIdRoute: VehiclesEditIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
