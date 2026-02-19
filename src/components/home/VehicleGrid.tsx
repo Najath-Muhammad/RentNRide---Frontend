@@ -1,33 +1,53 @@
 import React, { useState, useEffect } from 'react';
 import VehicleCard from './VehicleCard';
-import { UserVehicleApi, type Vehicle } from '../../services/api/user/vehicle.api';
+import { UserVehicleApi } from '../../services/api/user/vehicle.api';
+import type { Vehicle, GridFilters } from '../../types/vehicle.types';
 import { useAuthStore } from '../../stores/authStore';
 
 const VehicleGrid: React.FC<{
-  title: string;
+  title?: string;
   initialRange?: number;
+  minRange?: number;
   limit?: number;
-  showRangeSelector?: boolean
+  showRangeSelector?: boolean;
+  filters?: GridFilters;
+  range?: number;
+  userLocation?: { lat: number; lon: number };
 }> = ({
   title,
   initialRange = 10,
+  minRange,
   limit = 8,
-  showRangeSelector = true
+  showRangeSelector = true,
+  filters: externalFilters,
+  range: externalRange,
+  userLocation: externalLocation
 }) => {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [loading, setLoading] = useState(true);
-    const [range, setRange] = useState(initialRange);
-    const { coordinates } = useAuthStore();
+    const [internalRange, setInternalRange] = useState(initialRange);
+    const { coordinates: storeCoordinates } = useAuthStore();
+
+    const activeRange = externalRange !== undefined ? externalRange : internalRange;
+    const activeCoordinates = externalLocation || storeCoordinates;
 
     useEffect(() => {
       const fetchVehicles = async () => {
         setLoading(true);
         try {
           const res = await UserVehicleApi.getVehicles({
-            lat: coordinates?.lat,
-            lon: coordinates?.lon,
-            range: range,
-            limit: limit
+            lat: activeCoordinates?.lat,
+            lon: activeCoordinates?.lon,
+            range: activeRange,
+            minRange: minRange,
+            limit: limit,
+            search: externalFilters?.search,
+            category: externalFilters?.vehicleType,
+            fuelType: externalFilters?.fuelType,
+            transmission: externalFilters?.transmission,
+            minPrice: externalFilters?.priceRange?.min ? parseInt(externalFilters.priceRange.min) : undefined,
+            maxPrice: externalFilters?.priceRange?.max ? parseInt(externalFilters.priceRange.max) : undefined,
+            sortBy: externalFilters?.sortBy
           });
 
           const vehicleArray = res.data?.data || [];
@@ -41,7 +61,7 @@ const VehicleGrid: React.FC<{
       };
 
       fetchVehicles();
-    }, [coordinates, range]);
+    }, [activeCoordinates, activeRange, externalFilters, limit, minRange]);
 
     if (loading) {
       return (
@@ -52,7 +72,7 @@ const VehicleGrid: React.FC<{
     }
 
     if (vehicles.length === 0) {
-      if (!showRangeSelector) return null; // Don't show empty sections on the home feed
+      if (!showRangeSelector) return null;
 
       return (
         <section className="py-16 bg-gray-50">
@@ -70,9 +90,9 @@ const VehicleGrid: React.FC<{
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">{title}</h2>
-              {coordinates && (
+              {activeCoordinates && (
                 <p className="text-sm text-gray-500 mt-2 font-medium">
-                  Showing results within <span className="text-blue-600 font-bold">{range}km</span>
+                  Showing results within <span className="text-blue-600 font-bold">{activeRange}km</span>
                 </p>
               )}
             </div>
@@ -82,8 +102,8 @@ const VehicleGrid: React.FC<{
                 {[10, 20, 50].map((r) => (
                   <button
                     key={r}
-                    onClick={() => setRange(r)}
-                    className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${range === r
+                    onClick={() => setInternalRange(r)}
+                    className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeRange === r
                       ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
                       : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'
                       }`}
@@ -101,7 +121,6 @@ const VehicleGrid: React.FC<{
             ))}
           </div>
 
-          {/* Optional: Show pagination only if there are multiple pages */}
           <div className="flex justify-center mt-12 space-x-2">
             {[1, 2, 3, 4, 5].map((page) => (
               <button

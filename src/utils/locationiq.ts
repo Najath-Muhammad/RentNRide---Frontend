@@ -48,9 +48,12 @@ export interface ReverseGeocodeResult {
     country_code?: string;
     neighbourhood?: string;
     road?: string;
-    // ... more possible fields
   };
   boundingbox: string[];
+}
+
+interface LocationIQErrorResponse {
+  error?: string;
 }
 
 export const searchLocations = async (query: string): Promise<LocationSuggestion[]> => {
@@ -66,8 +69,8 @@ export const searchLocations = async (query: string): Promise<LocationSuggestion
           key: API_KEY,
           q: query,
           limit: 6,
-          countrycodes: 'in',         
-          addressdetails: 1,           
+          countrycodes: 'in',
+          addressdetails: 1,
           format: 'json',
         },
       }
@@ -75,7 +78,7 @@ export const searchLocations = async (query: string): Promise<LocationSuggestion
 
     return response.data;
   } catch (error) {
-    const err = error as AxiosError;
+    const err = error as AxiosError<LocationIQErrorResponse>;
     console.error('Location search failed:', err.message, err.response?.data);
     throw new Error(
       err.response?.data?.error
@@ -96,14 +99,14 @@ export const reverseGeocode = async (lat: number, lon: number): Promise<ReverseG
           lon,
           format: 'json',
           addressdetails: 1,
-          zoom: 14,                     
+          zoom: 14,
         },
       }
     );
 
     return response.data;
   } catch (error) {
-    const err = error as AxiosError;
+    const err = error as AxiosError<LocationIQErrorResponse>;
     console.error('Reverse geocoding failed:', err.message, err.response?.data);
     throw new Error(
       err.response?.data?.error
@@ -115,6 +118,6 @@ export const reverseGeocode = async (lat: number, lon: number): Promise<ReverseG
 
 export const getDisplayName = (result: ReverseGeocodeResult | null): string => {
   if (!result) return '';
-  return result.display_name || 
-         `${result.address?.village || result.address?.town || result.address?.city || 'Unknown'}, ${result.address?.state || ''}`;
+  return result.display_name ||
+    `${result.address?.village || result.address?.town || result.address?.city || 'Unknown'}, ${result.address?.state || ''}`;
 };

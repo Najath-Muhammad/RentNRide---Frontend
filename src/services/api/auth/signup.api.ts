@@ -19,7 +19,9 @@ export interface GoogleLoginPayload {
 
 export interface AuthResponse {
     success: boolean;
-    user: User;
+    data: {
+        user: User;
+    };
     message?: string;
 }
 

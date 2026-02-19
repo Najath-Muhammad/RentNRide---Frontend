@@ -3,10 +3,10 @@ import React from 'react';
 interface Vehicle {
   brand: string;
   modelName: string;
-  category: string;
-  fuelType: string;
+  category: string | { name: string };
+  fuelType: string | { name: string };
   seatingCapacity: number;
-  doors?: number | null; 
+  doors?: number | null;
 }
 
 interface SpecsTableProps {
@@ -17,8 +17,8 @@ const SpecsTable: React.FC<SpecsTableProps> = ({ vehicle }) => {
   const specs = [
     { label: 'Brand', value: vehicle.brand },
     { label: 'Model', value: vehicle.modelName },
-    { label: 'Category', value: vehicle.category },
-    { label: 'Fuel Type', value: vehicle.fuelType },
+    { label: 'Category', value: typeof vehicle.category === 'object' ? vehicle.category.name : vehicle.category },
+    { label: 'Fuel Type', value: typeof vehicle.fuelType === 'object' ? vehicle.fuelType.name : vehicle.fuelType },
     { label: 'Seating Capacity', value: `${vehicle.seatingCapacity} seats` },
     { label: 'Doors', value: vehicle.doors ?? 'N/A' },
   ];

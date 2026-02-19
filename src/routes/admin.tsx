@@ -7,9 +7,9 @@ export const Route = createFileRoute('/admin')({
   beforeLoad: async ({ location }) => {
     try {
       const response = await AuthApi.getCurrentUser()
-      const payload = (response as any).data || response
+      const payload = response
 
-      if (payload.user && payload.user.role === 'admin') {
+      if (payload.data?.user && payload.data.user.role === 'admin') {
         return { userData: response }
       }
       throw redirect({

@@ -2,12 +2,12 @@ import { api } from "../../../utils/axios";
 
 export interface VehicleListItem {
   _id: string;
-  ownerId: string; 
+  ownerId: string | { name: string; _id: string };
   brand: string;
   modelName: string;
-  category: string;
+  category: string | { name: string };
   category2?: string;
-  fuelType: string;
+  fuelType: string | { name: string };
   seatingCapacity: number;
   doors?: number;
   pricePerDay: number;
@@ -44,7 +44,8 @@ export interface PaginatedVehiclesResponse {
 }
 
 export const VehicleApi = {
-  getVehicles: async (params: {page?: number;limit?: number;search?: string;category?: string;status?: string;fuelType?: string;
+  getVehicles: async (params: {
+    page?: number; limit?: number; search?: string; category?: string; status?: string; fuelType?: string;
   }): Promise<PaginatedVehiclesResponse> => {
     const response = await api.get<{
       success: boolean;

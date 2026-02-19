@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { useSearch } from '@tanstack/react-router';
 import { useAuthStore } from '../../stores/authStore';
 import { type LoginFormData } from '../../types/auth.types';
 import { type AxiosError } from 'axios';
@@ -25,7 +25,7 @@ const AdminLogin: React.FC = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  const navigate = useNavigate();
+  const searchParams = useSearch({ from: '/auth/admin-login' }) as { redirect?: string };
 
   const validateEmail = (email: string): string | undefined => {
     if (!email) {
@@ -121,10 +121,25 @@ const AdminLogin: React.FC = () => {
         const response = await LoginApi.adminLogin(formData.email, formData.password)
         const responseData = response.data;
 
+        console.log('Admin login response:', response);
+        console.log('Response data:', responseData);
+        console.log('Response data keys:', Object.keys(responseData));
+
         if (responseData.success) {
           console.log('Login successful:', responseData);
+          console.log('Search params:', searchParams);
+          console.log('Redirect URL:', searchParams.redirect);
+
           useAuthStore.getState().setUser(responseData.user);
-          navigate({ to: '/admin/dashboard'});
+
+          // Navigate to redirect URL if provided, otherwise go to admin dashboard
+          const redirectUrl = searchParams.redirect || '/admin/dashboard';
+          console.log('Final redirect URL:', redirectUrl);
+
+          // Use window.location.href to force a full page reload
+          // This ensures the auth store state is properly recognized
+          window.location.href = redirectUrl;
+          console.log('Navigation called to:', redirectUrl);
         } else {
           if (responseData.error === 'You are not admin') {
             setErrors({ general: 'Access denied: You are not authorized as admin.' });

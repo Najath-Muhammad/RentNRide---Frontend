@@ -1,0 +1,12 @@
+import { createFileRoute } from '@tanstack/react-router'
+import Log
+
+export const Route = createFileRoute('/auth/admin-login')({
+  component: Login,
+  validateSearch: (search: Record<string, unknown>): { redirect?: string } => {
+    return {
+      redirect: typeof search.redirect === 'string' ? search.redirect : undefined,
+    }
+  },
+})
+

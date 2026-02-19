@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { Loader2 } from 'lucide-react';
 
 interface ConfirmationModalProps {
     isOpen: boolean;
@@ -9,6 +10,7 @@ interface ConfirmationModalProps {
     confirmText?: string;
     cancelText?: string;
     type?: 'danger' | 'warning' | 'info';
+    isLoading?: boolean;
 }
 
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
@@ -20,6 +22,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     confirmText = 'Confirm',
     cancelText = 'Cancel',
     type = 'danger',
+    isLoading = false,
 }) => {
     const cancelButtonRef = useRef(null);
 
@@ -28,74 +31,87 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     const getButtonColor = () => {
         switch (type) {
             case 'danger':
-                return 'bg-red-600 hover:bg-red-700 focus:ring-red-500';
+                return 'bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 focus:ring-red-500';
             case 'warning':
-                return 'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500';
+                return 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 focus:ring-orange-500';
             default:
-                return 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500';
+                return 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 focus:ring-blue-500';
         }
     };
 
     const getIconColor = () => {
         switch (type) {
             case 'danger':
-                return 'bg-red-100 text-red-600';
+                return 'bg-red-50 text-red-500';
             case 'warning':
-                return 'bg-yellow-100 text-yellow-600';
+                return 'bg-orange-50 text-orange-500';
             default:
-                return 'bg-blue-100 text-blue-600';
+                return 'bg-blue-50 text-blue-500';
         }
-    }
+    };
+
+    const getTopBorder = () => {
+        switch (type) {
+            case 'danger':
+                return 'bg-gradient-to-r from-red-400 via-red-500 to-rose-500';
+            case 'warning':
+                return 'bg-gradient-to-r from-amber-400 via-orange-500 to-orange-600';
+            default:
+                return 'bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600';
+        }
+    };
 
     return (
-        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-            <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <div className="fixed inset-0 z-[90] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div className="flex min-h-screen items-center justify-center p-4">
                 {/* Background overlay */}
                 <div
-                    className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
                     aria-hidden="true"
-                    onClick={onClose}
-                ></div>
-
-                {/* This element is to trick the browser into centering the modal contents. */}
-                <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&#8203;</span>
+                    onClick={isLoading ? undefined : onClose}
+                />
 
                 {/* Modal panel */}
-                <div className="inline-block transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
-                    <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                        <div className="sm:flex sm:items-start">
-                            <div className={`mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full sm:mx-0 sm:h-10 sm:w-10 ${getIconColor()}`}>
-                                <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <div className="relative bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all animate-in zoom-in-95 duration-300">
+                    {/* Gradient top border */}
+                    <div className={`h-2 ${getTopBorder()}`} />
+
+                    <div className="p-8">
+                        <div className="flex items-start gap-4">
+                            <div className={`flex-shrink-0 flex items-center justify-center h-16 w-16 rounded-full ${getIconColor()}`}>
+                                <svg className="h-8 w-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                 </svg>
                             </div>
-                            <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                                <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                            <div className="flex-1">
+                                <h3 className="text-2xl font-bold text-gray-900 mb-2" id="modal-title">
                                     {title}
                                 </h3>
-                                <div className="mt-2">
-                                    <p className="text-sm text-gray-500">
-                                        {message}
-                                    </p>
-                                </div>
+                                <p className="text-gray-600 leading-relaxed">
+                                    {message}
+                                </p>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+
+                    <div className="px-8 pb-8 flex gap-3">
                         <button
                             type="button"
-                            className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm ${getButtonColor()}`}
-                            onClick={onConfirm}
+                            className="flex-1 px-6 py-3.5 rounded-xl border-2 border-gray-200 text-gray-700 font-bold hover:bg-gray-50 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={onClose}
+                            ref={cancelButtonRef}
+                            disabled={isLoading}
                         >
-                            {confirmText}
+                            {cancelText}
                         </button>
                         <button
                             type="button"
-                            className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                            onClick={onClose}
-                            ref={cancelButtonRef}
+                            className={`flex-1 px-6 py-3.5 rounded-xl font-bold text-white shadow-lg transition-all hover:shadow-xl hover:-translate-y-0.5 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${getButtonColor()}`}
+                            onClick={onConfirm}
+                            disabled={isLoading}
                         >
-                            {cancelText}
+                            {isLoading && <Loader2 className="w-5 h-5 animate-spin" />}
+                            {isLoading ? 'Processing...' : confirmText}
                         </button>
                     </div>
                 </div>

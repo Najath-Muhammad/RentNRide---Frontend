@@ -10,7 +10,9 @@ export interface VerifyOtpPayload {
 export interface VerifyOtpResponse {
     success: boolean;
     message: string;
-    user: User;
+    data: {
+        user: User;
+    };
 }
 
 export interface ResendOtpPayload {

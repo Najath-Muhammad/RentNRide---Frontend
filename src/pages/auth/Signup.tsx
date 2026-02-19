@@ -102,7 +102,7 @@ export default function SignupPage() {
 
       if (res.success) {
         navigate({ to: "/" });
-        useAuthStore.getState().setUser(res.user)
+        useAuthStore.getState().setUser(res.data.user)
       }
     } catch (error) {
       const err = error as AxiosError<{ message: string }>;

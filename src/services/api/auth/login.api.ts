@@ -19,11 +19,11 @@ export interface AuthUser {
 }
 
 export interface LoginResponse {
-  data: any;
   success: boolean;
   message?: string;
-  user: AuthUser;
-  // token?: string; // if using JWT instead of cookies
+  data: {
+    user: AuthUser;
+  };
 }
 
 export const AuthApi = {
@@ -43,8 +43,8 @@ export const AuthApi = {
     const response = await api.post(APIAuthRoutes.LOGOUT, {}, { withCredentials: true });
     return response.data;
   },
-  getCurrentUser: async (): Promise<{ user: AuthUser; success: boolean }> => {
-    const response = await api.get<{ user: AuthUser; success: boolean }>(APIAuthRoutes.ME);
+  getCurrentUser: async (): Promise<{ success: boolean; message: string; data: { user: AuthUser } }> => {
+    const response = await api.get<{ success: boolean; message: string; data: { user: AuthUser } }>(APIAuthRoutes.ME);
     return response.data;
   },
 };

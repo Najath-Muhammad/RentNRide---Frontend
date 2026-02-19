@@ -208,7 +208,7 @@ const AdminTable = <T extends { _id?: string } & Record<string, unknown>>({
                     <tr key={item._id || index} className="hover:bg-gray-50">
                       {columns.map((column) => (
                         <td key={column.key} className="px-6 py-4 text-sm text-gray-900">
-                          {String(item[column.key])}
+                          {item[column.key] as React.ReactNode}
                         </td>
                       ))}
 

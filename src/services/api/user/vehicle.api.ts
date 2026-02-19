@@ -1,53 +1,37 @@
 import { api } from "../../../utils/axios";
 
-export interface Vehicle {
-    ownerId: any;
-    _id: string;
-    brand: string;
-    modelName: string;
-    category: string;
-    fuelType: string;
-    seatingCapacity: number;
-    pricePerDay: number;
-    pickupAddress: string;
-    vehicleImages: string[];
-    isApproved: boolean;
-    isRejected?: boolean;
-    rejectionReason?: string;
-    isActive: boolean;
-    createdAt: string;
-    doors?: number;
-    regionalContact: string;
-    rcNumber: string;
-    rcExpiryDate: string;
-    rcImage: string;
-    insuranceProvider: string;
-    insurancePolicyNumber: string;
-    insuranceExpiryDate: string;
-    insuranceImage: string;
-}
+import type { Vehicle, PaginatedVehiclesResponse } from "../../../types/vehicle.types";
 
-export interface PaginatedVehiclesResponse {
-    success: boolean;
-    data: {
-        data: Vehicle[];
-        total: number;
-        page: number;
-        totalPages: number;
-    };
-}
+import type { AxiosRequestConfig } from 'axios';
 
 export const UserVehicleApi = {
-    getVehicles: async (params?: { page?: number; limit?: number; lat?: number; lon?: number; range?: number }): Promise<PaginatedVehiclesResponse> => {
-        const response = await api.get<PaginatedVehiclesResponse>('/vehicles', {
+    getVehicles: async (params?: {
+        page?: number;
+        limit?: number;
+        lat?: number;
+        lon?: number;
+        range?: number;
+        minRange?: number;
+        search?: string;
+        category?: string[];
+        fuelType?: string[];
+        transmission?: string[];
+        minPrice?: number;
+        maxPrice?: number;
+        sortBy?: string;
+    }): Promise<PaginatedVehiclesResponse> => {
+        const config: AxiosRequestConfig = {
             params,
             _skipAuthRefresh: true
-        });
+        };
+        const response = await api.get<PaginatedVehiclesResponse>('/vehicles', config);
         return response.data;
     },
 
-    getMyVehicles: async (): Promise<{ success: boolean; vehicles: Vehicle[] }> => {
-        const response = await api.get<{ success: boolean; vehicles: Vehicle[] }>('/vehicles/my-vehicles', {
+    getMyVehicles: async (): Promise<{
+        success: boolean; data: { vehicles: Vehicle[] }
+    }> => {
+        const response = await api.get<{ success: boolean; data: { vehicles: Vehicle[] } }>('/vehicles/my-vehicles', {
             withCredentials: true
         });
         return response.data;
@@ -58,14 +42,14 @@ export const UserVehicleApi = {
         return response.data;
     },
 
-    createVehicle: async (payload: any): Promise<{
+    createVehicle: async (payload: Partial<Vehicle>): Promise<{
         message: string; success: boolean
     }> => {
         const response = await api.post<{ success: boolean; message: string }>('vehicles/createVehicle', payload);
         return response.data;
     },
 
-    updateVehicle: async (id: string, payload: any): Promise<{ success: boolean }> => {
+    updateVehicle: async (id: string, payload: Partial<Vehicle>): Promise<{ success: boolean }> => {
         const response = await api.patch<{ success: boolean }>(`/vehicles/${id}`, payload, {
             withCredentials: true
         });

@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Camera, Edit2, Save, X, Lock, Crown, Mail, Phone, Calendar, ShieldCheck, ChevronRight, Loader2, User as UserIcon, BadgeCheck } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Camera, Edit2, Save, X, Lock, Crown, Mail, Phone, Calendar, ShieldCheck, ChevronRight, Loader2, User as UserIcon, BadgeCheck, CheckCircle, Car } from 'lucide-react';
+import { AxiosError } from 'axios';
 import type { UserProfile, SubscriptionStatus } from '../../services/api/user/profile.api';
 import { ProfileApi } from '../../services/api/user/profile.api';
 import { uploadToS3 } from '../../utils/s3';
 import Navbar from '../../components/user/Navbar';
+import { SubscriptionApi, type SubscriptionPlan } from '../../services/api/admin/subscription.api';
 
 const Profile: React.FC = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -24,11 +26,17 @@ const Profile: React.FC = () => {
   const [messages, setMessages] = useState<Record<string, string>>({});
   const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    loadProfileData();
+  const showError = useCallback((key: string, msg: string) => {
+    setErrors(prev => ({ ...prev, [key]: msg }));
+    setTimeout(() => setErrors(prev => ({ ...prev, [key]: '' })), 5000);
   }, []);
 
-  const loadProfileData = async () => {
+  const showMessage = useCallback((key: string, msg: string) => {
+    setMessages(prev => ({ ...prev, [key]: msg }));
+    setTimeout(() => setMessages(prev => ({ ...prev, [key]: '' })), 5000);
+  }, []);
+
+  const loadProfileData = useCallback(async () => {
     try {
       setLoading(true);
       const [profileRes, subRes] = await Promise.allSettled([
@@ -49,22 +57,16 @@ const Profile: React.FC = () => {
       } else {
         setSubscription({ plan: 'free', expiresAt: null });
       }
-    } catch (error) {
+    } catch {
       showError('main', 'An unexpected error occurred while loading profile');
     } finally {
       setLoading(false)
     }
-  };
+  }, [showError]);
 
-  const showError = (key: string, msg: string) => {
-    setErrors(prev => ({ ...prev, [key]: msg }));
-    setTimeout(() => setErrors(prev => ({ ...prev, [key]: '' })), 5000);
-  };
-
-  const showMessage = (key: string, msg: string) => {
-    setMessages(prev => ({ ...prev, [key]: msg }));
-    setTimeout(() => setMessages(prev => ({ ...prev, [key]: '' })), 5000);
-  };
+  useEffect(() => {
+    loadProfileData();
+  }, [loadProfileData]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -99,8 +101,9 @@ const Profile: React.FC = () => {
       setProfile(prev => prev ? { ...prev, profilePhoto: publicUrl } : null);
       showMessage('photo', 'Profile photo updated successfully');
       setSelectedFile(null);
-    } catch (error: any) {
-      showError('photo', error.response?.data?.message || 'Failed to update photo');
+    } catch (error) {
+      const err = error as AxiosError<{ message: string }>;
+      showError('photo', err.response?.data?.message || 'Failed to update photo');
     } finally {
       setActionLoading(prev => ({ ...prev, photo: false }));
     }
@@ -128,23 +131,45 @@ const Profile: React.FC = () => {
         setIsEditing(false);
         showMessage('profile', 'Profile details updated');
       }
-    } catch (error: any) {
-      showError('profile', error.response?.data?.message || 'Failed to update profile');
+    } catch (error) {
+      const err = error as AxiosError<{ message: string }>;
+      showError('profile', err.response?.data?.message || 'Failed to update profile');
     } finally {
       setActionLoading(prev => ({ ...prev, profile: false }));
     }
   };
 
-  const handleUpgradePremium = async () => {
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [availablePlans, setAvailablePlans] = useState<SubscriptionPlan[]>([]);
+  const [plansLoading, setPlansLoading] = useState(false);
+  const [selectedPlanId, setSelectedPlanId] = useState<string>('');
+
+  const handleUpgradeClick = async () => {
+    setShowUpgradeModal(true);
+    setSelectedPlanId('');
+    setPlansLoading(true);
+    try {
+      const plans = await SubscriptionApi.getPublicPlans();
+      setAvailablePlans(plans);
+      if (plans.length > 0) setSelectedPlanId(plans[0]._id);
+    } catch {
+      setAvailablePlans([]);
+    } finally {
+      setPlansLoading(false);
+    }
+  };
+
+  const handleConfirmUpgrade = async () => {
+    if (!selectedPlanId) return;
+    setShowUpgradeModal(false);
     try {
       setActionLoading(prev => ({ ...prev, premium: true }));
-      const response = await ProfileApi.upgradeToPremium();
-      if (response.success) {
-        await loadProfileData();
-        showMessage('subscription', 'Welcome to Premium! Your account has been upgraded.');
-      }
-    } catch (error: any) {
-      showError('subscription', error.response?.data?.message || 'Upgrade failed. Please try again.');
+      await SubscriptionApi.selfSubscribe(selectedPlanId);
+      await loadProfileData();
+      showMessage('subscription', 'Welcome to Premium! Your subscription is now active.');
+    } catch (error) {
+      const err = error as AxiosError<{ message: string }>;
+      showError('subscription', err.response?.data?.message || 'Upgrade failed. Please try again.');
     } finally {
       setActionLoading(prev => ({ ...prev, premium: false }));
     }
@@ -174,8 +199,9 @@ const Profile: React.FC = () => {
         setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
         showMessage('password', 'Security credentials updated safely');
       }
-    } catch (error: any) {
-      showError('password', error.response?.data?.message || 'Verification failed. Incorrect current password?');
+    } catch (error) {
+      const err = error as AxiosError<{ message: string }>;
+      showError('password', err.response?.data?.message || 'Verification failed. Incorrect current password?');
     } finally {
       setActionLoading(prev => ({ ...prev, password: false }));
     }
@@ -227,6 +253,10 @@ const Profile: React.FC = () => {
     );
   }
 
+  const isPremiumActive = subscription?.plan === 'premium' &&
+    subscription.expiresAt &&
+    new Date(subscription.expiresAt) > new Date();
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -259,7 +289,15 @@ const Profile: React.FC = () => {
                     <BadgeCheck className="text-blue-500 w-5 h-5" />
                   )}
                 </h2>
-                <p className="text-gray-500 font-medium text-sm mb-6">{profile.email}</p>
+                <p className="text-gray-500 font-medium text-sm mb-2">{profile.email}</p>
+                {profile.googleId && (
+                  <div className="flex justify-center mb-6">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold border border-blue-100 shadow-sm">
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg"><g fill="none" fillRule="evenodd"><path d="M20.64 12.2045c0-.6381-.0573-1.2518-.1636-1.8409H12v3.4814h4.8436c-.2086 1.125-.8427 2.0782-1.7959 2.7164v2.2581h2.9087c1.7018-1.5668 2.6836-3.874 2.6836-6.615z" fill="#4285F4" /><path d="M12 21c2.43 0 4.4673-.806 5.9564-2.1805l-2.9087-2.2581c-.8059.54-1.8368.859-3.0477.859-2.344 0-4.3282-1.5831-5.036-3.7104H3.9574v2.3318C5.4382 18.9832 8.4818 21 12 21z" fill="#34A853" /><path d="M6.964 13.71c-.18-.54-.2822-1.1168-.2822-1.71s.1023-1.17.2823-1.71V7.9582H3.9573A8.9965 8.9965 0 0 0 3 12c0 1.4523.3477 2.8268.9573 4.0418L6.964 13.71z" fill="#FBBC05" /><path d="M12 5.09c1.3214 0 2.5077.4541 3.4405 1.346l2.5813-2.5814C16.4632 2.3991 14.426 1.5 12 1.5 8.4818 1.5 5.4382 3.5168 3.9574 6.4582l3.0066 2.3318C7.6718 6.6732 9.656 5.09 12 5.09z" fill="#EA4335" /></g></svg>
+                      Google Authenticated
+                    </span>
+                  </div>
+                )}
 
                 {selectedFile && (
                   <button
@@ -290,7 +328,7 @@ const Profile: React.FC = () => {
             </div>
 
             {/* Loyalty/Premium Banner */}
-            {subscription?.plan !== 'premium' ? (
+            {!isPremiumActive ? (
               <div className="bg-slate-900 rounded-3xl p-6 text-white shadow-card relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-8 opacity-10 transform translate-x-4 -translate-y-4">
                   <Crown size={120} />
@@ -306,7 +344,7 @@ const Profile: React.FC = () => {
                     Get prioritized support, zero deposits, and exclusive deals.
                   </p>
                   <button
-                    onClick={handleUpgradePremium}
+                    onClick={handleUpgradeClick}
                     disabled={actionLoading.premium}
                     className="w-full bg-white text-slate-900 py-3 rounded-xl font-bold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 text-sm"
                   >
@@ -434,8 +472,27 @@ const Profile: React.FC = () => {
               </div>
             </section>
 
-            {/* Security Section - Only show for non-Google authenticated users */}
-            {!profile.googleId && (
+            {/* Security Section */}
+            {profile.googleId ? (
+              <section className="bg-white rounded-3xl shadow-card border border-gray-100 overflow-hidden">
+                <div className="px-8 py-6 border-b border-gray-50 flex items-center gap-3 bg-gray-50/50">
+                  <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                    <ShieldCheck size={20} />
+                  </div>
+                  <h2 className="text-lg font-bold text-gray-900">Security Settings</h2>
+                </div>
+
+                <div className="p-12 flex flex-col items-center text-center">
+                  <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-6 shadow-sm">
+                    <svg className="w-10 h-10" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g fill="none" fillRule="evenodd"><path d="M20.64 12.2045c0-.6381-.0573-1.2518-.1636-1.8409H12v3.4814h4.8436c-.2086 1.125-.8427 2.0782-1.7959 2.7164v2.2581h2.9087c1.7018-1.5668 2.6836-3.874 2.6836-6.615z" fill="#4285F4" /><path d="M12 21c2.43 0 4.4673-.806 5.9564-2.1805l-2.9087-2.2581c-.8059.54-1.8368.859-3.0477.859-2.344 0-4.3282-1.5831-5.036-3.7104H3.9574v2.3318C5.4382 18.9832 8.4818 21 12 21z" fill="#34A853" /><path d="M6.964 13.71c-.18-.54-.2822-1.1168-.2822-1.71s.1023-1.17.2823-1.71V7.9582H3.9573A8.9965 8.9965 0 0 0 3 12c0 1.4523.3477 2.8268.9573 4.0418L6.964 13.71z" fill="#FBBC05" /><path d="M12 5.09c1.3214 0 2.5077.4541 3.4405 1.346l2.5813-2.5814C16.4632 2.3991 14.426 1.5 12 1.5 8.4818 1.5 5.4382 3.5168 3.9574 6.4582l3.0066 2.3318C7.6718 6.6732 9.656 5.09 12 5.09z" fill="#EA4335" /></g></svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">Google Authenticated</h3>
+                  <p className="text-gray-500 max-w-sm leading-relaxed">
+                    Your account is securely linked with Google. You don't need to manage a separate password here.
+                  </p>
+                </div>
+              </section>
+            ) : (
               <section className="bg-white rounded-3xl shadow-card border border-gray-100 overflow-hidden">
                 <div className="px-8 py-6 border-b border-gray-50 flex items-center gap-3 bg-gray-50/50">
                   <div className="p-2 bg-orange-100 text-orange-600 rounded-lg">
@@ -506,6 +563,121 @@ const Profile: React.FC = () => {
           </div>
         </div>
       </main>
+
+      {/* Plan Picker Upgrade Modal */}
+      {showUpgradeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowUpgradeModal(false)} />
+          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-300">
+            {/* Gradient top bar */}
+            <div className="h-1.5 bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 rounded-t-3xl" />
+
+            <div className="p-8">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-yellow-50 to-amber-100 rounded-2xl flex items-center justify-center border border-amber-200">
+                    <Crown className="w-6 h-6 text-amber-500" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">Choose a Plan</h3>
+                    <p className="text-sm text-gray-500">Select the subscription that fits you best</p>
+                  </div>
+                </div>
+                <button onClick={() => setShowUpgradeModal(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+
+              {/* Plans */}
+              {plansLoading ? (
+                <div className="flex items-center justify-center py-16">
+                  <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+                </div>
+              ) : availablePlans.length === 0 ? (
+                <div className="text-center py-12">
+                  <Crown className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 font-medium">No plans available at the moment.</p>
+                  <p className="text-gray-400 text-sm mt-1">Please contact support to get a subscription.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                  {availablePlans.map((plan) => {
+                    const isSelected = selectedPlanId === plan._id;
+                    return (
+                      <button
+                        key={plan._id}
+                        onClick={() => setSelectedPlanId(plan._id)}
+                        className={`relative text-left rounded-2xl border-2 p-5 transition-all duration-200 ${isSelected
+                          ? 'border-amber-400 bg-amber-50 shadow-md shadow-amber-100'
+                          : 'border-gray-200 bg-white hover:border-amber-200 hover:bg-amber-50/30'
+                          }`}
+                      >
+                        {/* Selected checkmark */}
+                        {isSelected && (
+                          <div className="absolute top-3 right-3">
+                            <CheckCircle className="w-5 h-5 text-amber-500" />
+                          </div>
+                        )}
+
+                        {/* Plan name & price */}
+                        <div className="mb-3">
+                          <p className="font-bold text-gray-900 text-base">{plan.name}</p>
+                          <div className="flex items-baseline gap-1 mt-1">
+                            <span className="text-2xl font-extrabold text-amber-600">₹{plan.price.toLocaleString()}</span>
+                            <span className="text-sm text-gray-400">/ {plan.durationDays} days</span>
+                          </div>
+                        </div>
+
+                        {/* Vehicle limit */}
+                        <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
+                          <Car className="w-4 h-4 text-gray-400" />
+                          <span>List up to <strong>{plan.vehicleLimit}</strong> vehicle{plan.vehicleLimit !== 1 ? 's' : ''}</span>
+                        </div>
+
+                        {/* Features */}
+                        {plan.features.length > 0 && (
+                          <ul className="space-y-1.5">
+                            {plan.features.slice(0, 3).map((f, i) => (
+                              <li key={i} className="flex items-center gap-2 text-xs text-gray-600">
+                                <CheckCircle className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+                                {f}
+                              </li>
+                            ))}
+                            {plan.features.length > 3 && (
+                              <li className="text-xs text-gray-400 pl-5">+{plan.features.length - 3} more</li>
+                            )}
+                          </ul>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Actions */}
+              {!plansLoading && availablePlans.length > 0 && (
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowUpgradeModal(false)}
+                    className="flex-1 py-3.5 border-2 border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-colors text-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleConfirmUpgrade}
+                    disabled={!selectedPlanId}
+                    className="flex-1 py-3.5 bg-gradient-to-r from-yellow-500 to-amber-500 text-white font-bold rounded-xl hover:from-yellow-600 hover:to-amber-600 transition-all shadow-lg shadow-amber-500/20 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    <Crown className="w-4 h-4" />
+                    Confirm Upgrade
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

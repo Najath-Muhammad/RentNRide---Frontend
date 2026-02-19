@@ -1,11 +1,9 @@
 import { createRootRoute, Outlet } from '@tanstack/react-router';
-import GuestNotFound from '../components/NotFoundComponents/GuestNotFound'; 
+import NotFound from '../components/NotFoundComponents/NotFound';
 
 
 export const Route = createRootRoute({
-
-  notFoundComponent:GuestNotFound,
-
+  notFoundComponent: NotFound,
   component: () => (
     <>
       <Outlet />

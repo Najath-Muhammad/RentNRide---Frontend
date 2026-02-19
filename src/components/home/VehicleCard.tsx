@@ -8,7 +8,7 @@ interface Vehicle {
   modelName: string;
   pricePerDay: number;
   vehicleImages: string[];
-  category?: string;
+  category?: string | { name: string };
 }
 
 interface VehicleCardProps {
@@ -33,7 +33,9 @@ const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle }) => {
         </div>
         <div className="p-5 flex flex-col flex-grow">
           <div className="mb-4">
-            <p className="text-xs font-bold text-blue-600 uppercase tracking-wide mb-1">{vehicle.category || 'Standard'}</p>
+            <p className="text-xs font-bold text-blue-600 uppercase tracking-wide mb-1">
+              {typeof vehicle.category === 'object' ? vehicle.category.name : vehicle.category || 'Standard'}
+            </p>
             <h3 className="font-bold text-xl text-gray-900 group-hover:text-blue-600 transition-colors">{vehicle.brand} {vehicle.modelName}</h3>
           </div>
 

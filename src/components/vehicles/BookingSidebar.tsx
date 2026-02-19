@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { CheckCircle } from 'lucide-react';
 import { BookingApi } from '../../services/api/booking/booking.api';
+import { AxiosError } from 'axios';
 
 interface BookingSidebarProps {
   pricePerDay?: number;
@@ -74,17 +75,25 @@ const BookingSidebar: React.FC<BookingSidebarProps> = ({
       };
 
       const response = await BookingApi.createBooking(bookingData);
-      
+
       console.log('Booking created successfully:', response.data);
-      
+
       setShowSuccessModal(true);
 
       setTimeout(() => {
         navigate({ to: '/' });
       }, 2000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Booking failed:', err);
-      setError(err.response?.data?.message || 'Booking failed. Please try again.');
+      let errorMessage = 'Booking failed. Please try again.';
+
+      if (err instanceof AxiosError) {
+        errorMessage = err.response?.data?.message || errorMessage;
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -162,11 +171,10 @@ const BookingSidebar: React.FC<BookingSidebarProps> = ({
           <button
             onClick={handleBookNow}
             disabled={!pickupDate || !returnDate || !!error || isSubmitting}
-            className={`w-full py-4 rounded-lg font-semibold text-lg transition ${
-              !pickupDate || !returnDate || !!error || isSubmitting
+            className={`w-full py-4 rounded-lg font-semibold text-lg transition ${!pickupDate || !returnDate || !!error || isSubmitting
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 : 'bg-emerald-600 text-white hover:bg-emerald-700'
-            }`}
+              }`}
           >
             {isSubmitting ? 'Processing...' : 'Book Now'}
           </button>

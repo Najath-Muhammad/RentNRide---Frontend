@@ -66,7 +66,16 @@ const Login = () => {
         console.log('this is working')
         useAuthStore.getState().setUser(response.data.user);
         setErrors({ general: 'Login successful! Redirecting...' });
-        setTimeout(() => navigate({ to: '/' }), 1200);
+
+        setTimeout(() => {
+          if (response.data.user.role === 'admin') {
+            navigate({ to: '/admin/dashboard' });
+          } else {
+            navigate({ to: '/' });
+          }
+        }, 1200);
+      } else {
+        setErrors({ general: response.message || 'Login failed' });
       }
     } catch (err) {
       const error = err as AxiosError<{ message?: string }>;
@@ -91,7 +100,14 @@ const Login = () => {
       if (response.success) {
         useAuthStore.getState().setUser(response.data.user);
         setErrors({ general: 'Google login successful! Redirecting...' });
-        setTimeout(() => navigate({ to: '/' }), 1200);
+
+        setTimeout(() => {
+          if (response.data.user.role === 'admin') {
+            navigate({ to: '/admin/dashboard' });
+          } else {
+            navigate({ to: '/' });
+          }
+        }, 1200);
       }
     } catch (err) {
       const error = err as AxiosError<{ message?: string }>;
@@ -130,8 +146,8 @@ const Login = () => {
             {errors.general && (
               <div
                 className={`mb-6 p-4 rounded-lg text-center text-sm font-medium border ${errors.general.includes('successful')
-                    ? 'bg-green-50 text-green-800 border-green-200'
-                    : 'bg-red-50 text-red-800 border-red-200'
+                  ? 'bg-green-50 text-green-800 border-green-200'
+                  : 'bg-red-50 text-red-800 border-red-200'
                   }`}
               >
                 {errors.general}
@@ -154,8 +170,8 @@ const Login = () => {
                   onBlur={() => setErrors((prev) => ({ ...prev, email: validateEmail(email) }))}
                   disabled={isLoading || googleLoading}
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${errors.email
-                      ? 'border-red-500 bg-red-50 focus:ring-red-500'
-                      : 'border-gray-300 focus:border-blue-500'
+                    ? 'border-red-500 bg-red-50 focus:ring-red-500'
+                    : 'border-gray-300 focus:border-blue-500'
                     }`}
                   placeholder="Enter your email"
                 />
@@ -180,8 +196,8 @@ const Login = () => {
                     onBlur={() => setErrors((prev) => ({ ...prev, password: validatePassword(password) }))}
                     disabled={isLoading || googleLoading}
                     className={`w-full px-4 py-3 pr-12 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${errors.password
-                        ? 'border-red-500 bg-red-50 focus:ring-red-500'
-                        : 'border-gray-300 focus:border-blue-500'
+                      ? 'border-red-500 bg-red-50 focus:ring-red-500'
+                      : 'border-gray-300 focus:border-blue-500'
                       }`}
                     placeholder="Enter your password"
                   />
@@ -205,8 +221,8 @@ const Login = () => {
                 type="submit"
                 disabled={isLoading || googleLoading}
                 className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-colors flex items-center justify-center gap-2 ${isLoading || googleLoading
-                    ? 'bg-blue-400 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800'
+                  ? 'bg-blue-400 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800'
                   }`}
               >
                 {isLoading ? (

@@ -50,11 +50,13 @@ const Home: React.FC = () => {
           <VehicleGrid
             title="Exploring Nearby"
             initialRange={50}
+            minRange={10}
             limit={4}
             showRangeSelector={false}
           />
           <VehicleGrid
             title="All Available Rides"
+            minRange={50}
             showRangeSelector={true} // Allow user to play with the range here
           />
         </>

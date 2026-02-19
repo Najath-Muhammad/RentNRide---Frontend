@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { X, Plus, Crown, Users } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { X, Plus, Crown, Users, Search } from 'lucide-react';
 import AdminTable from '../../components/admin/AdminTable';
 import { AdminSidebar } from '../../components/admin/AdminSidebar';
 import {
@@ -7,6 +7,7 @@ import {
     type SubscriptionPlan,
     type UserSubscription,
 } from '../../services/api/admin/subscription.api';
+import { UserApi, type User as AdminUser } from '../../services/api/admin/user.management.api';
 import { AxiosError } from 'axios';
 
 const ITEMS_PER_PAGE = 10;
@@ -59,6 +60,14 @@ const SubscriptionManagement: React.FC = () => {
     const [assignPlanId, setAssignPlanId] = useState('');
     const [activePlans, setActivePlans] = useState<SubscriptionPlan[]>([]);
     const [assigning, setAssigning] = useState(false);
+
+    // User search for assign modal
+    const [userSearch, setUserSearch] = useState('');
+    const [userResults, setUserResults] = useState<AdminUser[]>([]);
+    const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+    const [userSearchLoading, setUserSearchLoading] = useState(false);
+    const [showUserDropdown, setShowUserDropdown] = useState(false);
+    const userSearchRef = useRef<HTMLDivElement>(null);
 
     // ── Modal ────────────────────────────────────────────────────────────────
     const [modal, setModal] = useState<{
@@ -130,6 +139,37 @@ const SubscriptionManagement: React.FC = () => {
     useEffect(() => { loadPlans(); }, [loadPlans]);
     useEffect(() => { loadUserSubs(); }, [loadUserSubs]);
     useEffect(() => { setSubPage(1); }, [subStatus]);
+
+    // Close user dropdown on outside click
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (userSearchRef.current && !userSearchRef.current.contains(e.target as Node)) {
+                setShowUserDropdown(false);
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
+    // Debounced user search
+    useEffect(() => {
+        if (!userSearch.trim() || userSearch.length < 2) {
+            setUserResults([]);
+            return;
+        }
+        const t = setTimeout(async () => {
+            setUserSearchLoading(true);
+            try {
+                const res = await UserApi.getUsers({ search: userSearch, limit: 8 });
+                setUserResults(res.users);
+            } catch {
+                setUserResults([]);
+            } finally {
+                setUserSearchLoading(false);
+            }
+        }, 400);
+        return () => clearTimeout(t);
+    }, [userSearch]);
 
     // ── Plan Modal ────────────────────────────────────────────────────────────
     const openPlanModal = (plan?: SubscriptionPlan) => {
@@ -210,14 +250,18 @@ const SubscriptionManagement: React.FC = () => {
         }
         setAssignUserId('');
         setAssignPlanId('');
+        setSelectedUser(null);
+        setUserSearch('');
+        setUserResults([]);
         setShowAssignModal(true);
     };
 
     const handleAssign = async () => {
-        if (!assignUserId.trim() || !assignPlanId) return;
+        const userId = selectedUser?._id || assignUserId.trim();
+        if (!userId || !assignPlanId) return;
         setAssigning(true);
         try {
-            await SubscriptionApi.assignSubscription(assignUserId.trim(), assignPlanId);
+            await SubscriptionApi.assignSubscription(userId, assignPlanId);
             await loadUserSubs();
             setShowAssignModal(false);
         } catch (err) {
@@ -269,8 +313,8 @@ const SubscriptionManagement: React.FC = () => {
         endDate: new Date(s.endDate).toLocaleDateString(),
         status: (
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${s.status === 'active' ? 'bg-green-100 text-green-800' :
-                    s.status === 'expired' ? 'bg-gray-100 text-gray-700' :
-                        'bg-red-100 text-red-800'
+                s.status === 'expired' ? 'bg-gray-100 text-gray-700' :
+                    'bg-red-100 text-red-800'
                 }`}>
                 {s.status.charAt(0).toUpperCase() + s.status.slice(1)}
             </span>
@@ -364,8 +408,8 @@ const SubscriptionManagement: React.FC = () => {
                                 key={s}
                                 onClick={() => setSubStatus(s)}
                                 className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${subStatus === s
-                                        ? 'bg-emerald-600 text-white'
-                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    ? 'bg-emerald-600 text-white'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                     }`}
                             >
                                 {s === '' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
@@ -556,18 +600,60 @@ const SubscriptionManagement: React.FC = () => {
                         </div>
 
                         <div className="p-6 space-y-4">
+                            {/* User search */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">User ID *</label>
-                                <input
-                                    type="text"
-                                    value={assignUserId}
-                                    onChange={(e) => setAssignUserId(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                    placeholder="Paste the user's MongoDB ObjectId"
-                                />
-                                <p className="text-xs text-gray-500 mt-1">You can find the user ID in User Management.</p>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Search User *</label>
+                                {selectedUser ? (
+                                    <div className="flex items-center justify-between px-3 py-2.5 bg-emerald-50 border border-emerald-200 rounded-lg">
+                                        <div>
+                                            <p className="text-sm font-semibold text-gray-900">{selectedUser.name}</p>
+                                            <p className="text-xs text-gray-500">{selectedUser.email}</p>
+                                        </div>
+                                        <button
+                                            onClick={() => { setSelectedUser(null); setUserSearch(''); }}
+                                            className="text-gray-400 hover:text-red-500 transition-colors"
+                                        >
+                                            <X size={16} />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="relative" ref={userSearchRef}>
+                                        <div className="relative">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                            <input
+                                                type="text"
+                                                value={userSearch}
+                                                onChange={(e) => { setUserSearch(e.target.value); setShowUserDropdown(true); }}
+                                                onFocus={() => setShowUserDropdown(true)}
+                                                className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                                                placeholder="Type name or email to search..."
+                                            />
+                                        </div>
+                                        {showUserDropdown && (userSearch.length >= 2) && (
+                                            <div className="absolute top-full mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                                                {userSearchLoading ? (
+                                                    <div className="px-4 py-3 text-sm text-gray-500 text-center">Searching...</div>
+                                                ) : userResults.length > 0 ? (
+                                                    userResults.map((u) => (
+                                                        <button
+                                                            key={u._id}
+                                                            onClick={() => { setSelectedUser(u); setShowUserDropdown(false); }}
+                                                            className="w-full text-left px-4 py-2.5 hover:bg-emerald-50 transition-colors border-b border-gray-50 last:border-0"
+                                                        >
+                                                            <p className="text-sm font-medium text-gray-900">{u.name}</p>
+                                                            <p className="text-xs text-gray-500">{u.email} · {u.role}</p>
+                                                        </button>
+                                                    ))
+                                                ) : (
+                                                    <div className="px-4 py-3 text-sm text-gray-500 text-center">No users found</div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
 
+                            {/* Plan select */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Subscription Plan *</label>
                                 <select
@@ -594,7 +680,7 @@ const SubscriptionManagement: React.FC = () => {
                             </button>
                             <button
                                 onClick={handleAssign}
-                                disabled={!assignUserId.trim() || !assignPlanId || assigning}
+                                disabled={(!selectedUser && !assignUserId.trim()) || !assignPlanId || assigning}
                                 className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                                 {assigning ? 'Assigning...' : 'Assign'}

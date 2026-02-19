@@ -15,10 +15,12 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VehiclesVehicle_listingRouteImport } from './routes/vehicles/vehicle_listing'
+import { Route as VehiclesSearchRouteImport } from './routes/vehicles/search'
 import { Route as VehiclesMyVehiclesRouteImport } from './routes/vehicles/my-vehicles'
 import { Route as VehiclesIdRouteImport } from './routes/vehicles/$id'
 import { Route as UserSubscriptionRouteImport } from './routes/user/subscription'
 import { Route as UserProfileRouteImport } from './routes/user/profile'
+import { Route as UserMyBookingsRouteImport } from './routes/user/my-bookings'
 import { Route as AuthVerifyOtpForgotRouteImport } from './routes/auth/verify-otp-forgot'
 import { Route as AuthVerifyOtpRouteImport } from './routes/auth/verify-otp'
 import { Route as AuthSignupRouteImport } from './routes/auth/signup'
@@ -30,6 +32,9 @@ import { Route as AdminVehicleManagementIndexRouteImport } from './routes/admin/
 import { Route as AdminUserManagementIndexRouteImport } from './routes/admin/user-management/index'
 import { Route as AdminSubscriptionManagementIndexRouteImport } from './routes/admin/subscription-management/index'
 import { Route as AdminDashboardIndexRouteImport } from './routes/admin/dashboard/index'
+import { Route as AdminCategoryManagementIndexRouteImport } from './routes/admin/category-management/index'
+import { Route as AdminBookingsIndexRouteImport } from './routes/admin/bookings/index'
+import { Route as AdminBookingManagementIndexRouteImport } from './routes/admin/booking-management/index'
 import { Route as VehiclesEditIdRouteImport } from './routes/vehicles/edit/$id'
 import { Route as AdminVehicleManagementIdRouteImport } from './routes/admin/vehicle-management/$id'
 
@@ -63,6 +68,11 @@ const VehiclesVehicle_listingRoute = VehiclesVehicle_listingRouteImport.update({
   path: '/vehicles/vehicle_listing',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VehiclesSearchRoute = VehiclesSearchRouteImport.update({
+  id: '/vehicles/search',
+  path: '/vehicles/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VehiclesMyVehiclesRoute = VehiclesMyVehiclesRouteImport.update({
   id: '/vehicles/my-vehicles',
   path: '/vehicles/my-vehicles',
@@ -81,6 +91,11 @@ const UserSubscriptionRoute = UserSubscriptionRouteImport.update({
 const UserProfileRoute = UserProfileRouteImport.update({
   id: '/user/profile',
   path: '/user/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UserMyBookingsRoute = UserMyBookingsRouteImport.update({
+  id: '/user/my-bookings',
+  path: '/user/my-bookings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthVerifyOtpForgotRoute = AuthVerifyOtpForgotRouteImport.update({
@@ -141,6 +156,23 @@ const AdminDashboardIndexRoute = AdminDashboardIndexRouteImport.update({
   path: '/dashboard/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCategoryManagementIndexRoute =
+  AdminCategoryManagementIndexRouteImport.update({
+    id: '/category-management/',
+    path: '/category-management/',
+    getParentRoute: () => AdminRoute,
+  } as any)
+const AdminBookingsIndexRoute = AdminBookingsIndexRouteImport.update({
+  id: '/bookings/',
+  path: '/bookings/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminBookingManagementIndexRoute =
+  AdminBookingManagementIndexRouteImport.update({
+    id: '/booking-management/',
+    path: '/booking-management/',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const VehiclesEditIdRoute = VehiclesEditIdRouteImport.update({
   id: '/vehicles/edit/$id',
   path: '/vehicles/edit/$id',
@@ -166,13 +198,18 @@ export interface FileRoutesByFullPath {
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify-otp': typeof AuthVerifyOtpRoute
   '/auth/verify-otp-forgot': typeof AuthVerifyOtpForgotRoute
+  '/user/my-bookings': typeof UserMyBookingsRoute
   '/user/profile': typeof UserProfileRoute
   '/user/subscription': typeof UserSubscriptionRoute
   '/vehicles/$id': typeof VehiclesIdRoute
   '/vehicles/my-vehicles': typeof VehiclesMyVehiclesRoute
+  '/vehicles/search': typeof VehiclesSearchRoute
   '/vehicles/vehicle_listing': typeof VehiclesVehicle_listingRoute
   '/admin/vehicle-management/$id': typeof AdminVehicleManagementIdRoute
   '/vehicles/edit/$id': typeof VehiclesEditIdRoute
+  '/admin/booking-management': typeof AdminBookingManagementIndexRoute
+  '/admin/bookings': typeof AdminBookingsIndexRoute
+  '/admin/category-management': typeof AdminCategoryManagementIndexRoute
   '/admin/dashboard': typeof AdminDashboardIndexRoute
   '/admin/subscription-management': typeof AdminSubscriptionManagementIndexRoute
   '/admin/user-management': typeof AdminUserManagementIndexRoute
@@ -191,13 +228,18 @@ export interface FileRoutesByTo {
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify-otp': typeof AuthVerifyOtpRoute
   '/auth/verify-otp-forgot': typeof AuthVerifyOtpForgotRoute
+  '/user/my-bookings': typeof UserMyBookingsRoute
   '/user/profile': typeof UserProfileRoute
   '/user/subscription': typeof UserSubscriptionRoute
   '/vehicles/$id': typeof VehiclesIdRoute
   '/vehicles/my-vehicles': typeof VehiclesMyVehiclesRoute
+  '/vehicles/search': typeof VehiclesSearchRoute
   '/vehicles/vehicle_listing': typeof VehiclesVehicle_listingRoute
   '/admin/vehicle-management/$id': typeof AdminVehicleManagementIdRoute
   '/vehicles/edit/$id': typeof VehiclesEditIdRoute
+  '/admin/booking-management': typeof AdminBookingManagementIndexRoute
+  '/admin/bookings': typeof AdminBookingsIndexRoute
+  '/admin/category-management': typeof AdminCategoryManagementIndexRoute
   '/admin/dashboard': typeof AdminDashboardIndexRoute
   '/admin/subscription-management': typeof AdminSubscriptionManagementIndexRoute
   '/admin/user-management': typeof AdminUserManagementIndexRoute
@@ -217,13 +259,18 @@ export interface FileRoutesById {
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify-otp': typeof AuthVerifyOtpRoute
   '/auth/verify-otp-forgot': typeof AuthVerifyOtpForgotRoute
+  '/user/my-bookings': typeof UserMyBookingsRoute
   '/user/profile': typeof UserProfileRoute
   '/user/subscription': typeof UserSubscriptionRoute
   '/vehicles/$id': typeof VehiclesIdRoute
   '/vehicles/my-vehicles': typeof VehiclesMyVehiclesRoute
+  '/vehicles/search': typeof VehiclesSearchRoute
   '/vehicles/vehicle_listing': typeof VehiclesVehicle_listingRoute
   '/admin/vehicle-management/$id': typeof AdminVehicleManagementIdRoute
   '/vehicles/edit/$id': typeof VehiclesEditIdRoute
+  '/admin/booking-management/': typeof AdminBookingManagementIndexRoute
+  '/admin/bookings/': typeof AdminBookingsIndexRoute
+  '/admin/category-management/': typeof AdminCategoryManagementIndexRoute
   '/admin/dashboard/': typeof AdminDashboardIndexRoute
   '/admin/subscription-management/': typeof AdminSubscriptionManagementIndexRoute
   '/admin/user-management/': typeof AdminUserManagementIndexRoute
@@ -244,13 +291,18 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/auth/verify-otp'
     | '/auth/verify-otp-forgot'
+    | '/user/my-bookings'
     | '/user/profile'
     | '/user/subscription'
     | '/vehicles/$id'
     | '/vehicles/my-vehicles'
+    | '/vehicles/search'
     | '/vehicles/vehicle_listing'
     | '/admin/vehicle-management/$id'
     | '/vehicles/edit/$id'
+    | '/admin/booking-management'
+    | '/admin/bookings'
+    | '/admin/category-management'
     | '/admin/dashboard'
     | '/admin/subscription-management'
     | '/admin/user-management'
@@ -269,13 +321,18 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/auth/verify-otp'
     | '/auth/verify-otp-forgot'
+    | '/user/my-bookings'
     | '/user/profile'
     | '/user/subscription'
     | '/vehicles/$id'
     | '/vehicles/my-vehicles'
+    | '/vehicles/search'
     | '/vehicles/vehicle_listing'
     | '/admin/vehicle-management/$id'
     | '/vehicles/edit/$id'
+    | '/admin/booking-management'
+    | '/admin/bookings'
+    | '/admin/category-management'
     | '/admin/dashboard'
     | '/admin/subscription-management'
     | '/admin/user-management'
@@ -294,13 +351,18 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/auth/verify-otp'
     | '/auth/verify-otp-forgot'
+    | '/user/my-bookings'
     | '/user/profile'
     | '/user/subscription'
     | '/vehicles/$id'
     | '/vehicles/my-vehicles'
+    | '/vehicles/search'
     | '/vehicles/vehicle_listing'
     | '/admin/vehicle-management/$id'
     | '/vehicles/edit/$id'
+    | '/admin/booking-management/'
+    | '/admin/bookings/'
+    | '/admin/category-management/'
     | '/admin/dashboard/'
     | '/admin/subscription-management/'
     | '/admin/user-management/'
@@ -313,10 +375,12 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
   MeRoute: typeof MeRoute
+  UserMyBookingsRoute: typeof UserMyBookingsRoute
   UserProfileRoute: typeof UserProfileRoute
   UserSubscriptionRoute: typeof UserSubscriptionRoute
   VehiclesIdRoute: typeof VehiclesIdRoute
   VehiclesMyVehiclesRoute: typeof VehiclesMyVehiclesRoute
+  VehiclesSearchRoute: typeof VehiclesSearchRoute
   VehiclesVehicle_listingRoute: typeof VehiclesVehicle_listingRoute
   VehiclesEditIdRoute: typeof VehiclesEditIdRoute
 }
@@ -365,6 +429,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VehiclesVehicle_listingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vehicles/search': {
+      id: '/vehicles/search'
+      path: '/vehicles/search'
+      fullPath: '/vehicles/search'
+      preLoaderRoute: typeof VehiclesSearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vehicles/my-vehicles': {
       id: '/vehicles/my-vehicles'
       path: '/vehicles/my-vehicles'
@@ -391,6 +462,13 @@ declare module '@tanstack/react-router' {
       path: '/user/profile'
       fullPath: '/user/profile'
       preLoaderRoute: typeof UserProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/user/my-bookings': {
+      id: '/user/my-bookings'
+      path: '/user/my-bookings'
+      fullPath: '/user/my-bookings'
+      preLoaderRoute: typeof UserMyBookingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/verify-otp-forgot': {
@@ -470,6 +548,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDashboardIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/category-management/': {
+      id: '/admin/category-management/'
+      path: '/category-management'
+      fullPath: '/admin/category-management'
+      preLoaderRoute: typeof AdminCategoryManagementIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/bookings/': {
+      id: '/admin/bookings/'
+      path: '/bookings'
+      fullPath: '/admin/bookings'
+      preLoaderRoute: typeof AdminBookingsIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/booking-management/': {
+      id: '/admin/booking-management/'
+      path: '/booking-management'
+      fullPath: '/admin/booking-management'
+      preLoaderRoute: typeof AdminBookingManagementIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/vehicles/edit/$id': {
       id: '/vehicles/edit/$id'
       path: '/vehicles/edit/$id'
@@ -489,6 +588,9 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminVehicleManagementIdRoute: typeof AdminVehicleManagementIdRoute
+  AdminBookingManagementIndexRoute: typeof AdminBookingManagementIndexRoute
+  AdminBookingsIndexRoute: typeof AdminBookingsIndexRoute
+  AdminCategoryManagementIndexRoute: typeof AdminCategoryManagementIndexRoute
   AdminDashboardIndexRoute: typeof AdminDashboardIndexRoute
   AdminSubscriptionManagementIndexRoute: typeof AdminSubscriptionManagementIndexRoute
   AdminUserManagementIndexRoute: typeof AdminUserManagementIndexRoute
@@ -497,6 +599,9 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminVehicleManagementIdRoute: AdminVehicleManagementIdRoute,
+  AdminBookingManagementIndexRoute: AdminBookingManagementIndexRoute,
+  AdminBookingsIndexRoute: AdminBookingsIndexRoute,
+  AdminCategoryManagementIndexRoute: AdminCategoryManagementIndexRoute,
   AdminDashboardIndexRoute: AdminDashboardIndexRoute,
   AdminSubscriptionManagementIndexRoute: AdminSubscriptionManagementIndexRoute,
   AdminUserManagementIndexRoute: AdminUserManagementIndexRoute,
@@ -533,10 +638,12 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   MeRoute: MeRoute,
+  UserMyBookingsRoute: UserMyBookingsRoute,
   UserProfileRoute: UserProfileRoute,
   UserSubscriptionRoute: UserSubscriptionRoute,
   VehiclesIdRoute: VehiclesIdRoute,
   VehiclesMyVehiclesRoute: VehiclesMyVehiclesRoute,
+  VehiclesSearchRoute: VehiclesSearchRoute,
   VehiclesVehicle_listingRoute: VehiclesVehicle_listingRoute,
   VehiclesEditIdRoute: VehiclesEditIdRoute,
 }

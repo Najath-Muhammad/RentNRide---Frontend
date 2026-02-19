@@ -4,13 +4,13 @@ import { useAuthStore } from '../../stores/authStore';
 //import type { AxiosError } from 'axios';
 
 export const AuthInitializer = () => {
-  const { setUser, setLoading, isAuthenticated } = useAuthStore();
+  const { setUser, setLoading } = useAuthStore();
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const res = await AuthApi.getCurrentUser();
-        setUser(res.user as any);
+        setUser(res.data.user);
       } catch (err: unknown) {
         if (
           err &&

@@ -1,33 +1,31 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { User, LogOut, Settings, Car, Loader2, Bell, MapPin, Navigation } from 'lucide-react';
+import { User, LogOut, Settings, Car, Loader2, Bell, MapPin, Navigation, Menu, X, Crown } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
 import { useAuthStore } from '../../stores/authStore';
 import { AuthApi } from '../../services/api/auth/login.api';
-import { searchLocations, reverseGeocode } from "../../utils/locationiq"
+import { searchLocations, reverseGeocode, type LocationSuggestion } from "../../utils/locationiq"
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, location, setLocation, setCoordinates, logout } = useAuthStore();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  // Location picker states
   const [locationInputValue, setLocationInputValue] = useState(location || 'India');
   const [selectedLocation, setSelectedLocation] = useState<string | null>(location || 'India');
-  const [suggestions, setSuggestions] = useState<any[]>([]); // Store full objects
+  const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]); // Store full objects
   const [isDetecting, setIsDetecting] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Sync state with store if store updates from elsewhere
   useEffect(() => {
     if (location) {
       setLocationInputValue(location);
       setSelectedLocation(location);
     } else {
-      // Fallback if store is empty (though it should default to 'India')
       setLocationInputValue('India');
       setSelectedLocation('India');
     }
@@ -42,6 +40,18 @@ const Navbar: React.FC = () => {
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Close mobile menu on Escape key
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsMobileMenuOpen(false);
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
   }, []);
 
   // Debounced search for suggestions
@@ -100,15 +110,19 @@ const Navbar: React.FC = () => {
       setLocationInputValue(address);
       setLocation(address); // Persist to store
       setCoordinates({ lat: latitude, lon: longitude }); // Persist coords
-    } catch (err: any) {
+
+      // Auto-navigate to search page if not already there or just to refresh
+      navigate({ to: '/vehicles/search' });
+    } catch (err) {
       console.error('Location detection failed:', err);
-      alert(err.message || 'Unable to detect your location. Please try manually.');
+      const error = err as Error;
+      alert(error.message || 'Unable to detect your location. Please try manually.');
     } finally {
       setIsDetecting(false);
     }
   };
 
-  const handleSuggestionClick = (suggestion: any) => {
+  const handleSuggestionClick = (suggestion: LocationSuggestion) => {
     const name = suggestion.display_name;
     setSelectedLocation(name);
     setLocationInputValue(name);
@@ -118,6 +132,9 @@ const Navbar: React.FC = () => {
     }
     setSuggestions([]);
     setShowDropdown(false);
+
+    // Auto-navigate to search page
+    navigate({ to: '/vehicles/search' });
   };
 
   const handleLogout = async () => {
@@ -228,13 +245,19 @@ const Navbar: React.FC = () => {
 
             {isAuthenticated && (
               <div className="hidden lg:flex items-center gap-8">
-                <button onClick={() => navigate({ to: '/' })} className="text-gray-600 hover:text-blue-600 text-sm font-semibold transition-colors">
+                <button
+                  onClick={() => navigate({ to: '/' })}
+                  className={`${window.location.pathname === '/' ? 'text-blue-600' : 'text-gray-600'} hover:text-blue-600 text-sm font-semibold transition-colors`}
+                >
                   Home
                 </button>
                 <button className="text-gray-600 hover:text-blue-600 text-sm font-semibold transition-colors">
                   Categories
                 </button>
-                <button className="text-gray-600 hover:text-blue-600 text-sm font-semibold transition-colors">
+                <button
+                  onClick={() => navigate({ to: '/vehicles/search' })}
+                  className={`${window.location.pathname.includes('/vehicles/search') ? 'text-blue-600' : 'text-gray-600'} hover:text-blue-600 text-sm font-semibold transition-colors`}
+                >
                   Vehicles
                 </button>
                 <button className="text-gray-600 hover:text-blue-600 text-sm font-semibold transition-colors">
@@ -245,6 +268,15 @@ const Navbar: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-5">
+            {/* Mobile Menu Toggle */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="lg:hidden p-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50/50 rounded-lg transition-all"
+              aria-label="Toggle menu"
+            >
+              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+
             {isAuthenticated && user ? (
               <>
                 <button onClick={() => navigate({ to: '/vehicles/vehicle_listing' })} className="hidden sm:inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-full text-sm font-semibold transition-all shadow-lg shadow-blue-600/20 active:scale-95">
@@ -289,11 +321,18 @@ const Navbar: React.FC = () => {
                             My Vehicles
                           </button>
                           <button
-                            onClick={() => navigate({ to: '/' })}
+                            onClick={() => navigate({ to: '/user/my-bookings' })}
                             className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg w-full text-left transition-colors"
                           >
                             <Car className="w-4 h-4" />
                             My Bookings
+                          </button>
+                          <button
+                            onClick={() => navigate({ to: '/user/subscription' })}
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-amber-50 hover:text-amber-600 rounded-lg w-full text-left transition-colors"
+                          >
+                            <Crown className="w-4 h-4 text-amber-500" />
+                            My Subscription
                           </button>
                           {user.role === 'admin' && (
                             <button
@@ -329,13 +368,19 @@ const Navbar: React.FC = () => {
               /* Guest User */
               <>
                 <div className="hidden lg:flex items-center gap-8">
-                  <button onClick={() => navigate({ to: '/' })} className="text-gray-600 hover:text-blue-600 text-sm font-semibold transition-colors">
+                  <button
+                    onClick={() => navigate({ to: '/' })}
+                    className={`${window.location.pathname === '/' ? 'text-blue-600' : 'text-gray-600'} hover:text-blue-600 text-sm font-semibold transition-colors`}
+                  >
                     Home
                   </button>
                   <button className="text-gray-600 hover:text-blue-600 text-sm font-semibold transition-colors">
                     Categories
                   </button>
-                  <button className="text-gray-600 hover:text-blue-600 text-sm font-semibold transition-colors">
+                  <button
+                    onClick={() => navigate({ to: '/vehicles/search' })}
+                    className={`${window.location.pathname.includes('/vehicles/search') ? 'text-blue-600' : 'text-gray-600'} hover:text-blue-600 text-sm font-semibold transition-colors`}
+                  >
                     Vehicles
                   </button>
                   <button className="text-gray-600 hover:text-blue-600 text-sm font-semibold transition-colors">
@@ -364,7 +409,117 @@ const Navbar: React.FC = () => {
           </div>
         </div>
       </div>
-    </nav>
+
+      {/* Mobile Menu (Slide-down panel) */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden border-t border-gray-100 bg-white shadow-lg">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 space-y-2">
+            <button
+              onClick={() => {
+                navigate({ to: '/' });
+                setIsMobileMenuOpen(false);
+              }}
+              className={`${window.location.pathname === '/' ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
+                } w-full text-left px-4 py-3 rounded-lg hover:bg-blue-50 hover:text-blue-600 font-semibold transition-all`}
+            >
+              Home
+            </button>
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="text-gray-700 w-full text-left px-4 py-3 rounded-lg hover:bg-blue-50 hover:text-blue-600 font-semibold transition-all"
+            >
+              Categories
+            </button>
+            <button
+              onClick={() => {
+                navigate({ to: '/vehicles/search' });
+                setIsMobileMenuOpen(false);
+              }}
+              className={`${window.location.pathname.includes('/vehicles/search') ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
+                } w-full text-left px-4 py-3 rounded-lg hover:bg-blue-50 hover:text-blue-600 font-semibold transition-all`}
+            >
+              Vehicles
+            </button>
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="text-gray-700 w-full text-left px-4 py-3 rounded-lg hover:bg-blue-50 hover:text-blue-600 font-semibold transition-all"
+            >
+              Contact
+            </button>
+
+            {/* Authenticated user quick links in mobile menu */}
+            {isAuthenticated && (
+              <div className="pt-3 border-t border-gray-100 space-y-1">
+                <button
+                  onClick={() => {
+                    navigate({ to: '/user/profile' });
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="flex items-center gap-3 w-full text-left px-4 py-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 font-semibold transition-all"
+                >
+                  <User className="w-4 h-4" />
+                  Profile
+                </button>
+                <button
+                  onClick={() => {
+                    navigate({ to: '/vehicles/my-vehicles' });
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="flex items-center gap-3 w-full text-left px-4 py-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 font-semibold transition-all"
+                >
+                  <Car className="w-4 h-4" />
+                  My Vehicles
+                </button>
+                <button
+                  onClick={() => {
+                    navigate({ to: '/user/my-bookings' });
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="flex items-center gap-3 w-full text-left px-4 py-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 font-semibold transition-all"
+                >
+                  <Car className="w-4 h-4" />
+                  My Bookings
+                </button>
+                <button
+                  onClick={() => {
+                    navigate({ to: '/user/subscription' });
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="flex items-center gap-3 w-full text-left px-4 py-3 rounded-lg text-amber-600 hover:bg-amber-50 font-semibold transition-all"
+                >
+                  <Crown className="w-4 h-4" />
+                  My Subscription
+                </button>
+              </div>
+            )}
+
+            {/* Show auth buttons on mobile if not authenticated */}
+            {!isAuthenticated && (
+              <div className="pt-4 border-t border-gray-100 space-y-2">
+                <button
+                  onClick={() => {
+                    navigate({ to: '/auth/login' });
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full text-gray-700 hover:text-blue-600 px-4 py-3 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-all text-left"
+                >
+                  Log In
+                </button>
+                <button
+                  onClick={() => {
+                    navigate({ to: '/auth/signup' });
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg text-sm font-semibold transition-all"
+                >
+                  Sign Up
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </nav >
   );
 };
 

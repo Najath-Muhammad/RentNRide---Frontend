@@ -34,7 +34,10 @@ export const ProfileApi = {
     },
 
     changePassword: async (data: { currentPassword: string; newPassword: string }): Promise<{ success: boolean; message: string }> => {
-        const response = await api.post<{ success: boolean; message: string }>('/user/profile/change-password', data);
+        const response = await api.patch<{ success: boolean; message: string }>('/auth/change-password', {
+            old_password: data.currentPassword,
+            new_password: data.newPassword
+        });
         return response.data;
     },
 
