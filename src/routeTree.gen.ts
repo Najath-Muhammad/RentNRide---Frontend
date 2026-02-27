@@ -21,6 +21,7 @@ import { Route as VehiclesIdRouteImport } from './routes/vehicles/$id'
 import { Route as UserSubscriptionRouteImport } from './routes/user/subscription'
 import { Route as UserProfileRouteImport } from './routes/user/profile'
 import { Route as UserMyBookingsRouteImport } from './routes/user/my-bookings'
+import { Route as UserChatRouteImport } from './routes/user/chat'
 import { Route as AuthVerifyOtpForgotRouteImport } from './routes/auth/verify-otp-forgot'
 import { Route as AuthVerifyOtpRouteImport } from './routes/auth/verify-otp'
 import { Route as AuthSignupRouteImport } from './routes/auth/signup'
@@ -96,6 +97,11 @@ const UserProfileRoute = UserProfileRouteImport.update({
 const UserMyBookingsRoute = UserMyBookingsRouteImport.update({
   id: '/user/my-bookings',
   path: '/user/my-bookings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UserChatRoute = UserChatRouteImport.update({
+  id: '/user/chat',
+  path: '/user/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthVerifyOtpForgotRoute = AuthVerifyOtpForgotRouteImport.update({
@@ -198,6 +204,7 @@ export interface FileRoutesByFullPath {
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify-otp': typeof AuthVerifyOtpRoute
   '/auth/verify-otp-forgot': typeof AuthVerifyOtpForgotRoute
+  '/user/chat': typeof UserChatRoute
   '/user/my-bookings': typeof UserMyBookingsRoute
   '/user/profile': typeof UserProfileRoute
   '/user/subscription': typeof UserSubscriptionRoute
@@ -228,6 +235,7 @@ export interface FileRoutesByTo {
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify-otp': typeof AuthVerifyOtpRoute
   '/auth/verify-otp-forgot': typeof AuthVerifyOtpForgotRoute
+  '/user/chat': typeof UserChatRoute
   '/user/my-bookings': typeof UserMyBookingsRoute
   '/user/profile': typeof UserProfileRoute
   '/user/subscription': typeof UserSubscriptionRoute
@@ -259,6 +267,7 @@ export interface FileRoutesById {
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify-otp': typeof AuthVerifyOtpRoute
   '/auth/verify-otp-forgot': typeof AuthVerifyOtpForgotRoute
+  '/user/chat': typeof UserChatRoute
   '/user/my-bookings': typeof UserMyBookingsRoute
   '/user/profile': typeof UserProfileRoute
   '/user/subscription': typeof UserSubscriptionRoute
@@ -291,6 +300,7 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/auth/verify-otp'
     | '/auth/verify-otp-forgot'
+    | '/user/chat'
     | '/user/my-bookings'
     | '/user/profile'
     | '/user/subscription'
@@ -321,6 +331,7 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/auth/verify-otp'
     | '/auth/verify-otp-forgot'
+    | '/user/chat'
     | '/user/my-bookings'
     | '/user/profile'
     | '/user/subscription'
@@ -351,6 +362,7 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/auth/verify-otp'
     | '/auth/verify-otp-forgot'
+    | '/user/chat'
     | '/user/my-bookings'
     | '/user/profile'
     | '/user/subscription'
@@ -375,6 +387,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
   MeRoute: typeof MeRoute
+  UserChatRoute: typeof UserChatRoute
   UserMyBookingsRoute: typeof UserMyBookingsRoute
   UserProfileRoute: typeof UserProfileRoute
   UserSubscriptionRoute: typeof UserSubscriptionRoute
@@ -469,6 +482,13 @@ declare module '@tanstack/react-router' {
       path: '/user/my-bookings'
       fullPath: '/user/my-bookings'
       preLoaderRoute: typeof UserMyBookingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/user/chat': {
+      id: '/user/chat'
+      path: '/user/chat'
+      fullPath: '/user/chat'
+      preLoaderRoute: typeof UserChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/verify-otp-forgot': {
@@ -638,6 +658,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   MeRoute: MeRoute,
+  UserChatRoute: UserChatRoute,
   UserMyBookingsRoute: UserMyBookingsRoute,
   UserProfileRoute: UserProfileRoute,
   UserSubscriptionRoute: UserSubscriptionRoute,

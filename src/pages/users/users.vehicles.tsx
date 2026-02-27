@@ -1,7 +1,7 @@
 // src/pages/MyVehicles.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { Car, Plus, Edit, Trash2, MapPin, Fuel, Users, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
+import { Car, Plus, Edit, Trash2, MapPin, Fuel, Users, Eye, EyeOff, Loader2, AlertCircle, ShieldAlert, FileWarning } from 'lucide-react';
 import { UserVehicleApi } from '../../services/api/user/vehicle.api';
 import type { Vehicle } from '../../types/vehicle.types';
 import { useAuthStore } from '../../stores/authStore';
@@ -70,12 +70,36 @@ const MyVehicles: React.FC = () => {
     }
   };
 
+  // ── Document expiry helpers ───────────────────────────────────────────
+  const isDocumentExpired = (dateStr: string | undefined): boolean => {
+    if (!dateStr) return false;
+    return new Date(dateStr) < new Date();
+  };
+
+  const getExpiredDocs = (vehicle: Vehicle): string[] => {
+    const expired: string[] = [];
+    if (isDocumentExpired(vehicle.rcExpiryDate)) expired.push('RC');
+    if (isDocumentExpired(vehicle.insuranceExpiryDate)) expired.push('Insurance');
+    return expired;
+  };
+
   const getStatusConfig = (vehicle: Vehicle) => {
+    const expiredDocs = getExpiredDocs(vehicle);
+
+    if (expiredDocs.length > 0 && vehicle.isApproved && !vehicle.isRejected) {
+      return {
+        label: 'Expired Docs',
+        color: 'bg-amber-100 text-amber-800',
+        icon: ShieldAlert,
+        expiredDocs,
+      };
+    }
     if (vehicle.isRejected) {
       return {
         label: 'Rejected',
         color: 'bg-red-100 text-red-800',
         icon: AlertCircle,
+        expiredDocs: [],
       };
     }
     if (!vehicle.isApproved) {
@@ -83,6 +107,7 @@ const MyVehicles: React.FC = () => {
         label: 'Pending Approval',
         color: 'bg-orange-100 text-orange-800',
         icon: null,
+        expiredDocs: [],
       };
     }
     if (!vehicle.isActive) {
@@ -90,21 +115,24 @@ const MyVehicles: React.FC = () => {
         label: 'Hidden',
         color: 'bg-gray-100 text-gray-800',
         icon: EyeOff,
+        expiredDocs: [],
       };
     }
     return {
       label: 'Listed',
       color: 'bg-green-100 text-green-800',
       icon: Eye,
+      expiredDocs: [],
     };
   };
 
   const stats = {
     total: vehicles.length,
-    listed: vehicles.filter(v => v.isApproved && v.isActive).length,
+    listed: vehicles.filter(v => v.isApproved && v.isActive && getExpiredDocs(v).length === 0).length,
     pending: vehicles.filter(v => !v.isApproved && !v.isRejected).length,
     rejected: vehicles.filter(v => v.isRejected).length,
-    hidden: vehicles.filter(v => v.isApproved && !v.isActive).length,
+    hidden: vehicles.filter(v => v.isApproved && !v.isActive && getExpiredDocs(v).length === 0).length,
+    expiredDocs: vehicles.filter(v => v.isApproved && !v.isRejected && getExpiredDocs(v).length > 0).length,
   };
 
   const { user } = useAuthStore();
@@ -129,6 +157,19 @@ const MyVehicles: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar /> {/* Ensure Navbar is present if not already in layout wrap */}
 
+      {/* Expired documents site-wide banner */}
+      {stats.expiredDocs > 0 && (
+        <div className="bg-amber-50 border-b border-amber-200">
+          <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8 flex items-center gap-3">
+            <ShieldAlert className="w-5 h-5 text-amber-600 flex-shrink-0" />
+            <p className="text-sm font-semibold text-amber-800">
+              {stats.expiredDocs} of your vehicle{stats.expiredDocs > 1 ? 's have' : ' has'} expired RC or Insurance documents.
+              {' '}These vehicles are still visible to you but <span className="font-bold underline">are not shown to renters</span> until updated.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
@@ -146,7 +187,7 @@ const MyVehicles: React.FC = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-10">
           <div className="bg-white rounded-2xl shadow-card p-5 border border-gray-100">
             <div className="flex items-center justify-between mb-2">
               <p className="text-gray-500 text-xs font-bold uppercase tracking-wide">Total</p>
@@ -182,6 +223,15 @@ const MyVehicles: React.FC = () => {
             </div>
             <p className="text-3xl font-bold text-gray-900">{stats.rejected}</p>
           </div>
+          {stats.expiredDocs > 0 && (
+            <div className="bg-amber-50 rounded-2xl shadow-card p-5 border border-amber-200">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-amber-700 text-xs font-bold uppercase tracking-wide">Expired</p>
+                <FileWarning className="w-4 h-4 text-amber-500" />
+              </div>
+              <p className="text-3xl font-bold text-amber-700">{stats.expiredDocs}</p>
+            </div>
+          )}
         </div>
 
         {/* Vehicle Grid */}
@@ -206,9 +256,16 @@ const MyVehicles: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {vehicles.map((vehicle) => {
               const status = getStatusConfig(vehicle);
+              const hasExpiredDocs = status.expiredDocs.length > 0;
 
               return (
-                <div key={vehicle._id} className="bg-white rounded-2xl shadow-card overflow-hidden border border-gray-100 hover:shadow-lg transition-all duration-300 group flex flex-col h-full">
+                <div
+                  key={vehicle._id}
+                  className={`bg-white rounded-2xl shadow-card overflow-hidden border transition-all duration-300 group flex flex-col h-full ${hasExpiredDocs
+                    ? 'border-amber-300 ring-1 ring-amber-200'
+                    : 'border-gray-100 hover:shadow-lg'
+                    }`}
+                >
                   <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
                     <img
                       src={vehicle.vehicleImages[0] || '/placeholder-car.jpg'}
@@ -253,6 +310,20 @@ const MyVehicles: React.FC = () => {
                         <span className="text-gray-500 text-xs font-bold uppercase">Daily Rate</span>
                         <span className="text-xl font-bold text-gray-900">₹{vehicle.pricePerDay.toLocaleString('en-IN')}</span>
                       </div>
+
+                      {/* Expired document warning */}
+                      {hasExpiredDocs && (
+                        <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5">
+                          <ShieldAlert className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-xs font-bold text-amber-800 mb-0.5">Document(s) Expired</p>
+                            <p className="text-xs text-amber-700">
+                              {status.expiredDocs.join(' & ')} {status.expiredDocs.length === 1 ? 'certificate has' : 'certificates have'} expired.
+                              Update via Edit to relist this vehicle.
+                            </p>
+                          </div>
+                        </div>
+                      )}
 
                       <div className={`grid gap-2 ${vehicle.isApproved && !vehicle.isRejected ? 'grid-cols-1' : 'grid-cols-2'}`}>
                         <button
