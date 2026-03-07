@@ -28,7 +28,6 @@ const ChatPage: React.FC = () => {
     const [sending, setSending] = useState(false);
     const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
     const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
-    const [actionModal, setActionModal] = useState<{ isOpen: boolean; bookingId: string; action: 'approved' | 'rejected' } | null>(null);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -48,6 +47,7 @@ const ChatPage: React.FC = () => {
                 const exists = prev.some((m) => m._id === msg._id);
                 return exists ? prev : [...prev, msg];
             });
+            // Also update conversation lastMessage
             setConversations((prev) =>
                 prev.map((c) =>
                     c._id === msg.conversationId
@@ -165,24 +165,21 @@ const ChatPage: React.FC = () => {
     };
 
     // ── Approve / Reject booking ──────────────────────────────────────────
-    const handleBookingActionClick = (bookingId: string, action: 'approved' | 'rejected') => {
-        setActionModal({ isOpen: true, bookingId, action });
-    };
-
-    const confirmBookingAction = async () => {
-        if (!activeConversation || !actionModal) return;
+    const handleBookingAction = async (
+        bookingId: string,
+        action: 'approved' | 'rejected'
+    ) => {
+        if (!activeConversation) return;
 
         try {
             const socket = getSocket();
             socket.emit('booking:action', {
                 conversationId: activeConversation._id,
-                bookingId: actionModal.bookingId,
-                action: actionModal.action,
+                bookingId,
+                action,
             });
         } catch (e) {
             console.error('Booking action failed:', e);
-        } finally {
-            setActionModal(null);
         }
     };
 
@@ -260,12 +257,6 @@ const ChatPage: React.FC = () => {
             return acc;
         },
         []
-    );
-
-    const actedBookingIds = new Set(
-        messages
-            .filter((m) => m.messageType === 'booking_action' && m.bookingId)
-            .map((m) => m.bookingId!._id || (m.bookingId as unknown as string))
     );
 
     // ─────────────────────────────────────────────────────────────────────
@@ -466,45 +457,30 @@ const ChatPage: React.FC = () => {
                                                                     <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">{msg.content}</pre>
 
                                                                     {/* Approve/Reject buttons — show to non-sender only */}
-                                                                    {(() => {
-                                                                        const isExpired = msg.bookingId?.startDate ? new Date(msg.bookingId.startDate) < new Date() : false;
-                                                                        const hasActed = actedBookingIds.has(msg.bookingId?._id || (msg.bookingId as unknown as string));
-                                                                        const showActions = !own && isOwnerInConversation(activeConversation) && msg.bookingId && !hasActed && !isExpired;
-
-                                                                        return (
-                                                                            <div className="mt-3">
-                                                                                {isExpired && !hasActed && (
-                                                                                    <div className="bg-gray-100 border border-gray-200 rounded-xl py-2 px-3 text-center">
-                                                                                        <p className="text-sm font-semibold text-gray-500">Expired Request</p>
-                                                                                    </div>
+                                                                    {!own && isOwnerInConversation(activeConversation) && msg.bookingId && (
+                                                                        <div className="flex gap-2 mt-3">
+                                                                            <button
+                                                                                onClick={() => handleBookingAction(
+                                                                                    msg.bookingId!._id || (msg.bookingId as unknown as string),
+                                                                                    'approved'
                                                                                 )}
-                                                                                {showActions && (
-                                                                                    <div className="flex gap-2">
-                                                                                        <button
-                                                                                            onClick={() => handleBookingActionClick(
-                                                                                                msg.bookingId!._id || (msg.bookingId as unknown as string),
-                                                                                                'approved'
-                                                                                            )}
-                                                                                            className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-green-600 text-white text-sm font-semibold rounded-xl hover:bg-green-700 transition-colors"
-                                                                                        >
-                                                                                            <Check className="w-4 h-4" />
-                                                                                            Approve
-                                                                                        </button>
-                                                                                        <button
-                                                                                            onClick={() => handleBookingActionClick(
-                                                                                                msg.bookingId!._id || (msg.bookingId as unknown as string),
-                                                                                                'rejected'
-                                                                                            )}
-                                                                                            className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-red-600 text-white text-sm font-semibold rounded-xl hover:bg-red-700 transition-colors"
-                                                                                        >
-                                                                                            <X className="w-4 h-4" />
-                                                                                            Reject
-                                                                                        </button>
-                                                                                    </div>
+                                                                                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-green-600 text-white text-sm font-semibold rounded-xl hover:bg-green-700 transition-colors"
+                                                                            >
+                                                                                <Check className="w-4 h-4" />
+                                                                                Approve
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={() => handleBookingAction(
+                                                                                    msg.bookingId!._id || (msg.bookingId as unknown as string),
+                                                                                    'rejected'
                                                                                 )}
-                                                                            </div>
-                                                                        );
-                                                                    })()}
+                                                                                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-red-600 text-white text-sm font-semibold rounded-xl hover:bg-red-700 transition-colors"
+                                                                            >
+                                                                                <X className="w-4 h-4" />
+                                                                                Reject
+                                                                            </button>
+                                                                        </div>
+                                                                    )}
                                                                 </div>
                                                             )}
 
@@ -591,43 +567,6 @@ const ChatPage: React.FC = () => {
                     )}
                 </main>
             </div>
-
-            {/* Confirmation Modal */}
-            {actionModal && actionModal.isOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-xl">
-                        <div className="p-6 text-center">
-                            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${actionModal.action === 'approved' ? 'bg-green-100' : 'bg-red-100'}`}>
-                                {actionModal.action === 'approved' ? (
-                                    <Check className={`w-8 h-8 text-green-600`} />
-                                ) : (
-                                    <X className={`w-8 h-8 text-red-600`} />
-                                )}
-                            </div>
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">
-                                Confirm {actionModal.action === 'approved' ? 'Approval' : 'Rejection'}
-                            </h3>
-                            <p className="text-gray-500 text-sm mb-6">
-                                Are you sure you want to {actionModal.action === 'approved' ? 'approve' : 'reject'} this rent request? This action cannot be undone.
-                            </p>
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => setActionModal(null)}
-                                    className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={confirmBookingAction}
-                                    className={`flex-1 px-4 py-2 text-white font-semibold rounded-xl transition-colors ${actionModal.action === 'approved' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
-                                >
-                                    Yes, {actionModal.action === 'approved' ? 'Approve' : 'Reject'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

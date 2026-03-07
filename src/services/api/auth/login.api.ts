@@ -15,7 +15,6 @@ export interface AuthUser {
   email: string;
   name?: string;
   role?: string;
-  // ... add other user fields
 }
 
 export interface LoginResponse {
