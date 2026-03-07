@@ -11,6 +11,7 @@ import {
     X,
 } from 'lucide-react';
 import Navbar from '../../components/user/Navbar';
+import { PaymentModal } from '../../components/common/PaymentModal';
 import { ChatApi, type Conversation, type Message } from '../../services/api/chat/chat.api';
 import { connectSocket, disconnectSocket, getSocket } from '../../services/socket/socket';
 import { useAuthStore } from '../../stores/authStore';
@@ -29,6 +30,7 @@ const ChatPage: React.FC = () => {
     const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
     const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
     const [actionModal, setActionModal] = useState<{ isOpen: boolean; bookingId: string; action: 'approved' | 'rejected' } | null>(null);
+    const [paymentModal, setPaymentModal] = useState<{ isOpen: boolean; bookingId: string; amount: number } | null>(null);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -510,24 +512,35 @@ const ChatPage: React.FC = () => {
 
                                                             {/* Booking Action Card */}
                                                             {msg.messageType === 'booking_action' && (
-                                                                <div className={`border rounded-2xl p-3 mb-1 w-full flex items-center gap-3
-                                                                    ${msg.bookingAction === 'approved'
-                                                                        ? 'bg-green-50 border-green-200'
-                                                                        : 'bg-red-50 border-red-200'}`}
-                                                                >
-                                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0
-                                                                        ${msg.bookingAction === 'approved' ? 'bg-green-100' : 'bg-red-100'}`}
+                                                                <div className="flex flex-col gap-2 w-full">
+                                                                    <div className={`border rounded-2xl p-3 mb-1 w-full flex items-center gap-3
+                                                                        ${msg.bookingAction === 'approved'
+                                                                            ? 'bg-green-50 border-green-200'
+                                                                            : 'bg-red-50 border-red-200'}`}
                                                                     >
-                                                                        {msg.bookingAction === 'approved'
-                                                                            ? <Check className="w-4 h-4 text-green-600" />
-                                                                            : <AlertCircle className="w-4 h-4 text-red-600" />
-                                                                        }
+                                                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0
+                                                                            ${msg.bookingAction === 'approved' ? 'bg-green-100' : 'bg-red-100'}`}
+                                                                        >
+                                                                            {msg.bookingAction === 'approved'
+                                                                                ? <Check className="w-4 h-4 text-green-600" />
+                                                                                : <AlertCircle className="w-4 h-4 text-red-600" />
+                                                                            }
+                                                                        </div>
+                                                                        <p className={`text-sm font-semibold
+                                                                            ${msg.bookingAction === 'approved' ? 'text-green-800' : 'text-red-800'}`}
+                                                                        >
+                                                                            {msg.content}
+                                                                        </p>
                                                                     </div>
-                                                                    <p className={`text-sm font-semibold
-                                                                        ${msg.bookingAction === 'approved' ? 'text-green-800' : 'text-red-800'}`}
-                                                                    >
-                                                                        {msg.content}
-                                                                    </p>
+                                                                    {/* Show Pay Advance button if it's approved and the renter is viewing */}
+                                                                    {!own && msg.bookingAction === 'approved' && msg.bookingId?.bookingStatus === 'approved' && (
+                                                                        <button
+                                                                            onClick={() => setPaymentModal({ isOpen: true, bookingId: msg.bookingId!._id || (msg.bookingId as any), amount: msg.bookingId?.advancePaid || 0 })}
+                                                                            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm"
+                                                                        >
+                                                                            Pay Advance {msg.bookingId?.advancePaid ? `₹${msg.bookingId.advancePaid.toLocaleString("en-IN")}` : ''}
+                                                                        </button>
+                                                                    )}
                                                                 </div>
                                                             )}
 
@@ -627,6 +640,20 @@ const ChatPage: React.FC = () => {
                         </div>
                     </div>
                 </div>
+            )}
+            {paymentModal && paymentModal.isOpen && (
+                <PaymentModal
+                    isOpen={paymentModal.isOpen}
+                    onClose={() => setPaymentModal(null)}
+                    bookingId={paymentModal.bookingId}
+                    amount={paymentModal.amount}
+                    onSuccess={() => {
+                        setPaymentModal(null);
+                        if (activeConversation) {
+                            openConversation(activeConversation);
+                        }
+                    }}
+                />
             )}
         </div>
     );

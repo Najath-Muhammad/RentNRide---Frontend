@@ -20,6 +20,7 @@ export interface ChatBooking {
     startDate?: string;
     endDate?: string;
     totalAmount?: number;
+    advancePaid?: number;
     bookingStatus?: string;
 }
 
