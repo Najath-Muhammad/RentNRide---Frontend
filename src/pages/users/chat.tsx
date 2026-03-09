@@ -11,6 +11,7 @@ import {
     X,
 } from 'lucide-react';
 import Navbar from '../../components/user/Navbar';
+import { api } from '../../utils/axios';
 import { PaymentModal } from '../../components/common/PaymentModal';
 import { ChatApi, type Conversation, type Message } from '../../services/api/chat/chat.api';
 import { connectSocket, disconnectSocket, getSocket } from '../../services/socket/socket';
@@ -185,6 +186,18 @@ const ChatPage: React.FC = () => {
             console.error('Booking action failed:', e);
         } finally {
             setActionModal(null);
+        }
+    };
+
+    // ── Confirm Vehicle Reached (Release Escrow) ──────────────────────────
+    const handleVehicleReached = async (bookingId: string) => {
+        try {
+            await api.post('/payments/capture', { bookingId });
+            // Refresh conversation to get updated status
+            if (activeConversation) openConversation(activeConversation);
+        } catch (error) {
+            console.error('Failed to confirm vehicle reached:', error);
+            alert('Failed to confirm vehicle reached. Please try again.');
         }
     };
 
@@ -540,6 +553,23 @@ const ChatPage: React.FC = () => {
                                                                         >
                                                                             Pay Advance {msg.bookingId?.advancePaid ? `₹${msg.bookingId.advancePaid.toLocaleString("en-IN")}` : ''}
                                                                         </button>
+                                                                    )}
+                                                                    {/* Show Confirm Vehicle button if advance paid and the renter is viewing */}
+                                                                    {!own && msg.bookingAction === 'approved' && msg.bookingId?.bookingStatus === 'advance_authorized' && (
+                                                                        <button
+                                                                            onClick={() => handleVehicleReached(msg.bookingId!._id || (msg.bookingId as any))}
+                                                                            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-green-600 text-white text-sm font-semibold rounded-xl hover:bg-green-700 transition-colors shadow-sm"
+                                                                        >
+                                                                            <CheckCheck className="w-5 h-5" />
+                                                                            Confirm Vehicle Reached
+                                                                        </button>
+                                                                    )}
+                                                                    {/* Info indicator if payment was captured */}
+                                                                    {msg.bookingAction === 'approved' && ['ride_started', 'payment_captured'].includes(msg.bookingId?.bookingStatus || '') && (
+                                                                        <div className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-green-100 text-green-800 text-sm font-semibold rounded-xl border border-green-200 shadow-sm mt-1">
+                                                                            <CheckCheck className="w-4 h-4 text-green-600" />
+                                                                            {own ? "Advance payment confirmed & captured" : "Vehicle reached & payment confirmed"}
+                                                                        </div>
                                                                     )}
                                                                 </div>
                                                             )}
