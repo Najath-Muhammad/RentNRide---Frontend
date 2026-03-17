@@ -6,7 +6,7 @@ if (!API_KEY) {
   console.error('LocationIQ API key is missing! Add VITE_LOCATIONIQ_KEY=your_key to .env.local or .env');
 }
 
-const BASE_URL = 'https://eu1.locationiq.com/v1';
+const BASE_URL = 'https://api.locationiq.com/v1';
 
 export interface LocationSuggestion {
   place_id: number;
@@ -63,7 +63,7 @@ export const searchLocations = async (query: string): Promise<LocationSuggestion
 
   try {
     const response = await axios.get<LocationSuggestion[]>(
-      `${BASE_URL}/autocomplete`,
+      `${BASE_URL}/autocomplete.php`,
       {
         params: {
           key: API_KEY,
@@ -91,7 +91,7 @@ export const searchLocations = async (query: string): Promise<LocationSuggestion
 export const reverseGeocode = async (lat: number, lon: number): Promise<ReverseGeocodeResult> => {
   try {
     const response = await axios.get<ReverseGeocodeResult>(
-      `${BASE_URL}/reverse`,
+      `${BASE_URL}/reverse.php`,
       {
         params: {
           key: API_KEY,

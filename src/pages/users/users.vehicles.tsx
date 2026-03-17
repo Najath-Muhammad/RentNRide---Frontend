@@ -282,7 +282,7 @@ const MyVehicles: React.FC = () => {
                   <div className="p-5 flex flex-col flex-grow">
                     <div className="mb-4">
                       <p className="text-xs font-bold text-blue-600 uppercase tracking-wide mb-1 opacity-80">
-                        {typeof vehicle.category === 'object' ? vehicle.category.name : vehicle.category}
+                        {typeof vehicle.category === 'object' && vehicle.category ? vehicle.category.name : vehicle.category}
                       </p>
                       <h3 className="font-bold text-lg text-gray-900 mb-1 line-clamp-1">
                         {vehicle.brand} {vehicle.modelName}
@@ -296,7 +296,7 @@ const MyVehicles: React.FC = () => {
                       <div className="flex items-center gap-4 text-xs text-gray-500 font-medium">
                         <div className="flex items-center gap-1.5">
                           <Fuel className="w-3.5 h-3.5" />
-                          <span>{typeof vehicle.fuelType === 'object' ? vehicle.fuelType.name : vehicle.fuelType}</span>
+                          <span>{typeof vehicle.fuelType === 'object' && vehicle.fuelType ? vehicle.fuelType.name : vehicle.fuelType}</span>
                         </div>
                         <div className="flex items-center gap-1.5">
                           <Users className="w-3.5 h-3.5" />
