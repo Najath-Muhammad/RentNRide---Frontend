@@ -6,6 +6,9 @@ import { ProfileApi } from '../../services/api/user/profile.api';
 import { uploadToS3 } from '../../utils/s3';
 import Navbar from '../../components/user/Navbar';
 import { SubscriptionApi, type SubscriptionPlan } from '../../services/api/admin/subscription.api';
+import { WalletApi, type Wallet } from '../../services/api/wallet/wallet.api';
+import { WalletFundingModal } from '../../components/common/WalletFundingModal';
+import { Wallet as WalletIcon, PlusCircle } from 'lucide-react';
 
 const Profile: React.FC = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -15,6 +18,10 @@ const Profile: React.FC = () => {
   const [editForm, setEditForm] = useState({ name: '', phone: '' });
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  const [wallet, setWallet] = useState<Wallet | null>(null);
+  const [showWalletModal, setShowWalletModal] = useState(false);
+  const [fundingAmount, setFundingAmount] = useState<number>(500);
 
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
@@ -39,9 +46,10 @@ const Profile: React.FC = () => {
   const loadProfileData = useCallback(async () => {
     try {
       setLoading(true);
-      const [profileRes, subRes] = await Promise.allSettled([
+      const [profileRes, subRes, walletRes] = await Promise.allSettled([
         ProfileApi.getProfile(),
-        ProfileApi.getSubscriptionStatus()
+        ProfileApi.getSubscriptionStatus(),
+        WalletApi.getWallet()
       ]);
 
       if (profileRes.status === 'fulfilled' && profileRes.value.success) {
@@ -56,6 +64,10 @@ const Profile: React.FC = () => {
         setSubscription(subRes.value.subscription);
       } else {
         setSubscription({ plan: 'free', expiresAt: null });
+      }
+
+      if (walletRes.status === 'fulfilled' && walletRes.value.success) {
+        setWallet(walletRes.value.data);
       }
     } catch {
       showError('main', 'An unexpected error occurred while loading profile');
@@ -368,6 +380,54 @@ const Profile: React.FC = () => {
                 <p className="text-lg font-bold text-gray-900">{formatDate(subscription.expiresAt || '')}</p>
               </div>
             )}
+
+            {/* Wallet Section */}
+            {wallet && (
+              <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+                      <WalletIcon size={22} className="stroke-[2.5]" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-900 leading-tight">My Wallet</h3>
+                      <p className="text-xs text-gray-500 font-medium">Available Balance</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center mb-6">
+                  <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+                    ₹{wallet.balance.toLocaleString("en-IN")}
+                  </h1>
+                </div>
+
+                <div className="mb-4">
+                  <p className="text-sm font-medium text-gray-600 mb-2">Fund your wallet:</p>
+                  <div className="flex gap-2">
+                    {[500, 1000, 2000].map(amt => (
+                      <button
+                        key={amt}
+                        onClick={() => setFundingAmount(amt)}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition ${fundingAmount === amt
+                          ? 'bg-indigo-600 text-white shadow-md'
+                          : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'}`}
+                      >
+                        ₹{amt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowWalletModal(true)}
+                  className="w-full bg-indigo-600 text-white rounded-xl py-3 px-4 flex items-center justify-center gap-2 hover:bg-indigo-700 transition font-bold shadow-md shadow-indigo-600/20"
+                >
+                  <PlusCircle size={18} className="stroke-[2.5]" />
+                  Add ₹{fundingAmount}
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Right Column: Details & Security */}
@@ -678,6 +738,16 @@ const Profile: React.FC = () => {
           </div>
         </div>
       )}
+
+      <WalletFundingModal
+        isOpen={showWalletModal}
+        onClose={() => setShowWalletModal(false)}
+        amount={fundingAmount}
+        onSuccess={() => {
+          setShowWalletModal(false);
+          loadProfileData(); // refresh wallet balance
+        }}
+      />
     </div>
   );
 };
