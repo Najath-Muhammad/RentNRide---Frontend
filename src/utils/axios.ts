@@ -57,7 +57,14 @@ api.interceptors.response.use(
       return Promise.reject(err);
     }
 
+    if (res?.status !== 401) {
+      return Promise.reject(err);
+    }
+
+    // Now we know the status is 401
     const currentUser = useAuthStore.getState().user;
+
+    // If the user isn't logged in, there's no token to refresh.
     if (!currentUser) {
       goToLogin();
       return Promise.reject(err);
@@ -65,10 +72,6 @@ api.interceptors.response.use(
 
     if (req._retry) {
       goToLogin();
-      return Promise.reject(err);
-    }
-
-    if (res?.status !== 401) {
       return Promise.reject(err);
     }
 

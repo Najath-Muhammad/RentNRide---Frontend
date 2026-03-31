@@ -1,14 +1,14 @@
 import React from "react";
 import { AdminSidebar } from "../../components/admin/AdminSidebar";
-import { useAuthStore } from "../../stores/authStore";
+import AdminDashboard from "./admin.dashboard";
 
 const DashboardPage: React.FC = () => {
-  const { user } = useAuthStore.getState()
-  console.log(user)
-
   return (
-    <div>
+    <div className="flex bg-gray-50 min-h-screen">
       <AdminSidebar activeItem="Dashboard" />
+      <div className="flex-1 overflow-x-hidden ml-64">
+        <AdminDashboard />
+      </div>
     </div>
   );
 };

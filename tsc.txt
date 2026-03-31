@@ -1,0 +1,16 @@
+﻿src/pages/users/vehicle.listing.tsx(375,42): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/pages/users/vehicle.listing.tsx(400,42): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/routes/auth/login.tsx(2,19): error TS1261: Already included file name 'D:/Second Project/second project/frontend/src/pages/auth/login.tsx' differs from file name 'D:/Second Project/second project/frontend/src/pages/auth/Login.tsx' only in casing.
+  The file is in the program because:
+    Imported via '../../pages/auth/login' from file 'D:/Second Project/second project/frontend/src/routes/auth/login.tsx'
+    Matched by include pattern 'src' in 'D:/Second Project/second project/frontend/tsconfig.app.json'
+src/routes/auth/signup.tsx(2,24): error TS1261: Already included file name 'D:/Second Project/second project/frontend/src/pages/auth/signup.tsx' differs from file name 'D:/Second Project/second project/frontend/src/pages/auth/Signup.tsx' only in casing.
+  The file is in the program because:
+    Imported via '../../pages/auth/signup' from file 'D:/Second Project/second project/frontend/src/routes/auth/signup.tsx'
+    Matched by include pattern 'src' in 'D:/Second Project/second project/frontend/tsconfig.app.json'
+src/routes/index.tsx(2,18): error TS1261: Already included file name 'D:/Second Project/second project/frontend/src/pages/users/home.tsx' differs from file name 'D:/Second Project/second project/frontend/src/pages/users/Home.tsx' only in casing.
+  The file is in the program because:
+    Imported via '../pages/users/home' from file 'D:/Second Project/second project/frontend/src/routes/index.tsx'
+    Matched by include pattern 'src' in 'D:/Second Project/second project/frontend/tsconfig.app.json'

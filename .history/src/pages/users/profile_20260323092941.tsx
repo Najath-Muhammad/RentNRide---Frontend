@@ -8,7 +8,6 @@ import Navbar from '../../components/user/Navbar';
 import { SubscriptionApi, type SubscriptionPlan } from '../../services/api/admin/subscription.api';
 import { WalletApi, type Wallet } from '../../services/api/wallet/wallet.api';
 import { WalletFundingModal } from '../../components/common/WalletFundingModal';
-import { SubscriptionPaymentModal } from '../../components/common/SubscriptionPaymentModal';
 import { Wallet as WalletIcon, PlusCircle } from 'lucide-react';
 
 const Profile: React.FC = () => {
@@ -70,7 +69,7 @@ const Profile: React.FC = () => {
       if (walletRes.status === 'fulfilled' && walletRes.value.success) {
         setWallet(walletRes.value.data);
       }
-      console.log('subscription is : ', subRes)
+      console.log(,subscription)
     } catch {
       showError('main', 'An unexpected error occurred while loading profile');
     } finally {
@@ -157,8 +156,6 @@ const Profile: React.FC = () => {
   const [availablePlans, setAvailablePlans] = useState<SubscriptionPlan[]>([]);
   const [plansLoading, setPlansLoading] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string>('');
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentPlanId, setPaymentPlanId] = useState<string>('');
 
   const handleUpgradeClick = async () => {
     setShowUpgradeModal(true);
@@ -175,19 +172,20 @@ const Profile: React.FC = () => {
     }
   };
 
-  const handleConfirmUpgrade = () => {
+  const handleConfirmUpgrade = async () => {
     if (!selectedPlanId) return;
-    // Close plan picker and open Stripe payment modal
     setShowUpgradeModal(false);
-    setPaymentPlanId(selectedPlanId);
-    setShowPaymentModal(true);
-  };
-
-  const handlePaymentSuccess = async () => {
-    setShowPaymentModal(false);
-    setPaymentPlanId('');
-    await loadProfileData();
-    showMessage('subscription', 'Welcome to Premium! Your subscription is now active.');
+    try {
+      setActionLoading(prev => ({ ...prev, premium: true }));
+      await SubscriptionApi.selfSubscribe(selectedPlanId);
+      await loadProfileData();
+      showMessage('subscription', 'Welcome to Premium! Your subscription is now active.');
+    } catch (error) {
+      const err = error as AxiosError<{ message: string }>;
+      showError('subscription', err.response?.data?.message || 'Upgrade failed. Please try again.');
+    } finally {
+      setActionLoading(prev => ({ ...prev, premium: false }));
+    }
   };
 
   const handlePasswordChange = async () => {
@@ -748,19 +746,9 @@ const Profile: React.FC = () => {
         amount={fundingAmount}
         onSuccess={() => {
           setShowWalletModal(false);
-          loadProfileData();
+          loadProfileData(); // refresh wallet balance
         }}
       />
-
-      {/* Stripe Subscription Payment Modal */}
-      {paymentPlanId && (
-        <SubscriptionPaymentModal
-          isOpen={showPaymentModal}
-          planId={paymentPlanId}
-          onSuccess={handlePaymentSuccess}
-          onClose={() => { setShowPaymentModal(false); setPaymentPlanId(''); }}
-        />
-      )}
     </div>
   );
 };

@@ -4,7 +4,9 @@ export interface ChatbotResponse {
     success: boolean;
     message: string;
     data: {
-        filters: Record<string, any>;
+        intent: "chat" | "search";
+        reply?: string;           // present when intent === "chat"
+        filters?: Record<string, any>;
         vehicles: any[];
         total: number;
     };

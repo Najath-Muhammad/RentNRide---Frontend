@@ -3,7 +3,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { X, Loader2, Lock } from "lucide-react";
 import { api } from "../../utils/axios";
-
+// Ensure you have VITE_STRIPE_PUBLIC_KEY in your frontend .env file
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "pk_test_sample");
 
 interface CheckoutFormProps {

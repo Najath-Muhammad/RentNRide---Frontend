@@ -112,4 +112,13 @@ export const SubscriptionApi = {
         const response = await api.post<{ success: boolean; data: UserSubscription }>('/subscriptions/subscribe', { planId });
         return response.data.data;
     },
+
+    // Verify Stripe payment intentionally (for environments without webhooks)
+    verifySubscriptionPayment: async (paymentIntentId: string): Promise<UserSubscription> => {
+        const response = await api.post<{ success: boolean; data: UserSubscription }>(
+            "/subscriptions/verify-payment",
+            { paymentIntentId }
+        );
+        return response.data.data;
+    }
 };

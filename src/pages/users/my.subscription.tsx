@@ -2,25 +2,31 @@ import React, { useEffect, useState } from 'react';
 import { Crown, Calendar, Car, CheckCircle, Clock, XCircle, ChevronRight } from 'lucide-react';
 import Navbar from '../../components/user/Navbar';
 import { SubscriptionApi, type UserSubscription, type SubscriptionPlan } from '../../services/api/admin/subscription.api';
+import { SubscriptionPaymentModal } from '../../components/common/SubscriptionPaymentModal';
 
 const MySubscription: React.FC = () => {
     const [activeSubscription, setActiveSubscription] = useState<UserSubscription | null>(null);
     const [history, setHistory] = useState<UserSubscription[]>([]);
+    const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
     const [loading, setLoading] = useState(true);
     const [historyPage, setHistoryPage] = useState(1);
     const [historyTotalPages, setHistoryTotalPages] = useState(1);
+    const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+    const [paymentModalOpen, setPaymentModalOpen] = useState(false);
 
     useEffect(() => {
         const load = async () => {
             setLoading(true);
             try {
-                const [sub, hist] = await Promise.all([
+                const [sub, hist, availablePlans] = await Promise.all([
                     SubscriptionApi.getMySubscription(),
                     SubscriptionApi.getMySubscriptionHistory({ page: historyPage, limit: 5 }),
+                    SubscriptionApi.getPublicPlans(),
                 ]);
                 setActiveSubscription(sub);
                 setHistory(hist.data);
                 setHistoryTotalPages(hist.totalPages);
+                setPlans(availablePlans);
             } catch (err) {
                 console.error('Failed to load subscription:', err);
             } finally {
@@ -29,6 +35,25 @@ const MySubscription: React.FC = () => {
         };
         load();
     }, [historyPage]);
+
+    const handleSubscribeClick = (planId: string) => {
+        setSelectedPlanId(planId);
+        setPaymentModalOpen(true);
+    };
+
+    const handlePaymentSuccess = async () => {
+        setPaymentModalOpen(false);
+        setSelectedPlanId(null);
+        // Reload subscriptions to reflect the newly activated one
+        try {
+            const [sub, hist] = await Promise.all([
+                SubscriptionApi.getMySubscription(),
+                SubscriptionApi.getMySubscriptionHistory({ page: 1, limit: 5 }),
+            ]);
+            setActiveSubscription(sub);
+            setHistory(hist.data);
+        } catch { }
+    };
 
     const plan = activeSubscription?.planId as SubscriptionPlan | undefined;
 
@@ -128,12 +153,48 @@ const MySubscription: React.FC = () => {
                                 </div>
                             </div>
                         ) : (
-                            <div className="bg-white rounded-2xl shadow-sm border border-dashed border-gray-200 p-10 text-center mb-8">
-                                <Crown className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                                <h2 className="text-lg font-semibold text-gray-700 mb-1">No Active Subscription</h2>
-                                <p className="text-sm text-gray-500">
-                                    You don't have an active subscription. Contact the admin to get a plan assigned.
-                                </p>
+                            <div className="space-y-4 mb-8">
+                                <div className="bg-white rounded-2xl shadow-sm border border-dashed border-gray-200 p-6 text-center">
+                                    <Crown className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+                                    <h2 className="text-lg font-semibold text-gray-700 mb-1">No Active Subscription</h2>
+                                    <p className="text-sm text-gray-500">Choose a plan below to get started.</p>
+                                </div>
+
+                                {/* Available Plans */}
+                                {plans.length > 0 && (
+                                    <div>
+                                        <h3 className="text-base font-semibold text-gray-900 mb-3">Available Plans</h3>
+                                        <div className="grid gap-4">
+                                            {plans.map((p) => (
+                                                <div
+                                                    key={p._id}
+                                                    className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center justify-between"
+                                                >
+                                                    <div>
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <Crown className="w-4 h-4 text-emerald-600" />
+                                                            <span className="font-semibold text-gray-900">{p.name}</span>
+                                                        </div>
+                                                        <p className="text-xs text-gray-500 mb-2">{p.description}</p>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{p.durationDays} days</span>
+                                                            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{p.vehicleLimit} vehicle{p.vehicleLimit !== 1 ? 's' : ''}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right ml-4 flex-shrink-0">
+                                                        <p className="text-lg font-bold text-gray-900">₹{p.price.toLocaleString()}</p>
+                                                        <button
+                                                            onClick={() => handleSubscribeClick(p._id)}
+                                                            className="mt-2 px-4 py-1.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors"
+                                                        >
+                                                            Subscribe
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -189,6 +250,16 @@ const MySubscription: React.FC = () => {
                     </>
                 )}
             </div>
+
+            {/* Subscription Payment Modal */}
+            {selectedPlanId && (
+                <SubscriptionPaymentModal
+                    isOpen={paymentModalOpen}
+                    planId={selectedPlanId}
+                    onSuccess={handlePaymentSuccess}
+                    onClose={() => { setPaymentModalOpen(false); setSelectedPlanId(null); }}
+                />
+            )}
         </div>
     );
 };

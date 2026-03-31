@@ -1,7 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send, Loader2, Bot, User, ChevronRight } from 'lucide-react';
 import { ChatbotApi } from '../../services/api/chatbot/chatbot.api';
-import { Link } from '@tanstack/react-router';
+import { Link, useRouterState } from '@tanstack/react-router';
+
+// Routes where the chatbot should NOT appear
+const HIDDEN_ON_ROUTES = ['/auth', '/admin'];
 
 interface Message {
     id: string;
@@ -11,6 +14,9 @@ interface Message {
 }
 
 export const ChatbotWidget: React.FC = () => {
+    const pathname = useRouterState({ select: (s) => s.location.pathname });
+    const isHidden = HIDDEN_ON_ROUTES.some((route) => pathname.startsWith(route));
+
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([
         {
@@ -48,19 +54,29 @@ export const ChatbotWidget: React.FC = () => {
 
         try {
             const response = await ChatbotApi.searchVehiclesViaChat(userMsg.text);
+            const { intent, reply, vehicles, total } = response.data;
 
             let botResponseText = '';
-            if (response.data.vehicles && response.data.vehicles.length > 0) {
-                botResponseText = `I found ${response.data.total} vehicle(s) matching your criteria! Here are the top results:`;
+            let botVehicles: any[] | undefined;
+
+            if (intent === 'chat') {
+                // Normal conversation — just show the AI reply
+                botResponseText = reply || "I'm here to help you find vehicles! Try: \"I need an SUV in Kochi under ₹2000\".";
             } else {
-                botResponseText = "I couldn't find any vehicles matching your criteria. Try adjusting your search!";
+                // Vehicle search result
+                if (vehicles && vehicles.length > 0) {
+                    botResponseText = `I found ${total} vehicle(s) matching your criteria! Here are the top results:`;
+                    botVehicles = vehicles.slice(0, 3);
+                } else {
+                    botResponseText = "I couldn't find any vehicles matching your criteria. Try adjusting your search!";
+                }
             }
 
             const botMsg: Message = {
                 id: (Date.now() + 1).toString(),
                 sender: 'bot',
                 text: botResponseText,
-                vehicles: response.data.vehicles?.slice(0, 3) // show up to 3 cards to avoid taking too much space
+                vehicles: botVehicles,
             };
 
             setMessages(prev => [...prev, botMsg]);
@@ -75,6 +91,8 @@ export const ChatbotWidget: React.FC = () => {
             setIsTyping(false);
         }
     };
+
+    if (isHidden) return null;
 
     return (
         <div className="fixed bottom-6 right-6 z-50">
