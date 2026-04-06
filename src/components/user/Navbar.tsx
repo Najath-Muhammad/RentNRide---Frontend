@@ -1,9 +1,27 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { User, LogOut, Settings, Car, Loader2, Bell, MapPin, Navigation, Menu, X, Crown, MessageCircle } from 'lucide-react';
+import { User, LogOut, Settings, Car, Loader2, Bell, MapPin, Navigation, Menu, X, Crown, MessageCircle, Wallet } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
 import { useAuthStore } from '../../stores/authStore';
 import { AuthApi } from '../../services/api/auth/login.api';
-import { searchLocations, reverseGeocode, type LocationSuggestion } from "../../utils/locationiq"
+import { searchLocations, reverseGeocode, type LocationSuggestion } from "../../utils/locationiq";
+import { NotificationApi } from '../../services/api/notification/notification.api';
+import type { INotification } from '../../services/api/notification/notification.api';
+
+const timeAgo = (dateStr: string) => {
+  const date = new Date(dateStr);
+  const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
+  let interval = seconds / 31536000;
+  if (interval > 1) return Math.floor(interval) + " years ago";
+  interval = seconds / 2592000;
+  if (interval > 1) return Math.floor(interval) + " months ago";
+  interval = seconds / 86400;
+  if (interval > 1) return Math.floor(interval) + " days ago";
+  interval = seconds / 3600;
+  if (interval > 1) return Math.floor(interval) + " hours ago";
+  interval = seconds / 60;
+  if (interval > 1) return Math.floor(interval) + " mins ago";
+  return "just now";
+};
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
@@ -16,9 +34,14 @@ const Navbar: React.FC = () => {
   const [isDetecting, setIsDetecting] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const [notifications, setNotifications] = useState<INotification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -36,6 +59,9 @@ const Navbar: React.FC = () => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
+      }
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+        setShowNotifications(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -81,6 +107,58 @@ const Navbar: React.FC = () => {
 
     return () => clearTimeout(timer);
   }, [locationInputValue, fetchSuggestions]);
+
+  // Notifications logic
+  const fetchNotifications = useCallback(async () => {
+    if (!isAuthenticated) return;
+    try {
+      const res = await NotificationApi.getNotifications();
+      if (res.data) {
+        setNotifications(res.data.notifications || []);
+        setUnreadCount(res.data.unreadCount || 0);
+      }
+    } catch (err) {
+      console.error('Failed to fetch notifications:', err);
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    fetchNotifications();
+    const handleFcmMessage = () => fetchNotifications();
+    window.addEventListener("fcm:message", handleFcmMessage);
+    return () => {
+      window.removeEventListener("fcm:message", handleFcmMessage);
+    };
+  }, [fetchNotifications]);
+
+  const handleReadNotification = async (notif: INotification) => {
+    try {
+      if (!notif.isRead) {
+        await NotificationApi.markAsRead(notif._id);
+        fetchNotifications();
+      }
+      setShowNotifications(false);
+
+      // Navigate based on type
+      if (notif.type === 'chat') {
+        navigate({ to: '/user/chat' });
+      } else if (notif.type === 'booking') {
+        navigate({ to: '/user/my-bookings' });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteNotification = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    try {
+      await NotificationApi.deleteNotification(id);
+      fetchNotifications();
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   // Handle current location detection
   const handleDetectLocation = async () => {
@@ -294,6 +372,14 @@ const Navbar: React.FC = () => {
                 {/* Icon buttons */}
                 <div className="flex items-center gap-1">
                   <button
+                    onClick={() => navigate({ to: '/user/wallet' })}
+                    className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50/50 rounded-full transition-all"
+                    title="Wallet"
+                  >
+                    <Wallet className="w-5 h-5" />
+                  </button>
+
+                  <button
                     onClick={() => navigate({ to: '/user/chat' })}
                     className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50/50 rounded-full transition-all"
                     title="Messages"
@@ -301,10 +387,67 @@ const Navbar: React.FC = () => {
                     <MessageCircle className="w-5 h-5" />
                   </button>
 
-                  <button className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50/50 rounded-full transition-all relative">
-                    <Bell className="w-5 h-5" />
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-                  </button>
+                  <div className="relative" ref={notificationRef}>
+                    <button
+                      className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50/50 rounded-full transition-all relative"
+                      onClick={() => setShowNotifications(!showNotifications)}
+                    >
+                      <Bell className="w-5 h-5" />
+                      {unreadCount > 0 && (
+                        <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                      )}
+                    </button>
+
+                    {/* Notification Dropdown */}
+                    {showNotifications && (
+                      <div className="absolute right-0 mt-4 w-80 sm:w-96 bg-white rounded-2xl shadow-soft border border-gray-100 opacity-100 transition-all z-50 overflow-hidden flex flex-col">
+                        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/50">
+                          <h3 className="font-bold text-gray-900">Notifications</h3>
+                          {unreadCount > 0 && (
+                            <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded-full">
+                              {unreadCount} new
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="max-h-[24rem] overflow-y-auto">
+                          {notifications.filter(n => !n.isRead).length > 0 ? (
+                            notifications.filter(n => !n.isRead).map((notif) => (
+                              <div
+                                key={notif._id}
+                                onClick={() => handleReadNotification(notif)}
+                                className="flex items-start gap-3 p-4 border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors bg-blue-50/30"
+                              >
+                                <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-blue-500" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-semibold text-gray-900">
+                                    {notif.title}
+                                  </p>
+                                  <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">
+                                    {notif.message}
+                                  </p>
+                                  <p className="text-xs text-gray-400 mt-1.5 font-medium">
+                                    {timeAgo(notif.createdAt)}
+                                  </p>
+                                </div>
+                                <button
+                                  onClick={(e) => handleDeleteNotification(e, notif._id)}
+                                  className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="px-4 py-8 text-center flex flex-col items-center">
+                              <Bell className="w-8 h-8 text-gray-300 mb-2" />
+                              <p className="text-sm text-gray-500 font-medium">You're all caught up!</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Avatar + Dropdown */}

@@ -1,10 +1,11 @@
+import { env } from "../../config/env";
 import React, { useState, useEffect } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { X, Loader2, Lock } from "lucide-react";
 import { api } from "../../utils/axios";
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "pk_test_sample");
+const stripePromise = loadStripe(env.VITE_STRIPE_PUBLIC_KEY || "pk_test_sample");
 
 interface CheckoutFormProps {
     bookingId: string;
@@ -27,8 +28,9 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ bookingId, amount, onSucces
             try {
                 const res = await api.post("/payments/advance-payment", { bookingId });
                 setClientSecret(res.data.data.clientSecret);
-            } catch (err: any) {
-                setError(err.response?.data?.message || "Failed to initialize payment");
+            } catch (err: unknown) {
+                const error = err as { response?: { data?: { message?: string } } };
+                setError(error.response?.data?.message || "Failed to initialize payment");
                 setTimeout(onClose, 3000);
             }
         };
@@ -57,6 +59,12 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ bookingId, amount, onSucces
             setError(stripeError.message || "Payment failed");
             setIsProcessing(false);
         } else if (paymentIntent && paymentIntent.status === "requires_capture") {
+            try {
+                // Verify proactively to update the state immediately
+                await api.post("/payments/verify", { bookingId });
+            } catch (err) {
+                console.error("Failed to verify payment proactively:", err);
+            }
             setSuccess("Payment authorized successfully! Escrow hold created.");
             setTimeout(onSuccess, 1500);
         } else {
@@ -160,3 +168,4 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         </div>
     );
 };
+

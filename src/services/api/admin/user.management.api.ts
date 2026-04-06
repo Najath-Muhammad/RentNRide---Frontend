@@ -8,6 +8,7 @@ export interface User {
   phone?: string;
   role: "Normal" | "Premium";
   status: "Active" | "Blocked";
+  planName?: string;
 }
 
 export interface PaginatedUsersResponse {
@@ -31,7 +32,7 @@ interface ApiUserListResponse {
 }
 
 export const UserApi = {
-  getUsers: async (params: {page?: number;limit?: number;search?: string;status?: string;role?: string;}): Promise<PaginatedUsersResponse> => {
+  getUsers: async (params: { page?: number; limit?: number; search?: string; status?: string; role?: string; }): Promise<PaginatedUsersResponse> => {
     const response = await api.get<ApiUserListResponse>(ADMINRoutes.USER.GET_USERS, {
       params: {
         page: params.page || 1,
@@ -47,6 +48,7 @@ export const UserApi = {
       phone: user.phone || "N/A",
       role: user.role.toLowerCase() === "premium" ? "Premium" : "Normal",
       status: user.status.toLowerCase() === "active" ? "Active" : "Blocked",
+      planName: user.planName,
     })) as User[];
 
     return {

@@ -327,6 +327,7 @@ const AdminLogin: React.FC = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
+
                 onBlur={handleBlur}
                 onKeyPress={handleKeyPress}
                 placeholder="Enter your password"

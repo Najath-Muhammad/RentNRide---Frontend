@@ -1,11 +1,13 @@
+import { env } from "../../config/env";
 import React, { useState, useEffect } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { X, Loader2, Lock } from "lucide-react";
 import { WalletApi } from "../../services/api/wallet/wallet.api";
+import { api } from "../../utils/axios";
 
 // Ensure VITE_STRIPE_PUBLIC_KEY is correctly set in .env
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "pk_test_sample");
+const stripePromise = loadStripe(env.VITE_STRIPE_PUBLIC_KEY || "pk_test_sample");
 
 interface CheckoutFormProps {
     amount: number;
@@ -27,8 +29,8 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ amount, onSuccess, onClose 
             try {
                 const res = await WalletApi.createFundingIntent(amount);
                 setClientSecret(res.data.clientSecret);
-            } catch (err: any) {
-                setError(err.response?.data?.message || "Failed to initialize payment");
+            } catch (err: unknown) {
+                const error = err as { response?: { data?: { message?: string } } }; setError(error.response?.data?.message || "Failed to initialize payment");
                 setTimeout(onClose, 3000);
             }
         };
@@ -57,6 +59,12 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ amount, onSuccess, onClose 
             setError(stripeError.message || "Payment failed");
             setIsProcessing(false);
         } else if (paymentIntent && paymentIntent.status === "succeeded") {
+            try {
+                // Verify proactively because webhooks aren't running locally by default
+                await api.post("/wallet/verify-funding", { paymentIntentId: paymentIntent.id });
+            } catch (err) {
+                console.error("Failed to verify wallet funding via api, banking on webhook", err);
+            }
             setSuccess("Wallet funded successfully!");
             setTimeout(onSuccess, 1500);
         } else {
@@ -158,3 +166,4 @@ export const WalletFundingModal: React.FC<WalletFundingModalProps> = ({
         </div>
     );
 };
+

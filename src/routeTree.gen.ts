@@ -18,6 +18,7 @@ import { Route as VehiclesVehicle_listingRouteImport } from './routes/vehicles/v
 import { Route as VehiclesSearchRouteImport } from './routes/vehicles/search'
 import { Route as VehiclesMyVehiclesRouteImport } from './routes/vehicles/my-vehicles'
 import { Route as VehiclesIdRouteImport } from './routes/vehicles/$id'
+import { Route as UserWalletRouteImport } from './routes/user/wallet'
 import { Route as UserSubscriptionRouteImport } from './routes/user/subscription'
 import { Route as UserProfileRouteImport } from './routes/user/profile'
 import { Route as UserMyBookingsRouteImport } from './routes/user/my-bookings'
@@ -82,6 +83,11 @@ const VehiclesMyVehiclesRoute = VehiclesMyVehiclesRouteImport.update({
 const VehiclesIdRoute = VehiclesIdRouteImport.update({
   id: '/vehicles/$id',
   path: '/vehicles/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UserWalletRoute = UserWalletRouteImport.update({
+  id: '/user/wallet',
+  path: '/user/wallet',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UserSubscriptionRoute = UserSubscriptionRouteImport.update({
@@ -208,6 +214,7 @@ export interface FileRoutesByFullPath {
   '/user/my-bookings': typeof UserMyBookingsRoute
   '/user/profile': typeof UserProfileRoute
   '/user/subscription': typeof UserSubscriptionRoute
+  '/user/wallet': typeof UserWalletRoute
   '/vehicles/$id': typeof VehiclesIdRoute
   '/vehicles/my-vehicles': typeof VehiclesMyVehiclesRoute
   '/vehicles/search': typeof VehiclesSearchRoute
@@ -239,6 +246,7 @@ export interface FileRoutesByTo {
   '/user/my-bookings': typeof UserMyBookingsRoute
   '/user/profile': typeof UserProfileRoute
   '/user/subscription': typeof UserSubscriptionRoute
+  '/user/wallet': typeof UserWalletRoute
   '/vehicles/$id': typeof VehiclesIdRoute
   '/vehicles/my-vehicles': typeof VehiclesMyVehiclesRoute
   '/vehicles/search': typeof VehiclesSearchRoute
@@ -271,6 +279,7 @@ export interface FileRoutesById {
   '/user/my-bookings': typeof UserMyBookingsRoute
   '/user/profile': typeof UserProfileRoute
   '/user/subscription': typeof UserSubscriptionRoute
+  '/user/wallet': typeof UserWalletRoute
   '/vehicles/$id': typeof VehiclesIdRoute
   '/vehicles/my-vehicles': typeof VehiclesMyVehiclesRoute
   '/vehicles/search': typeof VehiclesSearchRoute
@@ -304,6 +313,7 @@ export interface FileRouteTypes {
     | '/user/my-bookings'
     | '/user/profile'
     | '/user/subscription'
+    | '/user/wallet'
     | '/vehicles/$id'
     | '/vehicles/my-vehicles'
     | '/vehicles/search'
@@ -335,6 +345,7 @@ export interface FileRouteTypes {
     | '/user/my-bookings'
     | '/user/profile'
     | '/user/subscription'
+    | '/user/wallet'
     | '/vehicles/$id'
     | '/vehicles/my-vehicles'
     | '/vehicles/search'
@@ -366,6 +377,7 @@ export interface FileRouteTypes {
     | '/user/my-bookings'
     | '/user/profile'
     | '/user/subscription'
+    | '/user/wallet'
     | '/vehicles/$id'
     | '/vehicles/my-vehicles'
     | '/vehicles/search'
@@ -391,6 +403,7 @@ export interface RootRouteChildren {
   UserMyBookingsRoute: typeof UserMyBookingsRoute
   UserProfileRoute: typeof UserProfileRoute
   UserSubscriptionRoute: typeof UserSubscriptionRoute
+  UserWalletRoute: typeof UserWalletRoute
   VehiclesIdRoute: typeof VehiclesIdRoute
   VehiclesMyVehiclesRoute: typeof VehiclesMyVehiclesRoute
   VehiclesSearchRoute: typeof VehiclesSearchRoute
@@ -461,6 +474,13 @@ declare module '@tanstack/react-router' {
       path: '/vehicles/$id'
       fullPath: '/vehicles/$id'
       preLoaderRoute: typeof VehiclesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/user/wallet': {
+      id: '/user/wallet'
+      path: '/user/wallet'
+      fullPath: '/user/wallet'
+      preLoaderRoute: typeof UserWalletRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/user/subscription': {
@@ -662,6 +682,7 @@ const rootRouteChildren: RootRouteChildren = {
   UserMyBookingsRoute: UserMyBookingsRoute,
   UserProfileRoute: UserProfileRoute,
   UserSubscriptionRoute: UserSubscriptionRoute,
+  UserWalletRoute: UserWalletRoute,
   VehiclesIdRoute: VehiclesIdRoute,
   VehiclesMyVehiclesRoute: VehiclesMyVehiclesRoute,
   VehiclesSearchRoute: VehiclesSearchRoute,

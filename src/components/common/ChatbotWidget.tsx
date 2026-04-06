@@ -6,11 +6,21 @@ import { Link, useRouterState } from '@tanstack/react-router';
 // Routes where the chatbot should NOT appear
 const HIDDEN_ON_ROUTES = ['/auth', '/admin'];
 
+interface ChatVehicle {
+    _id: string;
+    brand: string;
+    modelName: string;
+    vehicleImages: string[];
+    category: string | { name: string };
+    pricePerDay: number;
+    pickupAddress: string;
+}
+
 interface Message {
     id: string;
     sender: 'bot' | 'user';
     text: string;
-    vehicles?: any[];
+    vehicles?: ChatVehicle[];
 }
 
 export const ChatbotWidget: React.FC = () => {
@@ -57,7 +67,7 @@ export const ChatbotWidget: React.FC = () => {
             const { intent, reply, vehicles, total } = response.data;
 
             let botResponseText = '';
-            let botVehicles: any[] | undefined;
+            let botVehicles: ChatVehicle[] | undefined;
 
             if (intent === 'chat') {
                 // Normal conversation — just show the AI reply
@@ -66,7 +76,7 @@ export const ChatbotWidget: React.FC = () => {
                 // Vehicle search result
                 if (vehicles && vehicles.length > 0) {
                     botResponseText = `I found ${total} vehicle(s) matching your criteria! Here are the top results:`;
-                    botVehicles = vehicles.slice(0, 3);
+                    botVehicles = (vehicles as ChatVehicle[]).slice(0, 3);
                 } else {
                     botResponseText = "I couldn't find any vehicles matching your criteria. Try adjusting your search!";
                 }
@@ -82,6 +92,7 @@ export const ChatbotWidget: React.FC = () => {
             setMessages(prev => [...prev, botMsg]);
 
         } catch (error) {
+            console.error('Chatbot search error:', error);
             setMessages(prev => [...prev, {
                 id: (Date.now() + 1).toString(),
                 sender: 'bot',

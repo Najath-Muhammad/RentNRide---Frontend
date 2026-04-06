@@ -15,6 +15,8 @@ export function useFcmInit() {
             }, 2000);
             return () => clearTimeout(timer);
         }
+
+
         removeFcmToken().catch(() => { });
     }, [isAuthenticated]);
 }

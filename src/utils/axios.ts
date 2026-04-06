@@ -1,3 +1,4 @@
+import { env } from "../config/env";
 import axios from "axios";
 import type { WaitingRequest } from "../types/axios.types";
 import { useAuthStore } from "../stores/authStore";
@@ -6,7 +7,7 @@ import { router } from "../route";
 import { APIAuthRoutes } from "../constants/route.constant";
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: env.VITE_API_BASE_URL,
   withCredentials: true,
 });
 

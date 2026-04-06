@@ -2,13 +2,15 @@ import React, { useState, useEffect } from "react";
 import { AdminSidebar } from "../../components/admin/AdminSidebar";
 import AdminTable from "../../components/admin/AdminTable";
 import { UserApi, type User, type PaginatedUsersResponse } from "../../services/api/admin/user.management.api"
+import { SubscriptionApi } from "../../services/api/admin/subscription.api";
 
 const UserManagementPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<"Active" | "Blocked" | "">("");
-  const [role, setRole] = useState<"Normal" | "Premium" | "">("");
+  const [role, setRole] = useState<string>("");
+  const [plans, setPlans] = useState<string[]>([]);
 
   const [users, setUsers] = useState<User[]>([]);
   const [totalPages, setTotalPages] = useState(1);
@@ -35,6 +37,18 @@ const UserManagementPage: React.FC = () => {
   const closeModal = () => {
     setModalConfig((prev) => ({ ...prev, isOpen: false }));
   };
+
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const res = await SubscriptionApi.getActivePlans();
+        setPlans(res.map(p => p.name));
+      } catch (err) {
+        console.error("Failed to fetch plans", err);
+      }
+    };
+    fetchPlans();
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -160,7 +174,7 @@ const UserManagementPage: React.FC = () => {
     });
   };
 
-  const getUserActions = (user: User) => {
+  const getUserActions = (user: { _id: string; role: string; status: string }) => {
     const actions = [];
     if (user.status === "Active") {
       actions.push({
@@ -203,6 +217,7 @@ const UserManagementPage: React.FC = () => {
   const formattedUsers = users.map((user) => ({
     ...user,
     shortId: user?._id ? String(user._id).slice(-6) : "N/A",
+    role: user.role === "Premium" && user.planName && user.planName !== "None" ? user.planName : user.role,
   }));
 
   const columns = [
@@ -210,14 +225,14 @@ const UserManagementPage: React.FC = () => {
     { key: "name", label: "Name" },
     { key: "email", label: "Email" },
     { key: "phone", label: "Phone" },
-    { key: "role", label: "Role" },
+    { key: "role", label: "Role / Plan" },
     { key: "status", label: "Status" },
   ] as const;
 
   const filters = [
     { key: "status", label: "Status", options: ["Active", "Blocked"] },
-    { key: "role", label: "Role", options: ["Normal", "Premium"] },
-  ] as const;
+    { key: "role", label: "Role / Plan", options: ["Normal", "Premium", ...plans] },
+  ];
 
   const activeFilters: Record<string, string> = {
     status: status || "All",
@@ -260,7 +275,7 @@ const UserManagementPage: React.FC = () => {
           activeFilters={activeFilters}
           onFilterChange={(key: string, value: string) => {
             if (key === "status") setStatus(value as "Active" | "Blocked" | "");
-            if (key === "role") setRole(value as "Normal" | "Premium" | "");
+            if (key === "role") setRole(value);
           }}
           page={page}
           totalPages={totalPages}
@@ -275,11 +290,11 @@ const UserManagementPage: React.FC = () => {
       {modalConfig.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop */}
-          <div 
+          <div
             className="absolute inset-0 bg-black bg-opacity-50 transition-opacity"
             onClick={closeModal}
           />
-          
+
           {/* Modal Content */}
           <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full">
             <div className="p-6">

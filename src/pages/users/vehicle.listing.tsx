@@ -232,8 +232,9 @@ const AddVehicleForm: React.FC = () => {
 
       case 'pricePerDay': {
         if (value.trim() === '') return 'Price per day is required';
-        const price = parseFloat(value);
-        if (isNaN(price) || price <= 0) return 'Enter valid price (greater than 0)';
+        const price = Number(value);
+        if (isNaN(price) || !Number.isFinite(price) || price <= 0) return 'Enter valid price (greater than 0)';
+        if (!Number.isInteger(price)) return 'Price must be a whole number';
         return '';
       }
 
@@ -372,7 +373,7 @@ const AddVehicleForm: React.FC = () => {
     const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'];
     const validation = validateFile(file, allowedTypes);
     if (!validation.valid) {
-      showModal('error', 'Invalid File', validation.error);
+      showModal('error', 'Invalid File', validation.error ?? 'Invalid file');
       return;
     }
 
@@ -397,7 +398,7 @@ const AddVehicleForm: React.FC = () => {
     const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'];
     const validation = validateFile(file, allowedTypes);
     if (!validation.valid) {
-      showModal('error', 'Invalid File', validation.error);
+      showModal('error', 'Invalid File', validation.error ?? 'Invalid file');
       return;
     }
 
@@ -463,7 +464,7 @@ const AddVehicleForm: React.FC = () => {
         modelName: formData.model,
         category2: formData.category2,
         fuelType: formData.fuelType,
-        pricePerDay: parseFloat(formData.pricePerDay),
+        pricePerDay: Math.round(Number(formData.pricePerDay)),
         vehicleImages: vehicleImageUrls,
         rcNumber: formData.rcNumber,
         rcExpiryDate: formData.rcExpiryDate,
@@ -567,7 +568,7 @@ const AddVehicleForm: React.FC = () => {
               <SelectField label="Category 2" name="category2" options={subCategoryOptions} value={formData.category2} onChange={handleChange} onBlur={handleBlur} error={errors.category2} touched={touched.category2} />
               <SelectField label="Fuel Type" name="fuelType" options={fuelTypeOptions} value={formData.fuelType} onChange={handleChange} onBlur={handleBlur} error={errors.fuelType} touched={touched.fuelType} />
               <InputField label="Seating Capacity" name="seatCapacity" type="number" placeholder="E.g., 5 (leave empty for bikes)" value={formData.seatCapacity} onChange={handleChange} onBlur={handleBlur} error={errors.seatCapacity} touched={touched.seatCapacity} optional />
-              <InputField label="Price Per Day" name="pricePerDay" type="number" placeholder="E.g., 2000" value={formData.pricePerDay} onChange={handleChange} onBlur={handleBlur} error={errors.pricePerDay} touched={touched.pricePerDay} />
+              <InputField label="Price Per Day (₹)" name="pricePerDay" type="number" placeholder="E.g., 2000" value={formData.pricePerDay} onChange={handleChange} onBlur={handleBlur} error={errors.pricePerDay} touched={touched.pricePerDay} />
               <InputField label="Number of Doors" name="doors" type="number" placeholder="E.g., 4 (leave empty for bikes)" value={formData.doors} onChange={handleChange} onBlur={handleBlur} error={errors.doors} touched={touched.doors} optional />
             </div>
 

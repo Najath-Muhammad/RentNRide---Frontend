@@ -1,10 +1,9 @@
-import { env } from "../config/env";
 import { getToken, onMessage } from "firebase/messaging";
 import { getFirebaseMessaging } from "../config/firebase.config";
 import { api } from "../utils/axios";
 
 const FCM_TOKEN_KEY = "fcm_token";
-const VAPID_KEY = env.VITE_FIREBASE_VAPID_KEY as string;
+const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY as string;
 
 async function syncTokenWithBackend(token: string): Promise<void> {
     await api.post("/fcm/token", { token });
@@ -16,7 +15,7 @@ export async function removeFcmToken(): Promise<void> {
     try {
         await api.delete("/fcm/token", { data: { token } });
         localStorage.removeItem(FCM_TOKEN_KEY);
-    } catch (error) { console.error("[FCM] Failed to remove token:", error);
+    } catch {
         
     }
 }
@@ -31,8 +30,8 @@ export async function initPushNotifications(): Promise<void> {
     const isPlaceholder =
         !VAPID_KEY ||
         VAPID_KEY === "your_vapid_key_here" ||
-        !env.VITE_FIREBASE_PROJECT_ID ||
-        env.VITE_FIREBASE_PROJECT_ID === "your_project_id";
+        !import.meta.env.VITE_FIREBASE_PROJECT_ID ||
+        import.meta.env.VITE_FIREBASE_PROJECT_ID === "your_project_id";
 
     if (isPlaceholder) {
         console.warn(

@@ -74,7 +74,7 @@ export const DashboardCharts: React.FC<ChartsProps> = ({
                             <XAxis dataKey="date" tick={{ fontSize: 12 }} tickMargin={10} />
                             <YAxis tick={{ fontSize: 12 }} tickFormatter={(value) => `₹${value}`} />
                             <Tooltip
-                                formatter={(value: any) => [`₹${value}`, 'Revenue']}
+                                formatter={(value: unknown) => [`₹${String(value)}`, 'Revenue']}
                                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                             />
                             <Bar dataKey="amount" fill="#10b981" radius={[4, 4, 0, 0]} />

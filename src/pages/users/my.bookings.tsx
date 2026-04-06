@@ -277,7 +277,7 @@ const MyBookings: React.FC = () => {
                                                     </div>
                                                 </div>
 
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                                                     <div className="bg-gray-50 p-3 rounded-xl">
                                                         <p className="text-xs text-gray-500 mb-1">Pick-up Date</p>
                                                         <div className="flex items-center gap-2 font-semibold text-gray-900">
@@ -294,6 +294,13 @@ const MyBookings: React.FC = () => {
                                                             {new Date(booking.endDate).toLocaleDateString(undefined, {
                                                                 weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'
                                                             })}
+                                                        </div>
+                                                    </div>
+                                                    <div className="bg-gray-50 p-3 rounded-xl">
+                                                        <p className="text-xs text-gray-500 mb-1">Fuel Option</p>
+                                                        <div className="flex items-center gap-2 font-semibold text-gray-900">
+                                                            <span className="text-blue-600 text-lg">⛽</span>
+                                                            {booking.withFuel ? 'With Fuel' : 'Without Fuel'}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -323,7 +330,7 @@ const MyBookings: React.FC = () => {
                                                             {cancellingId === booking._id ? 'Cancelling...' : 'Cancel Booking'}
                                                         </button>
                                                     )}
-                                                    {booking.bookingStatus === 'completed' && (
+                                                    {['completed', 'ride_started', 'payment_captured'].includes(booking.bookingStatus) && (
                                                         <button
                                                             onClick={() => openReviewModal(booking)}
                                                             className="px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex items-center gap-2"

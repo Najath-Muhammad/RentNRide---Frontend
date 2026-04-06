@@ -20,9 +20,10 @@ const AdminDashboard: React.FC = () => {
                 } else {
                     setError('Failed to load dashboard statistics.');
                 }
-            } catch (err: any) {
+            } catch (err: unknown) {
                 console.error('Error loading dashboard stats:', err);
-                setError(err?.response?.data?.message || 'Failed to load dashboard statistics.');
+                const axiosError = err as { response?: { data?: { message?: string } } };
+                setError(axiosError?.response?.data?.message || 'Failed to load dashboard statistics.');
             } finally {
                 setLoading(false);
             }

@@ -114,6 +114,9 @@ const BookingManagement: React.FC = () => {
             <div className="text-sm text-gray-700">
                 <div>From: {new Date(b.startDate).toLocaleDateString()}</div>
                 <div>To: {new Date(b.endDate).toLocaleDateString()}</div>
+                <div className="mt-1 font-medium text-blue-600">
+                    ⛽ {b.withFuel ? 'With Fuel' : 'Without Fuel'}
+                </div>
             </div>
         ),
         amount: <span className="font-semibold text-gray-900">₹{b.totalAmount.toLocaleString()}</span>,

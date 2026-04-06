@@ -8,6 +8,7 @@ export function useFcmInit() {
 
     useEffect(() => {
         if (isAuthenticated) {
+
             const timer = setTimeout(() => {
                 initPushNotifications().catch((err) =>
                     console.error("[FCM] init error:", err),
@@ -15,6 +16,8 @@ export function useFcmInit() {
             }, 2000);
             return () => clearTimeout(timer);
         }
+
+        // If the user just logged out, clean up the token
         removeFcmToken().catch(() => { });
     }, [isAuthenticated]);
 }

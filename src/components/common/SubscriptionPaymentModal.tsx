@@ -1,10 +1,11 @@
+import { env } from "../../config/env";
 import React, { useState, useEffect } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { X, Loader2, Crown, CheckCircle } from "lucide-react";
 import { api } from "../../utils/axios";
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "pk_test_sample");
+const stripePromise = loadStripe(env.VITE_STRIPE_PUBLIC_KEY || "pk_test_sample");
 
 interface CheckoutFormProps {
     planId: string;
@@ -46,8 +47,8 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ planName, amount, clientSec
                 await api.post("/subscriptions/verify-payment", { paymentIntentId: paymentIntent.id });
                 setSuccess(true);
                 setTimeout(onSuccess, 1800);
-            } catch (verr: any) {
-                setError(verr.response?.data?.message || "Payment successful, but failed to activate subscription.");
+            } catch (verr: unknown) {
+                const error = verr as { response?: { data?: { message?: string } } }; setError(error.response?.data?.message || "Payment successful, but failed to activate subscription.");
                 setIsProcessing(false);
             }
         } else {
@@ -147,8 +148,8 @@ const ModalContent: React.FC<SubscriptionPaymentModalProps> = ({ planId, onSucce
             try {
                 const res = await api.post("/subscriptions/payment-intent", { planId });
                 setIntentData(res.data.data);
-            } catch (err: any) {
-                setError(err.response?.data?.message || "Failed to initialise payment.");
+            } catch (err: unknown) {
+                const error = err as { response?: { data?: { message?: string } } }; setError(error.response?.data?.message || "Failed to initialise payment.");
             } finally {
                 setLoading(false);
             }
@@ -214,3 +215,4 @@ export const SubscriptionPaymentModal: React.FC<SubscriptionPaymentModalProps> =
         </div>
     );
 };
+

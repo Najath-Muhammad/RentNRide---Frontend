@@ -162,10 +162,10 @@ const AdminTable = <T extends { _id?: string } & Record<string, unknown>>({
 
         {/* Table */}
         <div className="bg-white rounded-lg shadow-sm">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto min-h-[400px]">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200">
+                <tr className="border-b border-gray-200 bg-gray-50/50">
                   {columns.map((column) => (
                     <th
                       key={column.key}
@@ -205,7 +205,11 @@ const AdminTable = <T extends { _id?: string } & Record<string, unknown>>({
                   </tr>
                 ) : (
                   data.map((item, index) => (
-                    <tr key={item._id || index} className="hover:bg-gray-50">
+                    <tr
+                      key={item._id || index}
+                      className={`hover:bg-gray-50 transition-colors ${item._id && openActionMenus[item._id] ? "relative z-50 bg-gray-50" : ""
+                        }`}
+                    >
                       {columns.map((column) => (
                         <td key={column.key} className="px-6 py-4 text-sm text-gray-900">
                           {item[column.key] as React.ReactNode}
@@ -226,21 +230,27 @@ const AdminTable = <T extends { _id?: string } & Record<string, unknown>>({
                             </button>
 
                             {item._id && openActionMenus[item._id] && (
-                              <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-30">
-                                {actions(item).map((action, i) => (
-                                  <button
-                                    key={i}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      if (item._id) action.onClick(item._id);
-                                      setOpenActionMenus({});
-                                    }}
-                                    className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg border-b last:border-b-0 ${action.className || "text-gray-700"
-                                      }`}
-                                  >
-                                    {action.label}
-                                  </button>
-                                ))}
+                              <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-xl shadow-2xl z-[100] py-1 animate-in fade-in zoom-in-95 duration-200">
+                                {actions(item).length > 0 ? (
+                                  actions(item).map((action, i) => (
+                                    <button
+                                      key={i}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (item._id) action.onClick(item._id);
+                                        setOpenActionMenus({});
+                                      }}
+                                      className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors border-b last:border-b-0 ${action.className || "text-gray-700"
+                                        }`}
+                                    >
+                                      {action.label}
+                                    </button>
+                                  ))
+                                ) : (
+                                  <div className="px-4 py-3 text-xs text-center text-gray-400 italic">
+                                    No actions available
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>

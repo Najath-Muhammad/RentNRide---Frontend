@@ -1,6 +1,7 @@
+import { env } from "../config/env";
 import axios, { AxiosError } from 'axios';
 
-const API_KEY = import.meta.env.VITE_LOCATIONIQ_KEY;
+const API_KEY = env.VITE_LOCATIONIQ_KEY;
 
 if (!API_KEY) {
   console.error('LocationIQ API key is missing! Add VITE_LOCATIONIQ_KEY=your_key to .env.local or .env');

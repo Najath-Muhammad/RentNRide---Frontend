@@ -15,6 +15,8 @@ export function useFcmInit() {
             }, 2000);
             return () => clearTimeout(timer);
         }
+
+        // If the user just logged out, clean up the token
         removeFcmToken().catch(() => { });
     }, [isAuthenticated]);
 }

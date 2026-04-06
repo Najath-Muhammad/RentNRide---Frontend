@@ -52,7 +52,9 @@ const MySubscription: React.FC = () => {
             ]);
             setActiveSubscription(sub);
             setHistory(hist.data);
-        } catch { }
+        } catch (error) {
+            console.error('Failed to reload subscription:', error);
+        }
     };
 
     const plan = activeSubscription?.planId as SubscriptionPlan | undefined;
@@ -159,42 +161,53 @@ const MySubscription: React.FC = () => {
                                     <h2 className="text-lg font-semibold text-gray-700 mb-1">No Active Subscription</h2>
                                     <p className="text-sm text-gray-500">Choose a plan below to get started.</p>
                                 </div>
+                            </div>
+                        )}
 
-                                {/* Available Plans */}
-                                {plans.length > 0 && (
-                                    <div>
-                                        <h3 className="text-base font-semibold text-gray-900 mb-3">Available Plans</h3>
-                                        <div className="grid gap-4">
-                                            {plans.map((p) => (
-                                                <div
-                                                    key={p._id}
-                                                    className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center justify-between"
-                                                >
-                                                    <div>
-                                                        <div className="flex items-center gap-2 mb-1">
-                                                            <Crown className="w-4 h-4 text-emerald-600" />
-                                                            <span className="font-semibold text-gray-900">{p.name}</span>
-                                                        </div>
-                                                        <p className="text-xs text-gray-500 mb-2">{p.description}</p>
-                                                        <div className="flex flex-wrap gap-2">
-                                                            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{p.durationDays} days</span>
-                                                            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{p.vehicleLimit} vehicle{p.vehicleLimit !== 1 ? 's' : ''}</span>
-                                                        </div>
+                        {/* Available Plans */}
+                        {plans.length > 0 && (
+                            <div className="mb-8">
+                                <h3 className="text-base font-semibold text-gray-900 mb-3">Available Plans</h3>
+                                <div className="grid gap-4">
+                                    {plans.map((p) => {
+                                        const isCurrentPlan = activeSubscription && (plan?._id === p._id || (activeSubscription.planId as unknown as string) === p._id);
+                                        const isDowngrade = activeSubscription && plan && p.price <= plan.price && !isCurrentPlan;
+                                        const isDisabled = isCurrentPlan || isDowngrade;
+                                        return (
+                                            <div
+                                                key={p._id}
+                                                className={`bg-white rounded-2xl border ${isCurrentPlan ? 'border-emerald-500 ring-1 ring-emerald-500' : 'border-gray-100'} shadow-sm p-5 flex items-center justify-between`}
+                                            >
+                                                <div>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <Crown className={`w-4 h-4 ${isCurrentPlan ? 'text-emerald-600' : 'text-gray-500'}`} />
+                                                        <span className={`font-semibold ${isCurrentPlan ? 'text-emerald-700' : 'text-gray-900'}`}>
+                                                            {p.name} {isCurrentPlan && '(Current Plan)'}
+                                                        </span>
                                                     </div>
-                                                    <div className="text-right ml-4 flex-shrink-0">
-                                                        <p className="text-lg font-bold text-gray-900">₹{p.price.toLocaleString()}</p>
-                                                        <button
-                                                            onClick={() => handleSubscribeClick(p._id)}
-                                                            className="mt-2 px-4 py-1.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors"
-                                                        >
-                                                            Subscribe
-                                                        </button>
+                                                    <p className="text-xs text-gray-500 mb-2">{p.description}</p>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{p.durationDays} days</span>
+                                                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{p.vehicleLimit} vehicle{p.vehicleLimit !== 1 ? 's' : ''}</span>
                                                     </div>
                                                 </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
+                                                <div className="text-right ml-4 flex-shrink-0">
+                                                    <p className="text-lg font-bold text-gray-900">₹{p.price.toLocaleString()}</p>
+                                                    <button
+                                                        onClick={() => handleSubscribeClick(p._id)}
+                                                        disabled={isDisabled || false}
+                                                        className={`mt-2 px-4 py-1.5 text-sm font-semibold rounded-lg transition-colors ${isDisabled
+                                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                                            : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                                                            }`}
+                                                    >
+                                                        {isCurrentPlan ? 'Active' : isDowngrade ? 'Unavailable' : activeSubscription ? 'Upgrade' : 'Subscribe'}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
                             </div>
                         )}
 

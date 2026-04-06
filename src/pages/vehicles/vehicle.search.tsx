@@ -259,11 +259,7 @@ const SearchPage = () => {
     return () => clearTimeout(debounceTimer);
   }, [searchInput]);
 
-  React.useEffect(() => {
-    if (filters.search === '' && searchInput !== '') {
-      setSearchInput('');
-    }
-  }, [filters.search, searchInput]);
+  // The buggy generic effect that clears the input was removed. We handle reset differently.
 
   React.useEffect(() => {
     const fetchFilterData = async () => {
@@ -354,6 +350,7 @@ const SearchPage = () => {
       priceRange: { min: '', max: '' },
       sortBy: ''
     });
+    setSearchInput('');
   }, []);
 
   // Local state for price inputs to prevent fetching on every keystroke

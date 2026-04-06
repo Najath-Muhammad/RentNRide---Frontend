@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
 import { AuthApi } from '../../services/api/auth/login.api';
 import { useAuthStore } from '../../stores/authStore';
+import { connectSocket, disconnectSocket } from '../../services/socket/socket';
 //import type { AxiosError } from 'axios';
 
 export const AuthInitializer = () => {
-  const { setUser, setLoading } = useAuthStore();
+  const { setUser, setLoading, isAuthenticated, logout } = useAuthStore();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -34,6 +35,26 @@ export const AuthInitializer = () => {
   }, [setUser, setLoading]);
 
   //console.log(`is user authenticated: ${isAuthenticated}`);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      const socket = connectSocket();
+
+      const handleBlocked = () => {
+        logout?.();
+        disconnectSocket();
+        window.location.href = '/auth/login';
+      };
+
+      socket.on('user:blocked', handleBlocked);
+
+      return () => {
+        socket.off('user:blocked', handleBlocked);
+      };
+    } else {
+      disconnectSocket();
+    }
+  }, [isAuthenticated, logout]);
 
   return null;
 };

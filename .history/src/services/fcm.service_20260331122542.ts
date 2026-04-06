@@ -1,10 +1,9 @@
-import { env } from "../config/env";
 import { getToken, onMessage } from "firebase/messaging";
 import { getFirebaseMessaging } from "../config/firebase.config";
 import { api } from "../utils/axios";
 
 const FCM_TOKEN_KEY = "fcm_token";
-const VAPID_KEY = env.VITE_FIREBASE_VAPID_KEY as string;
+const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY as string;
 
 async function syncTokenWithBackend(token: string): Promise<void> {
     await api.post("/fcm/token", { token });
@@ -16,23 +15,29 @@ export async function removeFcmToken(): Promise<void> {
     try {
         await api.delete("/fcm/token", { data: { token } });
         localStorage.removeItem(FCM_TOKEN_KEY);
-    } catch (error) { console.error("[FCM] Failed to remove token:", error);
+    } catch {
         
     }
 }
 
-
+/**
+ * Request notification permission, generate an FCM token and sync it with the backend.
+ * Safe to call multiple times — no-ops if token is already up-to-date.
+ * Silently skips if Firebase env vars are still placeholders.
+ */
 export async function initPushNotifications(): Promise<void> {
+    // Push is only available in secure contexts
     if (!("Notification" in window) || !("serviceWorker" in navigator)) {
         console.warn("[FCM] Push notifications are not supported in this browser.");
         return;
     }
 
+    // Skip gracefully when credentials are not yet configured
     const isPlaceholder =
         !VAPID_KEY ||
         VAPID_KEY === "your_vapid_key_here" ||
-        !env.VITE_FIREBASE_PROJECT_ID ||
-        env.VITE_FIREBASE_PROJECT_ID === "your_project_id";
+        !import.meta.env.VITE_FIREBASE_PROJECT_ID ||
+        import.meta.env.VITE_FIREBASE_PROJECT_ID === "your_project_id";
 
     if (isPlaceholder) {
         console.warn(
@@ -51,6 +56,7 @@ export async function initPushNotifications(): Promise<void> {
     try {
         const messaging = getFirebaseMessaging();
 
+        // Register the Firebase service worker
         const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js", {
             scope: "/",
         });
@@ -68,12 +74,13 @@ export async function initPushNotifications(): Promise<void> {
         const stored = localStorage.getItem(FCM_TOKEN_KEY);
 
         if (stored !== token) {
+            // Token changed or is new — sync with backend
             await syncTokenWithBackend(token);
             localStorage.setItem(FCM_TOKEN_KEY, token);
             console.log("[FCM] Token registered with backend.");
         }
 
-
+        // Handle foreground messages
         onMessage(messaging, (payload) => {
             console.log("[FCM] Foreground message received:", payload);
 

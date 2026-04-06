@@ -6,8 +6,8 @@ export interface ChatbotResponse {
     data: {
         intent: "chat" | "search";
         reply?: string;           // present when intent === "chat"
-        filters?: Record<string, any>;
-        vehicles: any[];
+        filters?: Record<string, unknown>;
+        vehicles: unknown[];
         total: number;
     };
 }

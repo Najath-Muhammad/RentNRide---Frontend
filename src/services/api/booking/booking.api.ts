@@ -26,6 +26,7 @@ export interface Booking {
     };
     startDate: string;
     endDate: string;
+    withFuel?: boolean;
     totalAmount: number;
     bookingStatus: 'pending' | 'confirmed' | 'ongoing' | 'completed' | 'cancelled' | 'rejected';
     paymentStatus: string;

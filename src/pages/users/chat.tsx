@@ -121,6 +121,15 @@ const ChatPage: React.FC = () => {
         setLoadingMessages(true);
         setMessages([]);
 
+        // Mark as read in local state
+        setConversations((prev) =>
+            prev.map((c) =>
+                c._id === conversation._id && c.lastMessage
+                    ? { ...c, lastMessage: { ...c.lastMessage, isRead: true } }
+                    : c
+            )
+        );
+
         try {
             const socket = getSocket();
             socket.emit('conversation:join', conversation._id);
@@ -327,14 +336,21 @@ const ChatPage: React.FC = () => {
                                     const isActive = activeConversation?._id === conv._id;
                                     const isOnline = other ? onlineUsers.has(other._id) : false;
 
+                                    const lastMsgSenderId = typeof conv.lastMessage?.senderId === 'object'
+                                        ? conv.lastMessage.senderId._id
+                                        : conv.lastMessage?.senderId;
+                                    const isUnread = conv.lastMessage && !conv.lastMessage.isRead && lastMsgSenderId !== user?.id;
+
                                     return (
                                         <li
                                             key={conv._id}
                                             onClick={() => openConversation(conv)}
-                                            className={`flex items-center gap-3 px-4 py-3.5 cursor-pointer transition-all duration-150
+                                            className={`flex items-center gap-3 px-4 py-3.5 cursor-pointer transition-all duration-150 relative
                                                 ${isActive
                                                     ? 'bg-blue-50 border-l-2 border-blue-600'
-                                                    : 'hover:bg-gray-50 border-l-2 border-transparent'}`}
+                                                    : isUnread
+                                                        ? 'bg-blue-50/30 border-l-2 border-blue-400 hover:bg-gray-50'
+                                                        : 'hover:bg-gray-50 border-l-2 border-transparent'}`}
                                         >
                                             {/* Avatar */}
                                             <div className="relative flex-shrink-0">
@@ -348,16 +364,23 @@ const ChatPage: React.FC = () => {
 
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex justify-between items-center">
-                                                    <p className="font-semibold text-gray-900 text-sm truncate">{other?.name || 'Unknown'}</p>
+                                                    <p className={`text-sm truncate ${isUnread ? 'font-bold text-gray-900' : 'font-semibold text-gray-900'}`}>
+                                                        {other?.name || 'Unknown'}
+                                                    </p>
                                                     {conv.lastMessageAt && (
-                                                        <span className="text-xs text-gray-400 flex-shrink-0 ml-1">
+                                                        <span className={`text-xs ml-1 flex-shrink-0 ${isUnread ? 'font-bold text-blue-600' : 'text-gray-400'}`}>
                                                             {formatTime(conv.lastMessageAt)}
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="text-xs text-gray-500 truncate mt-0.5">
-                                                    {conv.lastMessage?.content || 'No messages yet'}
-                                                </p>
+                                                <div className="flex justify-between items-center mt-0.5">
+                                                    <p className={`text-xs truncate ${isUnread ? 'font-semibold text-gray-800' : 'text-gray-500'}`}>
+                                                        {conv.lastMessage?.content || 'No messages yet'}
+                                                    </p>
+                                                    {isUnread && (
+                                                        <span className="w-2.5 h-2.5 rounded-full bg-blue-600 ml-2 flex-shrink-0"></span>
+                                                    )}
+                                                </div>
                                                 {conv.vehicleId && (
                                                     <p className="text-xs text-blue-500 font-medium truncate mt-0.5">
                                                         🚗 {conv.vehicleId.brand} {conv.vehicleId.modelName}
@@ -548,7 +571,7 @@ const ChatPage: React.FC = () => {
                                                                     {/* Show Pay Advance button if it's approved and the renter is viewing */}
                                                                     {!own && msg.bookingAction === 'approved' && msg.bookingId?.bookingStatus === 'approved' && (
                                                                         <button
-                                                                            onClick={() => setPaymentModal({ isOpen: true, bookingId: msg.bookingId!._id || (msg.bookingId as any), amount: msg.bookingId?.advancePaid || 0 })}
+                                                                            onClick={() => setPaymentModal({ isOpen: true, bookingId: msg.bookingId!._id || (msg.bookingId as unknown as string), amount: msg.bookingId?.advancePaid || 0 })}
                                                                             className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm"
                                                                         >
                                                                             Pay Advance {msg.bookingId?.advancePaid ? `₹${msg.bookingId.advancePaid.toLocaleString("en-IN")}` : ''}
@@ -557,7 +580,7 @@ const ChatPage: React.FC = () => {
                                                                     {/* Show Confirm Vehicle button if advance paid and the renter is viewing */}
                                                                     {!own && msg.bookingAction === 'approved' && msg.bookingId?.bookingStatus === 'advance_authorized' && (
                                                                         <button
-                                                                            onClick={() => handleVehicleReached(msg.bookingId!._id || (msg.bookingId as any))}
+                                                                            onClick={() => handleVehicleReached(msg.bookingId!._id || (msg.bookingId as unknown as string))}
                                                                             className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-green-600 text-white text-sm font-semibold rounded-xl hover:bg-green-700 transition-colors shadow-sm"
                                                                         >
                                                                             <CheckCheck className="w-5 h-5" />

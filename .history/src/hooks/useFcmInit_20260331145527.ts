@@ -8,6 +8,7 @@ export function useFcmInit() {
 
     useEffect(() => {
         if (isAuthenticated) {
+            // Small delay so the page is fully loaded before requesting permission
             const timer = setTimeout(() => {
                 initPushNotifications().catch((err) =>
                     console.error("[FCM] init error:", err),
@@ -15,6 +16,8 @@ export function useFcmInit() {
             }, 2000);
             return () => clearTimeout(timer);
         }
+
+        // If the user just logged out, clean up the token
         removeFcmToken().catch(() => { });
     }, [isAuthenticated]);
 }

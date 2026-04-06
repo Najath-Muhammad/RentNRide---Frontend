@@ -157,7 +157,8 @@ const EditVehicle: React.FC = () => {
     if (!formData.insuranceProvider?.trim()) newErrors.insuranceProvider = 'Insurance Provider is required';
 
     const price = Number(formData.pricePerDay);
-    if (!formData.pricePerDay || isNaN(price) || price <= 0) newErrors.pricePerDay = 'Enter valid price (greater than 0)';
+    if (!formData.pricePerDay || isNaN(price) || !Number.isFinite(price) || price <= 0) newErrors.pricePerDay = 'Enter valid price (greater than 0)';
+    else if (!Number.isInteger(price)) newErrors.pricePerDay = 'Price must be a whole number';
 
     if (formData.seatingCapacity) {
       const seats = Number(formData.seatingCapacity);
@@ -235,6 +236,7 @@ const EditVehicle: React.FC = () => {
       setSaving(true);
       const payload = {
         ...formData,
+        pricePerDay: Math.round(Number(formData.pricePerDay)),
         vehicleImages: vehicleImageUrls,
         rcImage,
         insuranceImage
