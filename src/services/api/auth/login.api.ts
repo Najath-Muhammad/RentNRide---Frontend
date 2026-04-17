@@ -22,6 +22,7 @@ export interface LoginResponse {
   message?: string;
   data: {
     user: AuthUser;
+    expiresIn?: number;
   };
 }
 

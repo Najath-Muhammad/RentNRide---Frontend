@@ -216,11 +216,16 @@ const AddVehicleForm: React.FC = () => {
   const validateField = (name: string, value: string): string => {
     switch (name) {
       case 'category':
-      case 'brand':
-      case 'model':
       case 'category2':
       case 'fuelType':
         return value.trim() === '' ? 'This field is required' : '';
+
+      case 'brand':
+      case 'model':
+        if (value.trim() === '') return 'This field is required';
+        if (value.length > 50) return 'Cannot exceed 50 characters';
+        if (!/^[A-Za-z0-9\\s-]+$/.test(value)) return 'Can only contain letters, numbers, spaces, and hyphens';
+        return '';
 
       case 'seatCapacity': {
         // Optional field - only validate if value is provided
@@ -264,7 +269,9 @@ const AddVehicleForm: React.FC = () => {
       }
 
       case 'insuranceProvider':
-        return value.trim() === '' ? 'Insurance provider is required' : '';
+        if (value.trim() === '') return 'Insurance provider is required';
+        if (value.length > 50) return 'Cannot exceed 50 characters';
+        return '';
 
       case 'insurancePolicyNumber':
         if (value.trim() === '') return 'Policy number is required';

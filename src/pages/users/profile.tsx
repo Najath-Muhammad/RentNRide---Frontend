@@ -121,9 +121,32 @@ const Profile: React.FC = () => {
   };
 
   const handleSaveProfile = async () => {
-    if (!editForm.name.trim()) {
+    const nameStr = editForm.name.trim();
+    if (!nameStr) {
       showError('profile', 'Name is required');
       return;
+    }
+    if (nameStr.length < 2) {
+      showError('profile', 'Name must be at least 2 characters');
+      return;
+    }
+    if (nameStr.length > 50) {
+      showError('profile', 'Name cannot exceed 50 characters');
+      return;
+    }
+    const nameRegex = /^[A-Za-z\s]+$/;
+    if (!nameRegex.test(nameStr)) {
+      showError('profile', 'Name must only contain letters and spaces');
+      return;
+    }
+
+    if (editForm.phone && editForm.phone.trim() !== '') {
+      const phoneStr = editForm.phone.trim();
+      const phoneRegex = /^[0-9+() -]{10,15}$/;
+      if (!phoneRegex.test(phoneStr)) {
+        showError('profile', 'Please enter a valid phone number');
+        return;
+      }
     }
 
     try {
@@ -186,6 +209,15 @@ const Profile: React.FC = () => {
     }
     if (passwordForm.newPassword.length < 8) {
       showError('password', 'New password must be at least 8 characters');
+      return;
+    }
+    if (passwordForm.newPassword.length > 50) {
+      showError('password', 'New password cannot exceed 50 characters');
+      return;
+    }
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).+$/;
+    if (!passwordRegex.test(passwordForm.newPassword)) {
+      showError('password', 'Password must have at least one letter and one number');
       return;
     }
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {

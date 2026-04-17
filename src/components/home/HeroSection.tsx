@@ -9,7 +9,7 @@ const HeroSection: React.FC = () => {
   return (
     <section className="relative bg-gradient-to-b from-blue-50 to-white py-24 text-center overflow-hidden">
       <div className="container mx-auto px-4 max-w-5xl mb-16">
-        <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-8 tracking-tight leading-tight">
+        <h1 className="text-4xl md:text-7xl font-bold text-gray-900 mb-8 tracking-tight leading-tight">
           Rent the ride you need,<br />
           <span className="text-blue-600">whenever you need it.</span>
         </h1>

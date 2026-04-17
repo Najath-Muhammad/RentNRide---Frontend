@@ -11,6 +11,7 @@ export const useAuthStore = create<AuthState>()(
       isLoading: true,
       location: 'India',
       coordinates: undefined,
+      tokenExpiresAt: null,
 
       setUser: (user) =>
         set({
@@ -25,6 +26,8 @@ export const useAuthStore = create<AuthState>()(
 
       setCoordinates: (coordinates) => set({ coordinates }),
 
+      setTokenExpiry: (expiresAt) => set({ tokenExpiresAt: expiresAt }),
+
       logout: () => {
         set({
           user: null,
@@ -32,6 +35,7 @@ export const useAuthStore = create<AuthState>()(
           isLoading: false,
           location: 'India',
           coordinates: undefined,
+          tokenExpiresAt: null,
         });
         localStorage.clear();
       },
@@ -43,6 +47,7 @@ export const useAuthStore = create<AuthState>()(
         isAuthenticated: state.isAuthenticated,
         location: state.location,
         coordinates: state.coordinates,
+        tokenExpiresAt: state.tokenExpiresAt,
       }),
     }
   )

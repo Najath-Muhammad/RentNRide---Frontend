@@ -149,12 +149,31 @@ const EditVehicle: React.FC = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    if (!formData.brand?.trim()) newErrors.brand = 'Brand is required';
-    if (!formData.modelName?.trim()) newErrors.modelName = 'Model Name is required';
+    if (!formData.brand?.trim()) {
+      newErrors.brand = 'Brand is required';
+    } else if (formData.brand.length > 50) {
+      newErrors.brand = 'Brand cannot exceed 50 characters';
+    } else if (!/^[A-Za-z0-9\s-]+$/.test(formData.brand)) {
+      newErrors.brand = 'Brand can only contain letters, numbers, spaces, and hyphens';
+    }
+
+    if (!formData.modelName?.trim()) {
+      newErrors.modelName = 'Model Name is required';
+    } else if (formData.modelName.length > 50) {
+      newErrors.modelName = 'Model Name cannot exceed 50 characters';
+    } else if (!/^[A-Za-z0-9\s-]+$/.test(formData.modelName)) {
+      newErrors.modelName = 'Model Name can only contain letters, numbers, spaces, and hyphens';
+    }
+
     if (!formData.category) newErrors.category = 'Category is required';
     if (!formData.category2) newErrors.category2 = 'Type/Class is required';
     if (!formData.fuelType) newErrors.fuelType = 'Fuel Type is required';
-    if (!formData.insuranceProvider?.trim()) newErrors.insuranceProvider = 'Insurance Provider is required';
+
+    if (!formData.insuranceProvider?.trim()) {
+      newErrors.insuranceProvider = 'Insurance Provider is required';
+    } else if (formData.insuranceProvider.length > 50) {
+      newErrors.insuranceProvider = 'Insurance Provider cannot exceed 50 characters';
+    }
 
     const price = Number(formData.pricePerDay);
     if (!formData.pricePerDay || isNaN(price) || !Number.isFinite(price) || price <= 0) newErrors.pricePerDay = 'Enter valid price (greater than 0)';

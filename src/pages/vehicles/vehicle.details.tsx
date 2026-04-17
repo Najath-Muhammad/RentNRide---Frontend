@@ -67,14 +67,14 @@ const VehicleDetails: React.FC = () => {
             </div>
 
             <LegalSafety vehicle={vehicle} />
-            <LocationMap address={vehicle.pickupAddress} />
+            <LocationMap address={vehicle.pickupAddress} location={vehicle.location} />
             <CustomerReviews vehicleId={vehicle._id} />
           </div>
           <div className="lg:col-span-1">
             <BookingSidebar
               pricePerDay={vehicle.pricePerDay}
-              vehicleId={vehicle._id || id}
-              ownerId={vehicle.ownerId || vehicle.ownerId}
+              vehicleId={typeof vehicle._id === 'object' ? (vehicle._id as { _id?: string })?._id : (vehicle._id || id)}
+              ownerId={typeof vehicle.ownerId === 'object' ? (vehicle.ownerId as { _id?: string })?._id : vehicle.ownerId}
             />
           </div>
         </div>

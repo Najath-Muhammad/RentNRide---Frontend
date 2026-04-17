@@ -289,7 +289,8 @@ const ChatPage: React.FC = () => {
     const actedBookingIds = new Set(
         messages
             .filter((m) => m.messageType === 'booking_action' && m.bookingId)
-            .map((m) => m.bookingId!._id || (m.bookingId as unknown as string))
+            .map((m) => typeof m.bookingId === 'object' ? m.bookingId?._id : m.bookingId)
+            .filter((id): id is string => !!id)
     );
 
     // ─────────────────────────────────────────────────────────────────────
@@ -505,8 +506,9 @@ const ChatPage: React.FC = () => {
 
                                                                     {/* Approve/Reject buttons — show to non-sender only */}
                                                                     {(() => {
-                                                                        const isExpired = msg.bookingId?.startDate ? new Date(msg.bookingId.startDate) < new Date() : false;
-                                                                        const hasActed = actedBookingIds.has(msg.bookingId?._id || (msg.bookingId as unknown as string));
+                                                                        const isExpired = typeof msg.bookingId === 'object' && msg.bookingId?.startDate ? new Date(msg.bookingId.startDate) < new Date() : false;
+                                                                        const bId = typeof msg.bookingId === 'object' ? msg.bookingId?._id : msg.bookingId;
+                                                                        const hasActed = bId ? actedBookingIds.has(bId) : false;
                                                                         const showActions = !own && isOwnerInConversation(activeConversation) && msg.bookingId && !hasActed && !isExpired;
 
                                                                         return (
@@ -519,20 +521,20 @@ const ChatPage: React.FC = () => {
                                                                                 {showActions && (
                                                                                     <div className="flex gap-2">
                                                                                         <button
-                                                                                            onClick={() => handleBookingActionClick(
-                                                                                                msg.bookingId!._id || (msg.bookingId as unknown as string),
-                                                                                                'approved'
-                                                                                            )}
+                                                                                            onClick={() => {
+                                                                                                const bId = typeof msg.bookingId === 'object' ? msg.bookingId?._id : msg.bookingId;
+                                                                                                if (bId) handleBookingActionClick(bId, 'approved');
+                                                                                            }}
                                                                                             className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-green-600 text-white text-sm font-semibold rounded-xl hover:bg-green-700 transition-colors"
                                                                                         >
                                                                                             <Check className="w-4 h-4" />
                                                                                             Approve
                                                                                         </button>
                                                                                         <button
-                                                                                            onClick={() => handleBookingActionClick(
-                                                                                                msg.bookingId!._id || (msg.bookingId as unknown as string),
-                                                                                                'rejected'
-                                                                                            )}
+                                                                                            onClick={() => {
+                                                                                                const bId = typeof msg.bookingId === 'object' ? msg.bookingId?._id : msg.bookingId;
+                                                                                                if (bId) handleBookingActionClick(bId, 'rejected');
+                                                                                            }}
                                                                                             className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-red-600 text-white text-sm font-semibold rounded-xl hover:bg-red-700 transition-colors"
                                                                                         >
                                                                                             <X className="w-4 h-4" />
@@ -569,18 +571,25 @@ const ChatPage: React.FC = () => {
                                                                         </p>
                                                                     </div>
                                                                     {/* Show Pay Advance button if it's approved and the renter is viewing */}
-                                                                    {!own && msg.bookingAction === 'approved' && msg.bookingId?.bookingStatus === 'approved' && (
+                                                                    {!own && msg.bookingAction === 'approved' && typeof msg.bookingId === 'object' && msg.bookingId?.bookingStatus === 'approved' && (
                                                                         <button
-                                                                            onClick={() => setPaymentModal({ isOpen: true, bookingId: msg.bookingId!._id || (msg.bookingId as unknown as string), amount: msg.bookingId?.advancePaid || 0 })}
+                                                                            onClick={() => {
+                                                                                const bId = typeof msg.bookingId === 'object' ? msg.bookingId?._id : msg.bookingId;
+                                                                                const adv = typeof msg.bookingId === 'object' ? msg.bookingId?.advancePaid : 0;
+                                                                                if (bId) setPaymentModal({ isOpen: true, bookingId: bId, amount: adv || 0 });
+                                                                            }}
                                                                             className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm"
                                                                         >
-                                                                            Pay Advance {msg.bookingId?.advancePaid ? `₹${msg.bookingId.advancePaid.toLocaleString("en-IN")}` : ''}
+                                                                            Pay Advance {typeof msg.bookingId === 'object' && msg.bookingId?.advancePaid ? `₹${msg.bookingId.advancePaid.toLocaleString("en-IN")}` : ''}
                                                                         </button>
                                                                     )}
                                                                     {/* Show Confirm Vehicle button if advance paid and the renter is viewing */}
-                                                                    {!own && msg.bookingAction === 'approved' && msg.bookingId?.bookingStatus === 'advance_authorized' && (
+                                                                    {!own && msg.bookingAction === 'approved' && typeof msg.bookingId === 'object' && msg.bookingId?.bookingStatus === 'advance_authorized' && (
                                                                         <button
-                                                                            onClick={() => handleVehicleReached(msg.bookingId!._id || (msg.bookingId as unknown as string))}
+                                                                            onClick={() => {
+                                                                                const bId = typeof msg.bookingId === 'object' ? msg.bookingId?._id : msg.bookingId;
+                                                                                if (bId) handleVehicleReached(bId);
+                                                                            }}
                                                                             className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-green-600 text-white text-sm font-semibold rounded-xl hover:bg-green-700 transition-colors shadow-sm"
                                                                         >
                                                                             <CheckCheck className="w-5 h-5" />
@@ -588,7 +597,7 @@ const ChatPage: React.FC = () => {
                                                                         </button>
                                                                     )}
                                                                     {/* Info indicator if payment was captured */}
-                                                                    {msg.bookingAction === 'approved' && ['ride_started', 'payment_captured'].includes(msg.bookingId?.bookingStatus || '') && (
+                                                                    {msg.bookingAction === 'approved' && ['ride_started', 'payment_captured'].includes(typeof msg.bookingId === 'object' ? msg.bookingId?.bookingStatus || '' : '') && (
                                                                         <div className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-green-100 text-green-800 text-sm font-semibold rounded-xl border border-green-200 shadow-sm mt-1">
                                                                             <CheckCheck className="w-4 h-4 text-green-600" />
                                                                             {own ? "Advance payment confirmed & captured" : "Vehicle reached & payment confirmed"}

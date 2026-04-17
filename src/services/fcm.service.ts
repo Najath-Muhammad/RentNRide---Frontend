@@ -16,8 +16,9 @@ export async function removeFcmToken(): Promise<void> {
     try {
         await api.delete("/fcm/token", { data: { token } });
         localStorage.removeItem(FCM_TOKEN_KEY);
-    } catch (error) { console.error("[FCM] Failed to remove token:", error);
-        
+    } catch (error) {
+        console.error("[FCM] Failed to remove token:", error);
+
     }
 }
 
@@ -61,9 +62,11 @@ export async function initPushNotifications(): Promise<void> {
         });
 
         if (!token) {
-            console.warn("[FCM] Failed to generate FCM token.");
+            console.warn("[FCM] Failed to generate FCM token — check VAPID key and Firebase project settings.");
             return;
         }
+
+        console.log("[FCM] Token generated successfully:", token.slice(0, 10), "...");
 
         const stored = localStorage.getItem(FCM_TOKEN_KEY);
 

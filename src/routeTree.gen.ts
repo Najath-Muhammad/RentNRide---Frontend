@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as MeRouteImport } from './routes/me'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
@@ -43,6 +44,11 @@ import { Route as AdminVehicleManagementIdRouteImport } from './routes/admin/veh
 const MeRoute = MeRouteImport.update({
   id: '/me',
   path: '/me',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -202,6 +208,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
+  '/contact': typeof ContactRoute
   '/me': typeof MeRoute
   '/auth/admin-login': typeof AuthAdminLoginRoute
   '/auth/confirm-password': typeof AuthConfirmPasswordRoute
@@ -234,6 +241,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
+  '/contact': typeof ContactRoute
   '/me': typeof MeRoute
   '/auth/admin-login': typeof AuthAdminLoginRoute
   '/auth/confirm-password': typeof AuthConfirmPasswordRoute
@@ -267,6 +275,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
+  '/contact': typeof ContactRoute
   '/me': typeof MeRoute
   '/auth/admin-login': typeof AuthAdminLoginRoute
   '/auth/confirm-password': typeof AuthConfirmPasswordRoute
@@ -301,6 +310,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/auth'
+    | '/contact'
     | '/me'
     | '/auth/admin-login'
     | '/auth/confirm-password'
@@ -333,6 +343,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/auth'
+    | '/contact'
     | '/me'
     | '/auth/admin-login'
     | '/auth/confirm-password'
@@ -365,6 +376,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/auth'
+    | '/contact'
     | '/me'
     | '/auth/admin-login'
     | '/auth/confirm-password'
@@ -398,6 +410,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
+  ContactRoute: typeof ContactRoute
   MeRoute: typeof MeRoute
   UserChatRoute: typeof UserChatRoute
   UserMyBookingsRoute: typeof UserMyBookingsRoute
@@ -418,6 +431,13 @@ declare module '@tanstack/react-router' {
       path: '/me'
       fullPath: '/me'
       preLoaderRoute: typeof MeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -677,6 +697,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
+  ContactRoute: ContactRoute,
   MeRoute: MeRoute,
   UserChatRoute: UserChatRoute,
   UserMyBookingsRoute: UserMyBookingsRoute,

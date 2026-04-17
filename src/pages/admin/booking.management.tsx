@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AdminSidebar } from '../../components/admin/AdminSidebar';
+import AdminLayout from '../../components/admin/AdminLayout';
 import AdminTable from '../../components/admin/AdminTable';
 import { BookingManagementApi, type Booking, type PaginatedBookingsResponse } from '../../services/api/admin/booking.management.api';
 import { XCircle } from 'lucide-react';
@@ -162,75 +162,73 @@ const BookingManagement: React.FC = () => {
     ];
 
     return (
-        <div className="flex h-screen bg-gray-50">
-            <AdminSidebar activeItem="Booking Management" />
-
-            <div className="ml-64 flex-1">
-                <AdminTable
-                    data={formattedBookings}
-                    columns={columns}
-                    title="Booking Management"
-                    searchValue={search}
-                    onSearch={setSearch}
-                    searchPlaceholder="Search by Booking ID..."
-                    filters={filters}
-                    activeFilters={{ status: status || 'All' }}
-                    onFilterChange={(key, value) => {
-                        if (key === 'status') setStatus(value);
-                    }}
-                    page={page}
-                    totalPages={totalPages}
-                    totalItems={totalItems}
-                    onPageChange={setPage}
-                    actions={getActions}
-                    isLoading={isLoading}
-                />
-            </div>
+        <AdminLayout activeItem="Booking Management">
+            <AdminTable
+                data={formattedBookings}
+                columns={columns}
+                title="Booking Management"
+                searchValue={search}
+                onSearch={setSearch}
+                searchPlaceholder="Search by Booking ID..."
+                filters={filters}
+                activeFilters={{ status: status || 'All' }}
+                onFilterChange={(key, value) => {
+                    if (key === 'status') setStatus(value);
+                }}
+                page={page}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                onPageChange={setPage}
+                actions={getActions}
+                isLoading={isLoading}
+            />
 
             {/* Cancel Modal */}
-            {showCancelModal && selectedBooking && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-                    <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
-                        <div className="flex items-center gap-3 mb-4 text-red-600">
-                            <XCircle className="w-8 h-8" />
-                            <h2 className="text-xl font-bold text-gray-900">Cancel Booking</h2>
-                        </div>
+            {
+                showCancelModal && selectedBooking && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+                        <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+                            <div className="flex items-center gap-3 mb-4 text-red-600">
+                                <XCircle className="w-8 h-8" />
+                                <h2 className="text-xl font-bold text-gray-900">Cancel Booking</h2>
+                            </div>
 
-                        <p className="text-gray-600 text-sm mb-4">
-                            Are you sure you want to cancel booking <span className="font-semibold">{selectedBooking.bookingId}</span>?
-                            This action will refund the user if applicable.
-                        </p>
+                            <p className="text-gray-600 text-sm mb-4">
+                                Are you sure you want to cancel booking <span className="font-semibold">{selectedBooking.bookingId}</span>?
+                                This action will refund the user if applicable.
+                            </p>
 
-                        <div className="mb-6">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Cancellation Reason</label>
-                            <textarea
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                                rows={3}
-                                value={cancelReason}
-                                onChange={(e) => setCancelReason(e.target.value)}
-                                placeholder="e.g. Invalid documents, Payment issue..."
-                            />
-                        </div>
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Cancellation Reason</label>
+                                <textarea
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                                    rows={3}
+                                    value={cancelReason}
+                                    onChange={(e) => setCancelReason(e.target.value)}
+                                    placeholder="e.g. Invalid documents, Payment issue..."
+                                />
+                            </div>
 
-                        <div className="flex justify-end gap-3">
-                            <button
-                                onClick={() => setShowCancelModal(false)}
-                                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
-                            >
-                                Keep Booking
-                            </button>
-                            <button
-                                onClick={handleCancelBooking}
-                                disabled={cancelling}
-                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition flex items-center gap-2"
-                            >
-                                {cancelling ? 'Cancelling...' : 'Confirm Cancel'}
-                            </button>
+                            <div className="flex justify-end gap-3">
+                                <button
+                                    onClick={() => setShowCancelModal(false)}
+                                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                                >
+                                    Keep Booking
+                                </button>
+                                <button
+                                    onClick={handleCancelBooking}
+                                    disabled={cancelling}
+                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition flex items-center gap-2"
+                                >
+                                    {cancelling ? 'Cancelling...' : 'Confirm Cancel'}
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </AdminLayout >
     );
 };
 

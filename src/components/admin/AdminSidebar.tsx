@@ -47,14 +47,6 @@ const CreditCardIcon: React.FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
-const ChartIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="12" y1="20" x2="12" y2="10"></line>
-    <line x1="18" y1="20" x2="18" y2="4"></line>
-    <line x1="6" y1="20" x2="6" y2="16"></line>
-  </svg>
-);
-
 // const UserIcon: React.FC<{ className?: string }> = ({ className }) => (
 //   <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
 //     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -95,11 +87,15 @@ interface MenuItem {
 interface AdminSidebarProps {
   activeItem?: string;
   onNavigate?: (item: MenuItem) => void;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   activeItem = 'Dashboard',
   onNavigate,
+  isOpen,
+  onClose,
 }) => {
   const navigate = useNavigate();
   const { setUser } = useAuthStore();
@@ -114,7 +110,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     { id: 'vehicle-management', label: 'Vehicle Management', icon: <CarIcon />, path: '/admin/vehicle-management' },
     { id: 'booking-management', label: 'Booking Management', icon: <CalendarIcon />, path: '/admin/bookings' },
     { id: 'payments', label: 'Payments & Subscriptions', icon: <CreditCardIcon />, path: '/admin/subscription-management/' },
-    { id: 'reports', label: 'Reports & Analytics', icon: <ChartIcon />, path: '/admin/reports' },
   ];
 
   const bottomItems: MenuItem[] = [
@@ -128,6 +123,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     }
     navigate({ to: item.path });
     onNavigate?.(item);
+    if (onClose) onClose();
   };
 
   const confirmLogout = async () => {
@@ -144,6 +140,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     } finally {
       setIsLoggingOut(false);
       setIsLogoutModalOpen(false);
+      if (onClose) onClose();
     }
   };
 
@@ -170,19 +167,31 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
   return (
     <>
+      {/* Overlay for mobile */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
+          onClick={onClose}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 h-screen bg-white border-r border-gray-200 flex flex-col fixed left-0 top-0 z-40">
+      <aside className={`w-64 h-screen bg-white border-r border-gray-200 flex flex-col fixed left-0 top-0 z-50 transition-transform duration-300 lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         {/* Logo/Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-gray-200 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-teal-700 flex items-center justify-center text-white text-2xl font-bold">
+            <div className="w-10 h-10 rounded-full bg-teal-700 flex items-center justify-center text-white text-xl font-bold">
               R
             </div>
             <div>
-              <h1 className="font-bold text-lg text-gray-900">rentNride</h1>
-              <p className="text-xs text-gray-500 font-medium">Admin Panel</p>
+              <h1 className="font-bold text-base text-gray-900 leading-none">rentNride</h1>
+              <p className="text-[10px] text-gray-500 font-medium mt-1">Admin Panel</p>
             </div>
           </div>
+          {/* Close button for mobile */}
+          <button className="lg:hidden p-2 text-gray-400 hover:text-gray-600" onClick={onClose}>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
         </div>
 
         {/* Main Menu */}

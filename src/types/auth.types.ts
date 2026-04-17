@@ -26,10 +26,12 @@ export type AuthState = {
     isLoading: boolean;
     location: string;
     coordinates?: { lat: number; lon: number };
+    tokenExpiresAt: number | null;
     setUser: (user: User | null) => void;
     setLoading: (loading: boolean) => void;
     setLocation: (location: string) => void;
     setCoordinates: (coords: { lat: number; lon: number } | undefined) => void;
+    setTokenExpiry: (expiresAt: number) => void;
     logout?: () => void;
 };
 

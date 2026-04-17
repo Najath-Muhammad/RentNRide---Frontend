@@ -1,13 +1,12 @@
 // Firebase Cloud Messaging Service Worker
 // This file MUST live at /public/firebase-messaging-sw.js so it is served from the root scope.
-// Replace the placeholder values below with your actual Firebase project config.
-// These are public-safe — security comes from server-side Admin SDK.
 
+// Use the same versions as in your package.json for consistency
 importScripts("https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js");
 
-// IMPORTANT: Paste your Firebase project's config object here.
-// These values are the same ones you get from "Project Settings > Your apps" in Firebase Console.
+// IMPORTANT: Ensure these values match your Firebase project in the Console.
+// Project Settings > Your apps (Web App)
 firebase.initializeApp({
     apiKey: "AIzaSyBOSvZvkKkc6bbxX68Bgq8tV4k069eoG3g",
     authDomain: "rentnride-5ccaf.firebaseapp.com",
@@ -19,17 +18,41 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Handle background messages (app in background / closed tab)
+// Handle background messages
 messaging.onBackgroundMessage((payload) => {
-    console.log("[SW] Background message received:", payload);
+    console.log("[FCM SW] Background message received:", payload);
 
-    const notificationTitle = payload.notification?.title ?? "Notification";
+    const notificationTitle = payload.notification?.title ?? "RentNride Notification";
     const notificationOptions = {
         body: payload.notification?.body ?? "",
-        icon: "/vite.svg",
+        icon: "/vite.svg", // Ensure this exists in /public
         badge: "/vite.svg",
         data: payload.data ?? {},
+        tag: "fcm-notification-group", // Groups multiple notifications
+        renotify: true
     };
 
-    self.registration.showNotification(notificationTitle, notificationOptions);
+    return self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+// Handle notification click
+self.addEventListener('notificationclick', (event) => {
+    console.log('[FCM SW] Notification clicked:', event.notification);
+    event.notification.close();
+
+    const urlToOpen = event.notification.data?.link || '/';
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+            for (let i = 0; i < windowClients.length; i++) {
+                const client = windowClients[i];
+                if (client.url === urlToOpen && 'focus' in client) {
+                    return client.focus();
+                }
+            }
+            if (clients.openWindow) {
+                return clients.openWindow(urlToOpen);
+            }
+        })
+    );
 });

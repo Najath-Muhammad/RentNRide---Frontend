@@ -13,11 +13,17 @@ export interface Wallet {
     userId: string;
     balance: number;
     transactionHistory: Transaction[];
+    pagination?: {
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+    };
 }
 
 export const WalletApi = {
-    getWallet: async () => {
-        const response = await api.get("/wallet");
+    getWallet: async (page = 1, limit = 5) => {
+        const response = await api.get(`/wallet?page=${page}&limit=${limit}`);
         return response.data;
     },
 

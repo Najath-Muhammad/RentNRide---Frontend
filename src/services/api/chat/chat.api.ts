@@ -31,7 +31,7 @@ export interface Message {
     receiverId: ChatParticipant;
     content: string;
     messageType: 'text' | 'booking_request' | 'booking_action';
-    bookingId?: ChatBooking;
+    bookingId?: ChatBooking | string;
     bookingAction?: 'approved' | 'rejected';
     isRead: boolean;
     createdAt: string;

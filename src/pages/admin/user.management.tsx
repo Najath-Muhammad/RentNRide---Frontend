@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { AdminSidebar } from "../../components/admin/AdminSidebar";
+import AdminLayout from "../../components/admin/AdminLayout";
 import AdminTable from "../../components/admin/AdminTable";
 import { UserApi, type User, type PaginatedUsersResponse } from "../../services/api/admin/user.management.api"
 import { SubscriptionApi } from "../../services/api/admin/subscription.api";
@@ -260,72 +260,57 @@ const UserManagementPage: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <AdminSidebar activeItem="User Management" />
-
-      <div className="ml-64 flex-1">
-        <AdminTable
-          data={formattedUsers}
-          columns={columns}
-          title="User Management"
-          searchValue={search}
-          onSearch={setSearch}
-          searchPlaceholder="Search by name, email, or phone..."
-          filters={filters}
-          activeFilters={activeFilters}
-          onFilterChange={(key: string, value: string) => {
-            if (key === "status") setStatus(value as "Active" | "Blocked" | "");
-            if (key === "role") setRole(value);
-          }}
-          page={page}
-          totalPages={totalPages}
-          totalItems={totalItems}
-          onPageChange={setPage}
-          actions={getUserActions}
-          isLoading={isLoading}
-        />
-      </div>
-
+    <AdminLayout activeItem="User Management">
+      <AdminTable
+        data={formattedUsers}
+        columns={columns}
+        title="User Management"
+        searchValue={search}
+        onSearch={setSearch}
+        searchPlaceholder="Search by name, email, or phone..."
+        filters={filters}
+        activeFilters={activeFilters}
+        onFilterChange={(key: string, value: string) => {
+          if (key === "status") setStatus(value as "Active" | "Blocked" | "");
+          if (key === "role") setRole(value);
+        }}
+        page={page}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        onPageChange={setPage}
+        actions={getUserActions}
+        isLoading={isLoading}
+      />
       {/* Inline Modal */}
       {modalConfig.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black bg-opacity-50 transition-opacity"
+            className="absolute inset-0 bg-black/50 transition-opacity"
             onClick={closeModal}
           />
-
-          {/* Modal Content */}
           <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full">
             <div className="p-6">
-              {/* Icon */}
-              <div className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full ${getModalColors().icon}`}>
+              <div className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full ${getModalColors()?.icon || ''}`}>
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                 </svg>
               </div>
-
-              {/* Title */}
               <h3 className="mt-4 text-center text-lg font-semibold text-gray-900">
                 {modalConfig.title}
               </h3>
-
-              {/* Message */}
               <p className="mt-2 text-center text-sm text-gray-600">
                 {modalConfig.message}
               </p>
-
-              {/* Buttons */}
               <div className="mt-6 flex gap-3">
                 <button
                   onClick={closeModal}
-                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={modalConfig.onConfirm}
-                  className={`flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 ${getModalColors().button}`}
+                  className={`flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${getModalColors()?.button || ''}`}
                 >
                   Confirm
                 </button>
@@ -334,7 +319,7 @@ const UserManagementPage: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </AdminLayout>
   );
 };
 

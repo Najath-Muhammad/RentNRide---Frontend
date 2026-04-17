@@ -23,26 +23,55 @@ const timeAgo = (dateStr: string) => {
 const WalletPage: React.FC = () => {
     const [wallet, setWallet] = useState<Wallet | null>(null);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
     const [showWalletModal, setShowWalletModal] = useState(false);
     const [fundingAmount, setFundingAmount] = useState<number>(500);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(false);
 
-    const loadWalletData = useCallback(async () => {
+    const loadWalletData = useCallback(async (pageNum: number, isInitial: boolean) => {
         try {
-            setLoading(true);
-            const res = await WalletApi.getWallet();
+            if (isInitial) setLoading(true);
+            else setLoadingMore(true);
+
+            const res = await WalletApi.getWallet(pageNum, 5);
             if (res.success) {
-                setWallet(res.data);
+                const newWalletData = res.data as Wallet;
+                if (isInitial) {
+                    setWallet(newWalletData);
+                } else {
+                    setWallet(prev => {
+                        if (!prev) return newWalletData;
+                        return {
+                            ...newWalletData,
+                            transactionHistory: [
+                                ...prev.transactionHistory,
+                                ...newWalletData.transactionHistory
+                            ]
+                        };
+                    });
+                }
+                if (newWalletData.pagination) {
+                    setHasMore(newWalletData.pagination.page < newWalletData.pagination.totalPages);
+                }
             }
         } catch (err) {
             console.error('Failed to load wallet', err);
         } finally {
             setLoading(false);
+            setLoadingMore(false);
         }
     }, []);
 
     useEffect(() => {
-        loadWalletData();
+        loadWalletData(1, true);
     }, [loadWalletData]);
+
+    const handleLoadMore = () => {
+        const nextPage = page + 1;
+        setPage(nextPage);
+        loadWalletData(nextPage, false);
+    };
 
     if (loading) {
         return (
@@ -139,7 +168,7 @@ const WalletPage: React.FC = () => {
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
-                                        {[...wallet.transactionHistory].reverse().map((tx) => (
+                                        {wallet.transactionHistory.map((tx) => (
                                             <div key={tx._id} className="flex items-center justify-between p-4 rounded-2xl hover:bg-gray-50 border border-transparent hover:border-gray-100 transition-colors">
                                                 <div className="flex items-center gap-4">
                                                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${tx.transactionType === 'credit' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
@@ -161,6 +190,25 @@ const WalletPage: React.FC = () => {
                                         ))}
                                     </div>
                                 )}
+
+                                {hasMore && (
+                                    <div className="mt-8 text-center">
+                                        <button
+                                            onClick={handleLoadMore}
+                                            disabled={loadingMore}
+                                            className="px-6 py-2 bg-gray-50 text-gray-600 rounded-xl font-bold hover:bg-gray-100 transition border border-gray-200 disabled:opacity-50 flex items-center gap-2 mx-auto"
+                                        >
+                                            {loadingMore ? (
+                                                <>
+                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                    Loading...
+                                                </>
+                                            ) : (
+                                                'Load More Transactions'
+                                            )}
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </section>
                     </div>
@@ -173,7 +221,8 @@ const WalletPage: React.FC = () => {
                 amount={fundingAmount}
                 onSuccess={() => {
                     setShowWalletModal(false);
-                    loadWalletData();
+                    setPage(1);
+                    loadWalletData(1, true);
                 }}
             />
         </div>

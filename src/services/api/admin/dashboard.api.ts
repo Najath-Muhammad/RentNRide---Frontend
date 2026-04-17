@@ -22,8 +22,8 @@ export interface DashboardStats {
 }
 
 export const AdminDashboardApi = {
-    getDashboardStats: async (): Promise<{ success: boolean; data: DashboardStats }> => {
-        const response = await api.get('/admin/dashboard');
+    getDashboardStats: async (params?: { startDate?: string; endDate?: string }): Promise<{ success: boolean; data: DashboardStats }> => {
+        const response = await api.get('/admin/dashboard', { params });
         return response.data;
     }
 };

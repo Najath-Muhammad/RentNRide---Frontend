@@ -10,11 +10,20 @@ const AdminDashboard: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
+    const [dateRange, setDateRange] = useState({
+        startDate: '',
+        endDate: ''
+    });
+
     useEffect(() => {
         const fetchStats = async () => {
             try {
                 setLoading(true);
-                const res = await AdminDashboardApi.getDashboardStats();
+                const params: { startDate?: string; endDate?: string } = {};
+                if (dateRange.startDate) params.startDate = dateRange.startDate;
+                if (dateRange.endDate) params.endDate = dateRange.endDate;
+
+                const res = await AdminDashboardApi.getDashboardStats(params);
                 if (res.success) {
                     setStats(res.data);
                 } else {
@@ -30,9 +39,9 @@ const AdminDashboard: React.FC = () => {
         };
 
         fetchStats();
-    }, []);
+    }, [dateRange]);
 
-    if (loading) {
+    if (loading && !stats) {
         return (
             <div className="flex-1 bg-gray-50 p-8 min-h-screen">
                 <div className="animate-pulse space-y-8">
@@ -48,7 +57,7 @@ const AdminDashboard: React.FC = () => {
         );
     }
 
-    if (error || !stats) {
+    if (error && !stats) {
         return (
             <div className="flex-1 bg-gray-50 p-8 min-h-screen flex items-center justify-center">
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-red-100 text-center max-w-lg">
@@ -68,21 +77,60 @@ const AdminDashboard: React.FC = () => {
         );
     }
 
+    if (!stats) return null;
+
     return (
         <div className="bg-gray-50 min-h-screen flex-1">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="flex justify-between items-center mb-8">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                     <div>
                         <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Dashboard Overview</h1>
                         <p className="text-gray-500 text-sm font-medium mt-1">Welcome back. Here's what's happening today.</p>
                     </div>
+                    <div className="flex items-center gap-3 bg-white p-2 rounded-xl shadow-sm border border-gray-200">
+                        <div className="flex flex-col">
+                            <label className="text-xs font-bold text-gray-500 uppercase px-1">Start Date</label>
+                            <input
+                                type="date"
+                                value={dateRange.startDate}
+                                onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
+                                className="px-3 py-1.5 border-none focus:ring-0 text-sm font-medium text-gray-700 outline-none cursor-pointer"
+                            />
+                        </div>
+                        <div className="w-px h-8 bg-gray-200"></div>
+                        <div className="flex flex-col">
+                            <label className="text-xs font-bold text-gray-500 uppercase px-1">End Date</label>
+                            <input
+                                type="date"
+                                value={dateRange.endDate}
+                                onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
+                                className="px-3 py-1.5 border-none focus:ring-0 text-sm font-medium text-gray-700 outline-none cursor-pointer"
+                            />
+                        </div>
+                        {(dateRange.startDate || dateRange.endDate) && (
+                            <button
+                                onClick={() => setDateRange({ startDate: '', endDate: '' })}
+                                className="ml-2 p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
+                                title="Clear Dates"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        )}
+                    </div>
                 </div>
+
+                {loading && (
+                    <div className="mb-4 text-sm font-bold text-blue-600 animate-pulse flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                        Refreshing stats...
+                    </div>
+                )}
 
                 {/* Top Stats Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                     <StatsCard
                         title="Total Users"
-                        value={stats.totalUsers}
+                        value={stats?.totalUsers ?? 0}
                         icon={<Users className="w-6 h-6" />}
                     />
                     <StatsCard

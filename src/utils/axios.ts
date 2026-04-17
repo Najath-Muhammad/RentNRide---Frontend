@@ -102,10 +102,6 @@ api.interceptors.response.use(
     try {
       await api.post("/auth/refresh", {}, { withCredentials: true });
 
-      const me = await api.get("/auth/me");
-      console.log('this /me respone in the interceptor', me)
-      useAuthStore.getState().setUser(me.data.user);
-
       runWaitingList(null, true);
       refreshing = false;
 

@@ -332,16 +332,16 @@ const Navbar: React.FC = () => {
               >
                 Home
               </button>
-              <button className="text-gray-600 hover:text-blue-600 text-sm font-semibold transition-colors">
-                Categories
-              </button>
               <button
                 onClick={() => navigate({ to: '/vehicles/search' })}
                 className={`${window.location.pathname.includes('/vehicles/search') ? 'text-blue-600' : 'text-gray-600'} hover:text-blue-600 text-sm font-semibold transition-colors`}
               >
                 Vehicles
               </button>
-              <button className="text-gray-600 hover:text-blue-600 text-sm font-semibold transition-colors">
+              <button
+                onClick={() => navigate({ to: '/contact' })}
+                className={`${window.location.pathname === '/contact' ? 'text-blue-600' : 'text-gray-600'} hover:text-blue-600 text-sm font-semibold transition-colors`}
+              >
                 Contact
               </button>
             </div>
@@ -540,23 +540,23 @@ const Navbar: React.FC = () => {
                   >
                     Home
                   </button>
-                  <button className="text-gray-600 hover:text-blue-600 text-sm font-semibold transition-colors">
-                    Categories
-                  </button>
                   <button
                     onClick={() => navigate({ to: '/vehicles/search' })}
                     className={`${window.location.pathname.includes('/vehicles/search') ? 'text-blue-600' : 'text-gray-600'} hover:text-blue-600 text-sm font-semibold transition-colors`}
                   >
                     Vehicles
                   </button>
-                  <button className="text-gray-600 hover:text-blue-600 text-sm font-semibold transition-colors">
+                  <button
+                    onClick={() => navigate({ to: '/contact' })}
+                    className={`${window.location.pathname === '/contact' ? 'text-blue-600' : 'text-gray-600'} hover:text-blue-600 text-sm font-semibold transition-colors`}
+                  >
                     Contact
                   </button>
                 </div>
 
                 <div className="h-6 w-px bg-gray-200 mx-1 hidden lg:block" />
 
-                <div className="flex items-center gap-3">
+                <div className="hidden md:flex items-center gap-3">
                   <button
                     onClick={() => navigate({ to: '/auth/login' })}
                     className="text-gray-700 hover:text-blue-600 text-sm font-semibold transition-colors"
@@ -591,24 +591,12 @@ const Navbar: React.FC = () => {
               Home
             </button>
             <button
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="text-gray-700 w-full text-left px-4 py-3 rounded-lg hover:bg-blue-50 hover:text-blue-600 font-semibold transition-all"
-            >
-              Categories
-            </button>
-            <button
               onClick={() => {
-                navigate({ to: '/vehicles/search' });
+                navigate({ to: '/contact' });
                 setIsMobileMenuOpen(false);
               }}
-              className={`${window.location.pathname.includes('/vehicles/search') ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
+              className={`${window.location.pathname === '/contact' ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
                 } w-full text-left px-4 py-3 rounded-lg hover:bg-blue-50 hover:text-blue-600 font-semibold transition-all`}
-            >
-              Vehicles
-            </button>
-            <button
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="text-gray-700 w-full text-left px-4 py-3 rounded-lg hover:bg-blue-50 hover:text-blue-600 font-semibold transition-all"
             >
               Contact
             </button>

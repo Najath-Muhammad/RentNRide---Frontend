@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { BookingApi, type Booking } from '../../services/api/booking/booking.api';
 import { AxiosError } from 'axios';
 import Navbar from '../../components/user/Navbar';
-import { Loader2, Calendar, AlertCircle, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Loader2, Calendar, AlertCircle, Clock, CheckCircle, XCircle, MessageCircle } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
-
+import { ChatApi } from '../../services/api/chat/chat.api';
 import { ReviewApi } from '../../services/api/review/review.api';
 import { Star } from 'lucide-react';
 
@@ -13,6 +13,7 @@ const MyBookings: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [cancellingId, setCancellingId] = useState<string | null>(null);
+    const [chattingId, setChattingId] = useState<string | null>(null);
     const navigate = useNavigate();
 
     const [showReviewModal, setShowReviewModal] = useState(false);
@@ -79,6 +80,27 @@ const MyBookings: React.FC = () => {
         } finally {
             setCancellingId(null);
             setBookingToCancel(null);
+        }
+    };
+
+    const handleChatWithOwner = async (booking: Booking) => {
+        const ownerId = typeof booking.ownerId === 'object' ? (booking.ownerId as { _id?: string })?._id : booking.ownerId;
+        const vehicleId = typeof booking.vehicleId === 'object' ? (booking.vehicleId as { _id?: string })?._id : booking.vehicleId;
+
+        if (!ownerId) {
+            showModal('error', 'Cannot Open Chat', 'Owner information is not available for this booking.');
+            return;
+        }
+
+        try {
+            setChattingId(booking._id);
+            await ChatApi.getOrCreateConversation(ownerId, vehicleId);
+            navigate({ to: '/user/chat' });
+        } catch (err) {
+            console.error('Failed to open chat:', err);
+            showModal('error', 'Chat Failed', 'Unable to open chat with owner. Please try again.');
+        } finally {
+            setChattingId(null);
         }
     };
 
@@ -320,7 +342,20 @@ const MyBookings: React.FC = () => {
                                                     Owner: <span className="font-medium text-gray-900">{booking.ownerId?.name || 'Unknown'}</span>
                                                 </div>
 
-                                                <div className="flex items-center gap-3">
+                                                <div className="flex items-center gap-3 flex-wrap">
+                                                    {/* Chat with Owner — visible on active/pending/confirmed bookings */}
+                                                    {!['cancelled', 'rejected'].includes(booking.bookingStatus) && (
+                                                        <button
+                                                            onClick={() => handleChatWithOwner(booking)}
+                                                            disabled={chattingId === booking._id}
+                                                            className="px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
+                                                        >
+                                                            {chattingId === booking._id
+                                                                ? <Loader2 className="w-4 h-4 animate-spin" />
+                                                                : <MessageCircle className="w-4 h-4" />}
+                                                            {chattingId === booking._id ? 'Opening...' : 'Chat with Owner'}
+                                                        </button>
+                                                    )}
                                                     {booking.bookingStatus === 'pending' && (
                                                         <button
                                                             onClick={() => handleCancelClick(booking._id)}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, MessageCircle, CalendarCheck } from 'lucide-react';
 import { BookingApi } from '../../services/api/booking/booking.api';
 import { AxiosError } from 'axios';
 
@@ -81,8 +81,8 @@ const BookingSidebar: React.FC<BookingSidebarProps> = ({
       setShowSuccessModal(true);
 
       setTimeout(() => {
-        navigate({ to: '/' });
-      }, 2000);
+        navigate({ to: '/user/my-bookings' });
+      }, 3000);
     } catch (err: unknown) {
       console.error('Booking failed:', err);
       let errorMessage = 'Booking failed. Please try again.';
@@ -172,8 +172,8 @@ const BookingSidebar: React.FC<BookingSidebarProps> = ({
             onClick={handleBookNow}
             disabled={!pickupDate || !returnDate || !!error || isSubmitting}
             className={`w-full py-4 rounded-lg font-semibold text-lg transition ${!pickupDate || !returnDate || !!error || isSubmitting
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-emerald-600 text-white hover:bg-emerald-700'
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-emerald-600 text-white hover:bg-emerald-700'
               }`}
           >
             {isSubmitting ? 'Processing...' : 'Book Now'}
@@ -184,15 +184,29 @@ const BookingSidebar: React.FC<BookingSidebarProps> = ({
       {/* Success Modal */}
       {showSuccessModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-md w-full text-center animate-fade-in">
+          <div className="bg-white rounded-lg p-8 max-w-md w-full text-center animate-fade-in shadow-2xl">
             <CheckCircle className="w-16 h-16 text-emerald-600 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Booking Successful!</h2>
-            <p className="text-gray-600 mb-6">
-              Your vehicle has been booked. Redirecting...
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Request Sent!</h2>
+            <p className="text-gray-600 mb-6 font-medium">
+              Your booking request has been sent to the owner for confirmation. You will be notified once they respond.
             </p>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-emerald-600 h-2 rounded-full animate-progress"></div>
+            <div className="w-full bg-gray-100 rounded-full h-1.5 mb-6 overflow-hidden">
+              <div className="bg-emerald-600 h-1.5 rounded-full animate-progress"></div>
             </div>
+            <button
+              onClick={() => navigate({ to: '/user/my-bookings' })}
+              className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl transition-all shadow-md active:scale-[0.98] mb-3"
+            >
+              <CalendarCheck className="w-4 h-4" />
+              Go to Booking History
+            </button>
+            <button
+              onClick={() => navigate({ to: '/user/chat' })}
+              className="w-full flex items-center justify-center gap-2 bg-white border-2 border-emerald-600 text-emerald-600 hover:bg-emerald-50 font-semibold py-3 rounded-xl transition-all active:scale-[0.98]"
+            >
+              <MessageCircle className="w-4 h-4" />
+              Chat with Owner
+            </button>
           </div>
         </div>
       )}

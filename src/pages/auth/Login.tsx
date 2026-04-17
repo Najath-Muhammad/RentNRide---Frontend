@@ -4,6 +4,7 @@ import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import { Eye, EyeOff } from 'lucide-react';
 import { AuthApi } from '../../services/api/auth/login.api'
 import { useAuthStore } from '../../stores/authStore';
+import { scheduleSilentRefresh } from '../../utils/silentRefresh';
 import type { AxiosError } from 'axios';
 
 interface FormErrors {
@@ -63,8 +64,11 @@ const Login = () => {
       const response = await AuthApi.loginWithEmail({ email, password });
 
       if (response.success) {
-        console.log('this is working')
         useAuthStore.getState().setUser(response.data.user);
+        if (response.data.expiresIn) {
+          useAuthStore.getState().setTokenExpiry(Date.now() + response.data.expiresIn);
+          scheduleSilentRefresh(response.data.expiresIn);
+        }
         setErrors({ general: 'Login successful! Redirecting...' });
 
         setTimeout(() => {
@@ -99,6 +103,10 @@ const Login = () => {
 
       if (response.success) {
         useAuthStore.getState().setUser(response.data.user);
+        if (response.data.expiresIn) {
+          useAuthStore.getState().setTokenExpiry(Date.now() + response.data.expiresIn);
+          scheduleSilentRefresh(response.data.expiresIn);
+        }
         setErrors({ general: 'Google login successful! Redirecting...' });
 
         setTimeout(() => {

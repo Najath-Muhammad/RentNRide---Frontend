@@ -1,0 +1,24 @@
+﻿
+D:\Second Project\second project\frontend\src\pages\user\Contact.tsx
+  41:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Second Project\second project\frontend\src\pages\users\edit.vehicle.tsx
+  156:31  error  Unnecessary escape character: \-  no-useless-escape
+  164:31  error  Unnecessary escape character: \-  no-useless-escape
+
+D:\Second Project\second project\frontend\src\pages\users\my.bookings.tsx
+  87:83  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  88:89  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Second Project\second project\frontend\src\pages\users\vehicle.listing.tsx
+  227:28  error  Unnecessary escape character: \-  no-useless-escape
+
+D:\Second Project\second project\frontend\src\pages\vehicles\vehicle.details.tsx
+  76:76  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  77:82  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Second Project\second project\frontend\src\utils\silentRefresh.ts
+  43:18  error  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+Γ£û 9 problems (9 errors, 0 warnings)
+
