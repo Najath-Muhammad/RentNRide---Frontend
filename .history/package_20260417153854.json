@@ -8,8 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "clean-logs": "node scripts/cleanup.js",
-    "type-check": "tsc --noEmit"
+    "clean-logs": "node scripts/cleanup.js"
   },
   "dependencies": {
     "@react-oauth/google": "^0.12.2",
