@@ -470,6 +470,7 @@ const SearchPage = () => {
                 filters={filters}
                 userLocation={coordinates}
                 showRangeSelector={false}
+                showEmptyState={true}
                 limit={50}
               />
             </div>
