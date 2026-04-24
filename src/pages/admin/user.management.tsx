@@ -19,7 +19,6 @@ const UserManagementPage: React.FC = () => {
 
   const [debouncedSearch, setDebouncedSearch] = useState(search);
 
-  // Modal State
   const [modalConfig, setModalConfig] = useState<{
     isOpen: boolean;
     title: string;
@@ -69,7 +68,6 @@ const UserManagementPage: React.FC = () => {
         status: status || undefined,
         role: role || undefined,
       });
-      console.log('users', data.users)
       setUsers(data.users);
       setTotalPages(data.totalPages);
       setTotalItems(data.total);
@@ -204,7 +202,6 @@ const UserManagementPage: React.FC = () => {
       });
     }
 
-    // Delete always last
     actions.push({
       label: "Delete",
       onClick: () => handleDeleteUser(user._id),
@@ -281,7 +278,7 @@ const UserManagementPage: React.FC = () => {
         actions={getUserActions}
         isLoading={isLoading}
       />
-      {/* Inline Modal */}
+      {}
       {modalConfig.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div

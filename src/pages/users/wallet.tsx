@@ -90,14 +90,13 @@ const WalletPage: React.FC = () => {
     return (
         <div className="min-h-screen bg-gray-50">
             <Navbar />
-
             <main className="max-w-5xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col md:flex-row gap-8 items-start">
 
-                    {/* Left Column: Wallet Card */}
+                    {}
                     <div className="w-full md:w-1/3 space-y-6">
                         <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm relative overflow-hidden">
-                            {/* Decorative background circle */}
+                            {}
                             <div className="absolute -top-16 -right-16 w-32 h-32 bg-indigo-50 rounded-full blur-2xl"></div>
 
                             <div className="relative z-10">
@@ -147,7 +146,7 @@ const WalletPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Right Column: Transaction History */}
+                    {}
                     <div className="flex-1 w-full">
                         <section className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
                             <div className="px-8 py-6 border-b border-gray-50 flex items-center gap-3 bg-gray-50/50">
@@ -214,7 +213,6 @@ const WalletPage: React.FC = () => {
                     </div>
                 </div>
             </main>
-
             <WalletFundingModal
                 isOpen={showWalletModal}
                 onClose={() => setShowWalletModal(false)}

@@ -187,17 +187,14 @@ const AddVehicleForm: React.FC = () => {
     fuelTypes.map(f => ({ value: f._id, label: f.name })),
     [fuelTypes]);
 
-  // Image upload states
   const [vehicleImageUrls, setVehicleImageUrls] = useState<string[]>([]);
   const [insuranceImageUrl, setInsuranceImageUrl] = useState<string>('');
   const [rcBookImageUrl, setRcBookImageUrl] = useState<string>('');
 
-  // Upload progress states
   const [uploadingVehicleImages, setUploadingVehicleImages] = useState(false);
   const [uploadingInsurance, setUploadingInsurance] = useState(false);
   const [uploadingRcBook, setUploadingRcBook] = useState(false);
 
-  // Modal state
   const [modal, setModal] = useState<{ show: boolean; type: 'success' | 'error' | 'warning' | 'info'; title: string; message: string }>({
     show: false,
     type: 'info',
@@ -228,8 +225,8 @@ const AddVehicleForm: React.FC = () => {
         return '';
 
       case 'seatCapacity': {
-        // Optional field - only validate if value is provided
-        if (value.trim() === '') return '';
+        if (value.trim() === '')
+          return '';
         const seats = parseInt(value);
         if (isNaN(seats) || seats < 1 || seats > 50) return 'Enter valid seat capacity (1-50)';
         return '';
@@ -244,8 +241,8 @@ const AddVehicleForm: React.FC = () => {
       }
 
       case 'doors': {
-        // Optional field - only validate if value is provided
-        if (value.trim() === '') return '';
+        if (value.trim() === '')
+          return '';
         const doors = parseInt(value);
         if (isNaN(doors) || doors < 2 || doors > 6) return 'Enter valid doors (2-6)';
         return '';
@@ -312,7 +309,6 @@ const AddVehicleForm: React.FC = () => {
     const { name, value } = e.target;
     setFormData(prev => {
       const newData = { ...prev, [name]: value };
-      // Reset subcategory if category changes
       if (name === 'category') {
         newData.category2 = '';
       }
@@ -488,7 +484,6 @@ const AddVehicleForm: React.FC = () => {
         }
       };
 
-      // Only include optional fields if they have values
       if (formData.seatCapacity.trim() !== '') {
         payload.seatingCapacity = parseInt(formData.seatCapacity);
       }
@@ -504,7 +499,6 @@ const AddVehicleForm: React.FC = () => {
           showModal('success', 'Success!', successMessage);
           setTimeout(() => navigate({ to: '/' }), 2000);
         }
-        console.log(response);
       } catch (err: unknown) {
         console.error(err);
         const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message;
@@ -532,7 +526,6 @@ const AddVehicleForm: React.FC = () => {
     }
   };
 
-  // Check if required fields are filled
   const requiredFieldsFilled =
     formData.category.trim() !== '' &&
     formData.brand.trim() !== '' &&
@@ -759,8 +752,7 @@ const AddVehicleForm: React.FC = () => {
           </div>
         </div>
       </div >
-
-      {/* Super Cool Modal */}
+      {}
       {modal.show && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div

@@ -24,7 +24,6 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  // Validation helpers
   const validateEmail = (value: string): string | undefined => {
     if (!value) return 'Email is required';
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
@@ -130,10 +129,9 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
-
       <main className="flex-1 flex items-center justify-center p-4 pt-8">
         <div className="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden">
-          {/* Hero Image */}
+          {}
           <div className="h-32 overflow-hidden">
             <img
               src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80"
@@ -147,7 +145,7 @@ const Login = () => {
               Welcome Back
             </h2>
 
-            {/* General message (success/error) */}
+            {}
             {errors.general && (
               <div
                 className={`mb-6 p-4 rounded-lg text-center text-sm font-medium border ${errors.general.includes('successful')
@@ -160,7 +158,7 @@ const Login = () => {
             )}
 
             <form onSubmit={handleEmailLogin} className="space-y-6">
-              {/* Email Field */}
+              {}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Email
@@ -185,7 +183,7 @@ const Login = () => {
                 )}
               </div>
 
-              {/* Password Field */}
+              {}
               <div className="relative">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Password
@@ -221,7 +219,7 @@ const Login = () => {
                 )}
               </div>
 
-              {/* Submit Button */}
+              {}
               <button
                 type="submit"
                 disabled={isLoading || googleLoading}
@@ -260,14 +258,14 @@ const Login = () => {
               </button>
             </form>
 
-            {/* Divider */}
+            {}
             <div className="my-6 flex items-center gap-4">
               <div className="flex-1 border-t border-gray-300" />
               <span className="text-sm text-gray-500 font-medium">OR</span>
               <div className="flex-1 border-t border-gray-300" />
             </div>
 
-            {/* Google Login */}
+            {}
             <div className="flex justify-center">
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
@@ -287,7 +285,7 @@ const Login = () => {
               </p>
             )}
 
-            {/* Links */}
+            {}
             <div className="mt-8 text-center text-sm text-gray-600 space-y-3">
               <div>
                 Don't have an account?{' '}

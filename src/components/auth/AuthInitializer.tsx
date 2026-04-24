@@ -2,8 +2,6 @@ import { useEffect } from 'react';
 import { AuthApi } from '../../services/api/auth/login.api';
 import { useAuthStore } from '../../stores/authStore';
 import { connectSocket, disconnectSocket } from '../../services/socket/socket';
-//import type { AxiosError } from 'axios';
-
 export const AuthInitializer = () => {
   const { setUser, setLoading, isAuthenticated, logout } = useAuthStore();
 
@@ -33,8 +31,6 @@ export const AuthInitializer = () => {
 
     checkAuth();
   }, [setUser, setLoading]);
-
-  //console.log(`is user authenticated: ${isAuthenticated}`);
 
   useEffect(() => {
     if (isAuthenticated) {

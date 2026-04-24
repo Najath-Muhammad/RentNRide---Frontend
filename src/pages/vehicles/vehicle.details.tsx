@@ -41,10 +41,10 @@ const VehicleDetails: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar /> {/* Added Navbar here */}
+      <Navbar /> {}
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Main Content */}
+          {}
           <div className="lg:col-span-3 space-y-8">
             <div>
               <h1 className="text-4xl font-bold text-gray-900">

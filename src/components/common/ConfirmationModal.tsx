@@ -64,16 +64,16 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     return (
         <div className="fixed inset-0 z-[90] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
             <div className="flex min-h-screen items-center justify-center p-4">
-                {/* Background overlay */}
+                {}
                 <div
                     className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
                     aria-hidden="true"
                     onClick={isLoading ? undefined : onClose}
                 />
 
-                {/* Modal panel */}
+                {}
                 <div className="relative bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all animate-in zoom-in-95 duration-300">
-                    {/* Gradient top border */}
+                    {}
                     <div className={`h-2 ${getTopBorder()}`} />
 
                     <div className="p-8">

@@ -80,11 +80,6 @@ export default function VerifyOtp() {
       if (response.success) {
         setSuccess(response.message);
 
-        // if (response.data.user) {
-        //   localStorage.setItem('user', JSON.stringify(response.data.user));
-        //   localStorage.setItem('token', response.data.token); 
-        // }
-
         setTimeout(() => {
           navigate({ to: "/auth/confirm-password", state: { email: email } });
         }, 2000);

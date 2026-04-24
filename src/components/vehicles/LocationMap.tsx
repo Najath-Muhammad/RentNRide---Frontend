@@ -5,12 +5,11 @@ interface LocationMapProps {
   address: string;
   location?: {
     type: string;
-    coordinates: number[]; // [longitude, latitude]
+    coordinates: number[]
   };
 }
 
 const LocationMap: React.FC<LocationMapProps> = ({ address, location }) => {
-  // Fallback to address search if coordinates are missing
   const hasCoords = location?.coordinates && location.coordinates.length === 2;
   const [lon, lat] = hasCoords ? location!.coordinates : [0, 0];
 

@@ -8,7 +8,6 @@ import { CategoryApi, type Category, type FuelType } from '../../services/api/ad
 
 import type { SearchFilters } from '../../types/vehicle.types';
 
-// Helper Components
 interface FilterSectionProps {
   title: string;
   children: React.ReactNode;
@@ -84,7 +83,7 @@ const FilterPanel: React.FC<FilterPanelProps> = React.memo(({
   hasActiveFilters
 }) => (
   <div className="space-y-6">
-    {/* Search Input */}
+    {}
     <div>
       <h3 className="font-semibold text-gray-800 mb-3">Search Vehicles</h3>
       <div className="relative">
@@ -102,7 +101,7 @@ const FilterPanel: React.FC<FilterPanelProps> = React.memo(({
       )}
     </div>
 
-    {/* Range Selection */}
+    {}
     <div>
       <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
         <span>Distance Range</span>
@@ -125,18 +124,18 @@ const FilterPanel: React.FC<FilterPanelProps> = React.memo(({
     </div>
 
     <div className="border-t pt-6">
-      {/* Vehicle Type (Dynamic Categories) */}
+      {}
       {!isFiltersLoading && categories.length > 0 && (
         <FilterSection title="Vehicle Type">
           {categories.map(cat => (
             <React.Fragment key={cat._id}>
-              {/* Main Category */}
+              {}
               <Checkbox
                 label={cat.name}
                 checked={filters.vehicleType.includes(cat._id)}
                 onChange={() => handleFilterChange('vehicleType', cat._id)}
               />
-              {/* Sub Categories */}
+              {}
               {cat.subCategories && cat.subCategories.length > 0 && (
                 <div className="ml-6 space-y-2 mt-2 border-l-2 border-gray-100 pl-3">
                   {cat.subCategories.map(sub => (
@@ -154,7 +153,7 @@ const FilterPanel: React.FC<FilterPanelProps> = React.memo(({
         </FilterSection>
       )}
 
-      {/* Fuel Type (Dynamic Fuel Types) */}
+      {}
       {!isFiltersLoading && fuelTypes.length > 0 && (
         <FilterSection title="Fuel Type">
           {fuelTypes.map(fuel => (
@@ -168,7 +167,7 @@ const FilterPanel: React.FC<FilterPanelProps> = React.memo(({
         </FilterSection>
       )}
 
-      {/* Transmission */}
+      {}
       <FilterSection title="Transmission">
         {['Manual', 'Automatic'].map(trans => (
           <Checkbox
@@ -180,7 +179,7 @@ const FilterPanel: React.FC<FilterPanelProps> = React.memo(({
         ))}
       </FilterSection>
 
-      {/* Price Range */}
+      {}
       <FilterSection title="Price Range (₹/day)">
         <div className="flex gap-2 items-center">
           <input
@@ -205,7 +204,7 @@ const FilterPanel: React.FC<FilterPanelProps> = React.memo(({
         </div>
       </FilterSection>
 
-      {/* Sort By */}
+      {}
       <FilterSection title="Sort By">
         <select
           value={filters.sortBy}
@@ -218,7 +217,7 @@ const FilterPanel: React.FC<FilterPanelProps> = React.memo(({
         </select>
       </FilterSection>
 
-      {/* Reset Filters */}
+      {}
       {hasActiveFilters && (
         <button
           onClick={resetFilters}
@@ -259,8 +258,6 @@ const SearchPage = () => {
     return () => clearTimeout(debounceTimer);
   }, [searchInput]);
 
-  // The buggy generic effect that clears the input was removed. We handle reset differently.
-
   React.useEffect(() => {
     const fetchFilterData = async () => {
       try {
@@ -293,40 +290,30 @@ const SearchPage = () => {
 
         let newValues: string[];
 
-        // Special logic for vehicleType to handle Parent/Child exclusivity
         if (key === 'vehicleType' && categories.length > 0) {
           const isSelected = currentValues.includes(val);
 
-          // Find if val is a Main Category
           const mainCat = categories.find(c => c._id === val);
 
-          // Find if val is a Sub Category (and get its parent)
           let parentCat: Category | undefined;
           if (!mainCat) {
             parentCat = categories.find(c => c.subCategories?.some(s => s._id === val));
           }
 
           if (mainCat) {
-            // User clicked a Main Category
             if (isSelected) {
-              // Unchecking Main
               newValues = currentValues.filter(v => v !== val);
             } else {
-              // Checking Main -> Remove all its subcategories from selection
               const subIds = mainCat.subCategories?.map(s => s._id) || [];
               newValues = [...currentValues.filter(v => !subIds.includes(v)), val];
             }
           } else if (parentCat) {
-            // User clicked a Sub Category
             if (isSelected) {
-              // Unchecking Sub
               newValues = currentValues.filter(v => v !== val);
             } else {
-              // Checking Sub -> Remove Parent from selection
               newValues = [...currentValues.filter(v => v !== parentCat!._id), val];
             }
           } else {
-            // Fallback or other vehicleTypes
             newValues = isSelected
               ? currentValues.filter((v) => v !== val)
               : [...currentValues, val];
@@ -353,10 +340,8 @@ const SearchPage = () => {
     setSearchInput('');
   }, []);
 
-  // Local state for price inputs to prevent fetching on every keystroke
   const [localPriceRange, setLocalPriceRange] = useState({ min: '', max: '' });
 
-  // Sync local state when filters change externally (e.g. reset)
   React.useEffect(() => {
     setLocalPriceRange(filters.priceRange);
   }, [filters.priceRange]);
@@ -387,7 +372,7 @@ const SearchPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      {/* Header */}
+      {}
       <div className="bg-white shadow-sm border-b sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Find Your Ride</h1>
@@ -396,10 +381,9 @@ const SearchPage = () => {
           </p>
         </div>
       </div>
-
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Desktop Filters Sidebar */}
+          {}
           <div className="hidden lg:block w-80 flex-shrink-0">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-28">
               <div className="flex items-center justify-between mb-6">
@@ -437,9 +421,9 @@ const SearchPage = () => {
             </div >
           </div >
 
-          {/* Main Content */}
+          {}
           < div className="flex-1" >
-            {/* Mobile Filter Button */}
+            {}
             < div className="lg:hidden mb-6" >
               <button
                 onClick={() => setMobileFiltersOpen(true)}
@@ -477,7 +461,6 @@ const SearchPage = () => {
           </div >
         </div >
       </div >
-
       {mobileFiltersOpen && (
         <div className="fixed inset-0 z-50 lg:hidden overflow-hidden">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onClick={() => setMobileFiltersOpen(false)} />

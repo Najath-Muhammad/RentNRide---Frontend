@@ -34,7 +34,6 @@ const CategoryManagement: React.FC = () => {
     description: ''
   });
 
-  // Table states
   const [categorySearch, setCategorySearch] = useState('');
   const [categoryPage, setCategoryPage] = useState(1);
   const [fuelSearch, setFuelSearch] = useState('');
@@ -44,7 +43,6 @@ const CategoryManagement: React.FC = () => {
   const [categoryTotalItems, setCategoryTotalItems] = useState(0);
   const [debouncedCategorySearch, setDebouncedCategorySearch] = useState('');
 
-  // Debouce Search
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedCategorySearch(categorySearch);
@@ -54,7 +52,6 @@ const CategoryManagement: React.FC = () => {
   }, [categorySearch]);
 
 
-  // ===== LOAD DATA =====
   const loadCategories = useCallback(async () => {
     setLoading(true);
     try {
@@ -94,7 +91,6 @@ const CategoryManagement: React.FC = () => {
     loadFuels();
   }, []);
 
-  // ===== CATEGORY FUNCTIONS =====
   const openCategoryModal = (category?: Category) => {
     if (category) {
       setEditingCategory(category);
@@ -187,7 +183,6 @@ const CategoryManagement: React.FC = () => {
     }
   };
 
-  // ===== FUEL TYPE FUNCTIONS =====
   const openFuelModal = (fuel?: FuelType) => {
     if (fuel) {
       setEditingFuel(fuel);
@@ -253,7 +248,6 @@ const CategoryManagement: React.FC = () => {
     }
   };
 
-  // ===== TABLE DATA PREPARATION =====
   const categoryTableData = categories.map((c: Category) => ({
     _id: c._id,
     name: c.name,
@@ -293,9 +287,9 @@ const CategoryManagement: React.FC = () => {
 
   return (
     <AdminLayout activeItem="Category Management">
-      {/* ========================================== */}
-      {/* SECTION 1: Vehicle Categories */}
-      {/* ========================================== */}
+      {}
+      {}
+      {}
       <div className="border-b border-gray-200 bg-white rounded-xl mb-8 overflow-hidden shadow-sm">
         <div className="px-8 py-6 flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-gray-900">Vehicle Categories</h1>
@@ -345,10 +339,9 @@ const CategoryManagement: React.FC = () => {
           />
         </div>
       </div>
-
-      {/* ========================================== */}
-      {/* SECTION 2: Fuel Types */}
-      {/* ========================================== */}
+      {}
+      {}
+      {}
       <div className="bg-white">
         <div className="px-8 py-6 flex items-center justify-between border-b border-gray-200">
           <h1 className="text-2xl font-semibold text-gray-900">Fuel Types</h1>
@@ -397,14 +390,13 @@ const CategoryManagement: React.FC = () => {
           />
         </div>
       </div>
-
-      {/* ========================================== */}
-      {/* CATEGORY MODAL */}
-      {/* ========================================== */}
+      {}
+      {}
+      {}
       {showCategoryModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            {/* Modal Header */}
+            {}
             <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-900">
                 {editingCategory ? 'Edit Category' : 'Add Category'}
@@ -417,9 +409,9 @@ const CategoryManagement: React.FC = () => {
               </button>
             </div>
 
-            {/* Modal Body */}
+            {}
             <div className="p-6 space-y-4">
-              {/* Category Name */}
+              {}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Category Name *
@@ -433,7 +425,7 @@ const CategoryManagement: React.FC = () => {
                 />
               </div>
 
-              {/* Description */}
+              {}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Description
@@ -447,7 +439,7 @@ const CategoryManagement: React.FC = () => {
                 />
               </div>
 
-              {/* Subcategories */}
+              {}
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-sm font-medium text-gray-700">
@@ -487,7 +479,7 @@ const CategoryManagement: React.FC = () => {
               </div>
             </div>
 
-            {/* Modal Footer */}
+            {}
             <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
               <button
                 type="button"
@@ -508,14 +500,13 @@ const CategoryManagement: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* ========================================== */}
-      {/* FUEL TYPE MODAL */}
-      {/* ========================================== */}
+      {}
+      {}
+      {}
       {showFuelModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-lg">
-            {/* Modal Header */}
+            {}
             <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-900">
                 {editingFuel ? 'Edit Fuel Type' : 'Add Fuel Type'}
@@ -528,9 +519,9 @@ const CategoryManagement: React.FC = () => {
               </button>
             </div>
 
-            {/* Modal Body */}
+            {}
             <div className="p-6 space-y-4">
-              {/* Fuel Name */}
+              {}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Fuel Name *
@@ -544,7 +535,7 @@ const CategoryManagement: React.FC = () => {
                 />
               </div>
 
-              {/* Description */}
+              {}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Description
@@ -559,7 +550,7 @@ const CategoryManagement: React.FC = () => {
               </div>
             </div>
 
-            {/* Modal Footer */}
+            {}
             <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
               <button
                 type="button"

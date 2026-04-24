@@ -61,7 +61,6 @@ export const BookingApi = {
             withCredentials: true
         });
 
-        // Handle paginated response structure from backend
         let bookings: Booking[] = [];
         const responseData = response.data.data;
 

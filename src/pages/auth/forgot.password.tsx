@@ -39,7 +39,6 @@ const ForgotPassword = () => {
     try {
       await AuthApiForgot.requestPasswordResetOTP({ email: trimmedEmail });
 
-      // Success - navigate to OTP verification page
       navigate({
         to: '/auth/verify-otp-forgot',
         state: { email: trimmedEmail },
@@ -70,10 +69,9 @@ const ForgotPassword = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
-
       <main className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md">
-          {/* Visual Banner */}
+          {}
           <div className="mb-8 rounded-xl overflow-hidden shadow-lg">
             <img
               src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80"
@@ -91,7 +89,7 @@ const ForgotPassword = () => {
             </p>
 
             <div className="space-y-6">
-              {/* Email Field */}
+              {}
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                   Email Address
@@ -115,7 +113,7 @@ const ForgotPassword = () => {
                 )}
               </div>
 
-              {/* Action Buttons */}
+              {}
               <div className="space-y-4">
                 <button
                   onClick={handleSubmit}

@@ -17,13 +17,11 @@ const BookingManagement: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [debouncedSearch, setDebouncedSearch] = useState(search);
 
-    // Modal State
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
     const [cancelReason, setCancelReason] = useState('');
     const [cancelling, setCancelling] = useState(false);
 
-    // Debounce search
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearch(search);
@@ -32,7 +30,6 @@ const BookingManagement: React.FC = () => {
         return () => clearTimeout(timer);
     }, [search]);
 
-    // Fetch data
     const fetchBookings = React.useCallback(async () => {
         setIsLoading(true);
         try {
@@ -57,7 +54,6 @@ const BookingManagement: React.FC = () => {
         fetchBookings();
     }, [fetchBookings]);
 
-    // Actions
     const openCancelModal = (booking: Booking) => {
         setSelectedBooking(booking);
         setCancelReason('');
@@ -85,7 +81,6 @@ const BookingManagement: React.FC = () => {
         }
     };
 
-    // Table Configuration
     const columns = [
         { key: 'bookingId', label: 'Booking ID' },
         { key: 'vehicle', label: 'Vehicle' },
@@ -130,18 +125,11 @@ const BookingManagement: React.FC = () => {
                 {b.bookingStatus.charAt(0).toUpperCase() + b.bookingStatus.slice(1)}
             </span>
         ),
-        rawStatus: b.bookingStatus // for action logic
+        rawStatus: b.bookingStatus
     }));
 
     const getActions = (item: typeof formattedBookings[0]) => {
         const actions = [];
-
-        // View Details is implicit or could be a modal
-        // actions.push({
-        //     label: 'View',
-        //     onClick: () => {}, 
-        //     className: 'text-blue-600'
-        // });
 
         if (item.rawStatus === 'pending' || item.rawStatus === 'confirmed') {
             const booking = bookings.find(b => b._id === item._id);
@@ -182,8 +170,7 @@ const BookingManagement: React.FC = () => {
                 actions={getActions}
                 isLoading={isLoading}
             />
-
-            {/* Cancel Modal */}
+            {}
             {
                 showCancelModal && selectedBooking && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">

@@ -60,7 +60,6 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ bookingId, amount, onSucces
             setIsProcessing(false);
         } else if (paymentIntent && paymentIntent.status === "requires_capture") {
             try {
-                // Verify proactively to update the state immediately
                 await api.post("/payments/verify", { bookingId });
             } catch (err) {
                 console.error("Failed to verify payment proactively:", err);

@@ -1,7 +1,4 @@
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
-// import { AuthInitializer } from '../components/auth/AuthInitializer'
-// import { api } from '../utils/axios';
-// import { APIAuthRoutes } from '../constants/route.constant';
 import { useAuthStore } from '../stores/authStore';
 
 export const Route = createFileRoute('/auth')({
@@ -14,15 +11,15 @@ export const Route = createFileRoute('/auth')({
           replace: true,
         });
       }
-    } catch (error) {
-      console.log('error in auth route', error)
-    }
+    } catch (error) {}
   },
   component: RouteComponent,
 });
 function RouteComponent() {
-  return <div>
-    {/* <AuthInitializer /> */}
-    <Outlet />
-  </div>
+  return (
+    <div>
+      {}
+      <Outlet />
+    </div>
+  );
 }

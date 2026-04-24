@@ -61,7 +61,7 @@ const Contact: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                    {/* Contact Info Cards */}
+                    {}
                     <div className="lg:col-span-1 space-y-6">
                         <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center transition-transform hover:-translate-y-1 duration-300">
                             <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-6">
@@ -97,7 +97,7 @@ const Contact: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Contact Form */}
+                    {}
                     <div className="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-gray-100 p-8 sm:p-12">
                         {success ? (
                             <div className="flex flex-col items-center justify-center h-full py-16 text-center">

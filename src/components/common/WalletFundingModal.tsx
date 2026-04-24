@@ -6,7 +6,6 @@ import { X, Loader2, Lock } from "lucide-react";
 import { WalletApi } from "../../services/api/wallet/wallet.api";
 import { api } from "../../utils/axios";
 
-// Ensure VITE_STRIPE_PUBLIC_KEY is correctly set in .env
 const stripePromise = loadStripe(env.VITE_STRIPE_PUBLIC_KEY || "pk_test_sample");
 
 interface CheckoutFormProps {
@@ -60,7 +59,6 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ amount, onSuccess, onClose 
             setIsProcessing(false);
         } else if (paymentIntent && paymentIntent.status === "succeeded") {
             try {
-                // Verify proactively because webhooks aren't running locally by default
                 await api.post("/wallet/verify-funding", { paymentIntentId: paymentIntent.id });
             } catch (err) {
                 console.error("Failed to verify wallet funding via api, banking on webhook", err);

@@ -41,12 +41,11 @@ const VehicleDetailsPage = () => {
     fetchVehicle();
   }, [fetchVehicle]);
 
-  // Action handlers
   const handleApprove = async () => {
     if (!vehicleId) return;
     try {
       await VehicleApi.approveVehicle(vehicleId);
-      await fetchVehicle(); // refresh
+      await fetchVehicle();
     } catch (err) {
       console.error('Error approving vehicle:', err);
       alert('Failed to approve vehicle');
@@ -75,7 +74,6 @@ const VehicleDetailsPage = () => {
     }
   };
 
-  // Image carousel helpers
   const nextImage = () => {
     if (!vehicle?.vehicleImages?.length) return;
     setCurrentImageIndex((prev) =>
@@ -90,7 +88,6 @@ const VehicleDetailsPage = () => {
     );
   };
 
-  // Loading state
   if (loading) {
     return (
       <div className="flex min-h-screen bg-gray-50">
@@ -105,7 +102,6 @@ const VehicleDetailsPage = () => {
     );
   }
 
-  // Error / Not found
   if (error || !vehicle) {
     return (
       <div className="flex min-h-screen bg-gray-50">
@@ -128,10 +124,9 @@ const VehicleDetailsPage = () => {
   return (
     <div className="flex min-h-screen bg-gray-50">
       <AdminSidebar />
-
       <div className="flex-1 ml-64 overflow-y-auto">
         <div className="max-w-7xl mx-auto p-6 md:p-8">
-          {/* Header */}
+          {}
           <div className="bg-white rounded-xl shadow-sm mb-6 sticky top-0 z-10">
             <div className="flex items-center justify-between p-6 border-b">
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Vehicle Details</h2>
@@ -144,7 +139,7 @@ const VehicleDetailsPage = () => {
             </div>
           </div>
 
-          {/* Rejection reason alert */}
+          {}
           {vehicle.isRejected && vehicle.rejectionReason && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-6">
               <h3 className="text-lg font-semibold text-red-800 mb-2">Vehicle Rejected</h3>
@@ -152,9 +147,9 @@ const VehicleDetailsPage = () => {
             </div>
           )}
 
-          {/* Main content */}
+          {}
           <div className="space-y-6">
-            {/* Image Gallery */}
+            {}
             <section className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="relative">
                 <img
@@ -191,7 +186,7 @@ const VehicleDetailsPage = () => {
                 )}
               </div>
 
-              {/* Thumbnails */}
+              {}
               {vehicle.vehicleImages.length > 1 && (
                 <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 p-4 bg-gray-50">
                   {vehicle.vehicleImages.map((img, idx) => (
@@ -210,7 +205,7 @@ const VehicleDetailsPage = () => {
               )}
             </section>
 
-            {/* Basic Information */}
+            {}
             <section className="bg-white rounded-xl shadow-sm p-6 md:p-8">
               <h3 className="text-xl font-semibold text-gray-900 mb-6">Basic Information</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -231,7 +226,7 @@ const VehicleDetailsPage = () => {
               </div>
             </section>
 
-            {/* Action Buttons - Sticky bottom */}
+            {}
             <div className="bg-white rounded-xl shadow-sm p-6 sticky bottom-0 border-t z-10">
               <div className="flex flex-wrap gap-4 justify-end">
                 <button
@@ -276,7 +271,6 @@ const VehicleDetailsPage = () => {
   );
 };
 
-// Small helper component for cleaner markup
 const InfoItem = ({ label, value }: { label: string; value: string }) => (
   <div>
     <p className="text-sm text-gray-500 mb-1">{label}</p>

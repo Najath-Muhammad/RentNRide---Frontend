@@ -2,18 +2,16 @@ import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ImageCarouselProps {
-  images: string[] | undefined; // Allow undefined
+  images: string[] | undefined
   brand: string;
   model: string;
 }
 
 const ImageCarousel: React.FC<ImageCarouselProps> = ({ images = [], brand, model }) => {
-  // Default to empty array if images is undefined/null
   const safeImages = Array.isArray(images) ? images : [];
   
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Reset index if currentIndex is out of bounds (e.g. after images change)
   React.useEffect(() => {
     if (safeImages.length === 0) {
       setCurrentIndex(0);
@@ -30,7 +28,6 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images = [], brand, model
     setCurrentIndex((i) => (i === safeImages.length - 1 ? 0 : i + 1));
   };
 
-  // If no images at all
   if (safeImages.length === 0) {
     return (
       <div className="space-y-4">

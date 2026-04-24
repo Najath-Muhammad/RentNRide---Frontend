@@ -126,7 +126,7 @@ const AdminDashboard: React.FC = () => {
                     </div>
                 )}
 
-                {/* Top Stats Grid */}
+                {}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                     <StatsCard
                         title="Total Users"
@@ -160,7 +160,7 @@ const AdminDashboard: React.FC = () => {
                     />
                 </div>
 
-                {/* Status Summary Widget */}
+                {}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 flex items-center justify-around gap-4 flex-wrap">
                     <div className="text-center">
                         <span className="text-gray-500 text-sm font-bold uppercase tracking-wide">Completed</span>
@@ -178,14 +178,14 @@ const AdminDashboard: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Charts Section */}
+                {}
                 <DashboardCharts
                     bookingsTrend={stats.bookingsTrend}
                     revenueTrend={stats.revenueTrend}
                     vehicleUsage={stats.vehicleUsage}
                 />
 
-                {/* Recent Activities */}
+                {}
                 <RecentBookingsTable bookings={stats.recentBookings} />
             </div>
         </div>

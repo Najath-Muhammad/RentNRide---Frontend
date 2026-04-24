@@ -4,12 +4,11 @@ import { ShieldAlert, LayoutDashboard, ChevronLeft } from 'lucide-react';
 export default function AdminNotFound() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white relative overflow-hidden">
-      {/* Background Elements */}
+      {}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-red-900/20 rounded-full blur-[120px]" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-900/10 rounded-full blur-[120px]" />
       </div>
-
       <div className="text-center relative z-10 p-8 max-w-2xl w-full">
         <div className="mb-6 flex justify-center">
           <div className="h-24 w-24 bg-red-500/10 rounded-3xl flex items-center justify-center border border-red-500/20 shadow-2xl shadow-red-900/20 animate-pulse">

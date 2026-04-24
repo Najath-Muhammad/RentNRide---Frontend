@@ -80,11 +80,6 @@ export default function VerifyOtp() {
         setSuccess(response.message);
         useAuthStore.getState().setUser(response.data.user);
 
-        // if (response.data.user) {
-        //   localStorage.setItem('user', JSON.stringify(response.data.user));
-        //   localStorage.setItem('token', response.data.token); 
-        // }
-
         setTimeout(() => {
           navigate({ to: "/" });
         }, 1000);

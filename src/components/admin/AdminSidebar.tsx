@@ -47,21 +47,6 @@ const CreditCardIcon: React.FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
-// const UserIcon: React.FC<{ className?: string }> = ({ className }) => (
-//   <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-//     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-//     <circle cx="12" cy="7" r="4"></circle>
-//   </svg>
-// );
-
-// const SettingsIcon: React.FC<{ className?: string }> = ({ className }) => (
-//   <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-//     <circle cx="12" cy="12" r="3"></circle>
-//     <path d="M12 1v6m0 6v6m9-9h-6m-6 0H3"></path>
-//     <path d="m19 19-2.8-2.8M5 5l2.8 2.8m0 8.4L5 19m14-14-2.8 2.8"></path>
-//   </svg>
-// );
-
 const CategoryIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
@@ -167,17 +152,16 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
   return (
     <>
-      {/* Overlay for mobile */}
+      {}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
           onClick={onClose}
         />
       )}
-
-      {/* Sidebar */}
+      {}
       <aside className={`w-64 h-screen bg-white border-r border-gray-200 flex flex-col fixed left-0 top-0 z-50 transition-transform duration-300 lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        {/* Logo/Header */}
+        {}
         <div className="p-6 border-b border-gray-200 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-teal-700 flex items-center justify-center text-white text-xl font-bold">
@@ -188,13 +172,13 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
               <p className="text-[10px] text-gray-500 font-medium mt-1">Admin Panel</p>
             </div>
           </div>
-          {/* Close button for mobile */}
+          {}
           <button className="lg:hidden p-2 text-gray-400 hover:text-gray-600" onClick={onClose}>
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
 
-        {/* Main Menu */}
+        {}
         <nav className="flex-1 py-4 overflow-y-auto">
           {menuItems.map((item) => (
             <MenuItemButton
@@ -205,19 +189,18 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           ))}
         </nav>
 
-        {/* Logout at Bottom */}
+        {}
         <div className="border-t border-gray-200 py-4">
           {bottomItems.map((item) => (
             <MenuItemButton key={item.id} item={item} isActive={false} />
           ))}
         </div>
       </aside>
-
-      {/* Custom Logout Confirmation Modal */}
+      {}
       {isLogoutModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
-            {/* Icon + Title */}
+            {}
             <div className="flex items-center gap-4 mb-4">
               <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
                 <LogoutIcon className="w-6 h-6 text-red-600" />
@@ -229,7 +212,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
               Are you sure you want to log out of the admin panel? You'll need to sign in again to continue managing the platform.
             </p>
 
-            {/* Buttons */}
+            {}
             <div className="flex gap-3 justify-end mt-8">
               <button
                 onClick={() => setIsLogoutModalOpen(false)}

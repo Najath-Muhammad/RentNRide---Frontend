@@ -3,7 +3,6 @@ import { MessageSquare, X, Send, Loader2, Bot, User, ChevronRight } from 'lucide
 import { ChatbotApi } from '../../services/api/chatbot/chatbot.api';
 import { Link, useRouterState } from '@tanstack/react-router';
 
-// Routes where the chatbot should NOT appear
 const HIDDEN_ON_ROUTES = ['/auth', '/admin'];
 
 interface ChatVehicle {
@@ -70,10 +69,8 @@ export const ChatbotWidget: React.FC = () => {
             let botVehicles: ChatVehicle[] | undefined;
 
             if (intent === 'chat') {
-                // Normal conversation — just show the AI reply
                 botResponseText = reply || "I'm here to help you find vehicles! Try: \"I need an SUV in Kochi under ₹2000\".";
             } else {
-                // Vehicle search result
                 if (vehicles && vehicles.length > 0) {
                     botResponseText = `I found ${total} vehicle(s) matching your criteria! Here are the top results:`;
                     botVehicles = (vehicles as ChatVehicle[]).slice(0, 3);
@@ -107,7 +104,7 @@ export const ChatbotWidget: React.FC = () => {
 
     return (
         <div className="fixed bottom-6 right-6 z-50">
-            {/* Chat Button */}
+            {}
             {!isOpen && (
                 <button
                     onClick={() => setIsOpen(true)}
@@ -116,12 +113,11 @@ export const ChatbotWidget: React.FC = () => {
                     <MessageSquare className="w-6 h-6" />
                 </button>
             )}
-
-            {/* Chat Window */}
+            {}
             {isOpen && (
                 <div className="bg-white w-[350px] max-w-[calc(100vw-3rem)] h-[550px] max-h-[calc(100vh-6rem)] rounded-2xl shadow-2xl flex flex-col border border-gray-100 overflow-hidden animate-in slide-in-from-bottom-5 duration-200">
 
-                    {/* Header */}
+                    {}
                     <div className="bg-gradient-to-r from-indigo-600 to-blue-600 p-4 flex items-center justify-between text-white">
                         <div className="flex items-center gap-3">
                             <div className="bg-white/20 p-2 rounded-full backdrop-blur-sm">
@@ -143,18 +139,18 @@ export const ChatbotWidget: React.FC = () => {
                         </button>
                     </div>
 
-                    {/* Messages Area */}
+                    {}
                     <div className="flex-1 overflow-y-auto p-4 bg-gray-50/50 space-y-4">
                         {messages.map((msg) => (
                             <div key={msg.id} className={`flex items-end gap-2 ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
 
-                                {/* Avatar */}
+                                {}
                                 <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center shadow-sm ${msg.sender === 'bot' ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-200 text-gray-500'
                                     }`}>
                                     {msg.sender === 'bot' ? <Bot className="w-4 h-4" /> : <User className="w-4 h-4" />}
                                 </div>
 
-                                {/* Message Bubble */}
+                                {}
                                 <div className={`max-w-[75%] flex flex-col gap-2`}>
                                     <div className={`p-3 rounded-2xl text-[13px] leading-relaxed shadow-sm ${msg.sender === 'user'
                                         ? 'bg-indigo-600 text-white rounded-br-sm'
@@ -163,7 +159,7 @@ export const ChatbotWidget: React.FC = () => {
                                         {msg.text}
                                     </div>
 
-                                    {/* Vehicle Cards Payload */}
+                                    {}
                                     {msg.vehicles && msg.vehicles.length > 0 && (
                                         <div className="flex flex-col gap-2 mt-1 w-64 max-w-full">
                                             {msg.vehicles.map((v, i) => (
@@ -214,7 +210,7 @@ export const ChatbotWidget: React.FC = () => {
                         <div ref={messagesEndRef} />
                     </div>
 
-                    {/* Input Area */}
+                    {}
                     <div className="p-3 bg-white border-t border-gray-100">
                         <form onSubmit={handleSendMessage} className="relative flex items-center">
                             <input

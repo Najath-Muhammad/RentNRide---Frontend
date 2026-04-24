@@ -44,7 +44,6 @@ export interface PaginatedUserSubscriptions {
 }
 
 export const SubscriptionApi = {
-    // ── Admin: Plan Management ─────────────────────────────────────────────
     getAllPlans: async (params?: { page?: number; limit?: number; search?: string }): Promise<PaginatedPlans> => {
         const response = await api.get<{ success: boolean; data: PaginatedPlans }>('/admin/subscription-plans', { params });
         return response.data.data;
@@ -75,7 +74,6 @@ export const SubscriptionApi = {
         return response.data.data;
     },
 
-    // ── Admin: User Subscription Management ───────────────────────────────
     getAllUserSubscriptions: async (params?: { page?: number; limit?: number; search?: string; status?: string }): Promise<PaginatedUserSubscriptions> => {
         const response = await api.get<{ success: boolean; data: PaginatedUserSubscriptions }>('/admin/user-subscriptions', { params });
         return response.data.data;
@@ -91,7 +89,6 @@ export const SubscriptionApi = {
         return response.data.data;
     },
 
-    // ── User-Facing ────────────────────────────────────────────────────────
     getMySubscription: async (): Promise<UserSubscription | null> => {
         const response = await api.get<{ success: boolean; data: UserSubscription | null }>('/subscriptions/my');
         return response.data.data;
@@ -107,13 +104,11 @@ export const SubscriptionApi = {
         return response.data.data;
     },
 
-    // User subscribes themselves (calls the user-facing endpoint, not admin)
     selfSubscribe: async (planId: string): Promise<UserSubscription> => {
         const response = await api.post<{ success: boolean; data: UserSubscription }>('/subscriptions/subscribe', { planId });
         return response.data.data;
     },
 
-    // Verify Stripe payment intentionally (for environments without webhooks)
     verifySubscriptionPayment: async (paymentIntentId: string): Promise<UserSubscription> => {
         const response = await api.post<{ success: boolean; data: UserSubscription }>(
             "/subscriptions/verify-payment",

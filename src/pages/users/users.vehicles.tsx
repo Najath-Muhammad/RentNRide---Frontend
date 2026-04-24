@@ -1,4 +1,3 @@
-// src/pages/MyVehicles.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { Car, Plus, Edit, Trash2, MapPin, Fuel, Users, Eye, EyeOff, Loader2, AlertCircle, ShieldAlert, FileWarning } from 'lucide-react';
@@ -13,7 +12,6 @@ const MyVehicles: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Modal state
   const [modal, setModal] = useState<{ show: boolean; type: 'success' | 'error' | 'warning' | 'info'; title: string; message: string }>({
     show: false,
     type: 'info',
@@ -38,7 +36,6 @@ const MyVehicles: React.FC = () => {
     try {
       setLoading(true);
       const response = await UserVehicleApi.getMyVehicles();
-      console.log('My vehicles response:', response);
       setVehicles(response.data.vehicles || []);
     } catch (error: unknown) {
       console.error('Failed to fetch vehicles:', error);
@@ -70,7 +67,6 @@ const MyVehicles: React.FC = () => {
     }
   };
 
-  // ── Document expiry helpers ───────────────────────────────────────────
   const isDocumentExpired = (dateStr: string | undefined): boolean => {
     if (!dateStr) return false;
     return new Date(dateStr) < new Date();
@@ -155,9 +151,8 @@ const MyVehicles: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar /> {/* Ensure Navbar is present if not already in layout wrap */}
-
-      {/* Expired documents site-wide banner */}
+      <Navbar /> {}
+      {}
       {stats.expiredDocs > 0 && (
         <div className="bg-amber-50 border-b border-amber-200">
           <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8 flex items-center gap-3">
@@ -169,9 +164,8 @@ const MyVehicles: React.FC = () => {
           </div>
         </div>
       )}
-
       <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
-        {/* Header */}
+        {}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">My Vehicles</h1>
@@ -186,7 +180,7 @@ const MyVehicles: React.FC = () => {
           </button>
         </div>
 
-        {/* Stats Cards */}
+        {}
         <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-10">
           <div className="bg-white rounded-2xl shadow-card p-5 border border-gray-100">
             <div className="flex items-center justify-between mb-2">
@@ -234,7 +228,7 @@ const MyVehicles: React.FC = () => {
           )}
         </div>
 
-        {/* Vehicle Grid */}
+        {}
         {vehicles.length === 0 ? (
           <div className="bg-white rounded-3xl shadow-card p-16 text-center border border-gray-100 max-w-2xl mx-auto">
             <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -278,7 +272,6 @@ const MyVehicles: React.FC = () => {
                       </span>
                     </div>
                   </div>
-
                   <div className="p-5 flex flex-col flex-grow">
                     <div className="mb-4">
                       <p className="text-xs font-bold text-blue-600 uppercase tracking-wide mb-1 opacity-80">
@@ -311,7 +304,7 @@ const MyVehicles: React.FC = () => {
                         <span className="text-xl font-bold text-gray-900">₹{vehicle.pricePerDay.toLocaleString('en-IN')}</span>
                       </div>
 
-                      {/* Expired document warning */}
+                      {}
                       {hasExpiredDocs && (
                         <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5">
                           <ShieldAlert className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
@@ -382,8 +375,7 @@ const MyVehicles: React.FC = () => {
           </div >
         )}
       </div >
-
-      {/* Delete Confirmation Modal */}
+      {}
       {vehicleToDelete && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div
@@ -430,19 +422,18 @@ const MyVehicles: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* Super Cool Modal */}
+      {}
       {modal.show && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
-          {/* Backdrop */}
+          {}
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={closeModal}
           />
 
-          {/* Modal */}
+          {}
           <div className="relative bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform animate-in zoom-in-95 duration-300">
-            {/* Gradient Header */}
+            {}
             <div className={`h-2 ${modal.type === 'success' ? 'bg-gradient-to-r from-green-400 via-green-500 to-emerald-500' :
               modal.type === 'error' ? 'bg-gradient-to-r from-red-400 via-red-500 to-rose-500' :
                 modal.type === 'warning' ? 'bg-gradient-to-r from-amber-400 via-orange-500 to-orange-600' :
@@ -450,7 +441,7 @@ const MyVehicles: React.FC = () => {
               }`} />
 
             <div className="p-8">
-              {/* Icon */}
+              {}
               <div className="flex items-center justify-center mb-6">
                 <div className={`w-20 h-20 rounded-full flex items-center justify-center ${modal.type === 'success' ? 'bg-green-50' :
                   modal.type === 'error' ? 'bg-red-50' :
@@ -480,7 +471,7 @@ const MyVehicles: React.FC = () => {
                 </div>
               </div>
 
-              {/* Content */}
+              {}
               <div className="text-center mb-8">
                 <h3 className="text-2xl font-bold text-gray-900 mb-3">
                   {modal.title}
@@ -490,7 +481,7 @@ const MyVehicles: React.FC = () => {
                 </p>
               </div>
 
-              {/* Action Button */}
+              {}
               <button
                 onClick={closeModal}
                 className={`w-full py-4 px-6 rounded-xl font-bold text-white shadow-lg transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 active:scale-95 ${modal.type === 'success' ? 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600' :
