@@ -5,10 +5,12 @@ export const Route = createFileRoute('/me')({
   beforeLoad: async () => {
     try {
       const res = await AuthApi.getCurrentUser()
+      console.log(res)
 
       if (!res.success) {
         throw redirect({ to: '/auth/login' })
       }
+
     } catch {
       throw redirect({ to: '/auth/login' })
     }

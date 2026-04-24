@@ -44,6 +44,7 @@ const MySubscription: React.FC = () => {
     const handlePaymentSuccess = async () => {
         setPaymentModalOpen(false);
         setSelectedPlanId(null);
+        // Reload subscriptions to reflect the newly activated one
         try {
             const [sub, hist] = await Promise.all([
                 SubscriptionApi.getMySubscription(),
@@ -90,10 +91,10 @@ const MySubscription: React.FC = () => {
                     </div>
                 ) : (
                     <>
-                        {}
+                        {/* ── Active Subscription Card ── */}
                         {activeSubscription && plan ? (
                             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-8">
-                                {}
+                                {/* Header */}
                                 <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-5">
                                     <div className="flex items-center justify-between">
                                         <div>
@@ -107,7 +108,7 @@ const MySubscription: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {}
+                                {/* Body */}
                                 <div className="p-6">
                                     <div className="grid grid-cols-3 gap-4 mb-6">
                                         <div className="bg-gray-50 rounded-xl p-4 text-center">
@@ -163,7 +164,7 @@ const MySubscription: React.FC = () => {
                             </div>
                         )}
 
-                        {}
+                        {/* Available Plans */}
                         {plans.length > 0 && (
                             <div className="mb-8">
                                 <h3 className="text-base font-semibold text-gray-900 mb-3">Available Plans</h3>
@@ -210,7 +211,7 @@ const MySubscription: React.FC = () => {
                             </div>
                         )}
 
-                        {}
+                        {/* ── Subscription History ── */}
                         {history.length > 0 && (
                             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                                 <div className="px-6 py-4 border-b border-gray-100">
@@ -262,7 +263,8 @@ const MySubscription: React.FC = () => {
                     </>
                 )}
             </div>
-            {}
+
+            {/* Subscription Payment Modal */}
             {selectedPlanId && (
                 <SubscriptionPaymentModal
                     isOpen={paymentModalOpen}

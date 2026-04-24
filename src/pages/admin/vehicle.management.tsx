@@ -34,6 +34,7 @@ const AdminVehicleControl: React.FC = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleListItem | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
+  // Confirmation Modal State
   const [modalConfig, setModalConfig] = useState<{
     isOpen: boolean;
     title: string;
@@ -52,6 +53,7 @@ const AdminVehicleControl: React.FC = () => {
     setModalConfig((prev) => ({ ...prev, isOpen: false }));
   };
 
+  // Debounce search
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchValue);
@@ -141,6 +143,7 @@ const AdminVehicleControl: React.FC = () => {
     }
   };
 
+  // Action handlers
   const handleApprove = async (id: string) => {
     try {
       await VehicleApi.approveVehicle(id);
@@ -242,6 +245,7 @@ const AdminVehicleControl: React.FC = () => {
     setSelectedVehicle(null);
   };
 
+  // Table columns & data preparation
   const columns = [
     { key: 'vehicleId', label: 'Vehicle ID' },
     { key: 'brand', label: 'Name & Model' },
@@ -355,7 +359,7 @@ const AdminVehicleControl: React.FC = () => {
 
   return (
     <AdminLayout activeItem="Vehicle Management">
-      {}
+      {/* Stats Cards */}
       <div className="bg-white border-b border-gray-200 px-8 py-6">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
           <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -380,7 +384,8 @@ const AdminVehicleControl: React.FC = () => {
           </div>
         </div>
       </div>
-      {}
+
+      {/* Main Table */}
       <AdminTable
         data={tableData}
         columns={columns}
@@ -398,7 +403,8 @@ const AdminVehicleControl: React.FC = () => {
         actions={getActions}
         isLoading={isLoading}
       />
-      {}
+
+      {/* Reject Confirmation Modal */}
       {
         showRejectModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -437,7 +443,8 @@ const AdminVehicleControl: React.FC = () => {
           </div>
         )
       }
-      {}
+
+      {/* Vehicle Details Modal */}
       {
         showDetailsModal && selectedVehicle && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -678,7 +685,8 @@ const AdminVehicleControl: React.FC = () => {
           </div>
         )
       }
-      {}
+
+      {/* Generic Confirmation Modal - Inline */}
       {
         modalConfig.isOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

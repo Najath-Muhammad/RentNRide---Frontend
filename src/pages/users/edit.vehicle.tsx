@@ -43,6 +43,7 @@ const EditVehicle: React.FC = () => {
     fuelTypes.map(f => ({ value: f._id, label: f.name })),
     [fuelTypes]);
 
+  // Form State
   const [formData, setFormData] = useState<Partial<Vehicle>>({});
 
   const subCategoryOptions = useMemo(() => {
@@ -53,16 +54,19 @@ const EditVehicle: React.FC = () => {
       .map(sc => ({ value: sc._id as string, label: sc.name }));
   }, [categories, formData.category]);
 
+  // Image states
   const [vehicleImageUrls, setVehicleImageUrls] = useState<string[]>([]);
   const [rcImage, setRcImage] = useState<string>('');
   const [insuranceImage, setInsuranceImage] = useState<string>('');
 
+  // Upload progress
   const [uploading, setUploading] = useState({
     vehicle: false,
     rc: false,
     insurance: false
   });
 
+  // Modal state
   const [modal, setModal] = useState<{ show: boolean; type: 'success' | 'error' | 'warning' | 'info'; title: string; message: string }>({
     show: false,
     type: 'info',
@@ -84,6 +88,7 @@ const EditVehicle: React.FC = () => {
       const res = await UserVehicleApi.getVehicleById(id);
       const data = res.data;
       setVehicle(data);
+      // Normalize data for form (extract IDs if populated)
       setFormData({
         ...data,
         category: (typeof data.category === 'object' && data.category) ? (data.category as { _id: string })._id : data.category as string,
@@ -184,12 +189,14 @@ const EditVehicle: React.FC = () => {
       if (isNaN(doors) || doors < 2 || doors > 6) newErrors.doors = 'Enter valid doors (2-6)';
     }
 
+    // RC Number
     if (!formData.rcNumber?.trim()) {
       newErrors.rcNumber = 'RC number is required';
     } else if (!/^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{4}$/.test(formData.rcNumber.replace(/\s/g, ''))) {
       newErrors.rcNumber = 'Invalid RC number format (e.g., KL01AB1234)';
     }
 
+    // Dates
     if (!formData.rcExpiryDate) {
       newErrors.rcExpiryDate = 'RC Expiry Date is required';
     } else if (new Date(formData.rcExpiryDate) < today) {
@@ -202,22 +209,25 @@ const EditVehicle: React.FC = () => {
       newErrors.insuranceExpiryDate = 'Date cannot be in the past';
     }
 
+    // Policy Number
     if (!formData.insurancePolicyNumber?.trim()) {
       newErrors.insurancePolicyNumber = 'Policy number is required';
     } else if (formData.insurancePolicyNumber.length < 5) {
       newErrors.insurancePolicyNumber = 'Policy number must be at least 5 characters';
     }
 
-    if (!rcImage)
-      newErrors.rcImage = 'RC Image is required';
+    // Images
+    if (!rcImage) newErrors.rcImage = 'RC Image is required';
     if (!insuranceImage) newErrors.insuranceImage = 'Insurance Image is required';
 
+    // Address
     if (!formData.pickupAddress?.trim()) {
       newErrors.pickupAddress = 'Pickup Address is required';
     } else if (formData.pickupAddress.length < 10) {
       newErrors.pickupAddress = 'Address must be at least 10 characters';
     }
 
+    // Regional Contact
     if (!formData.regionalContact?.trim()) {
       newErrors.regionalContact = 'Regional contact is required';
     } else if (!/^[0-9]{10}$/.test(formData.regionalContact)) {
@@ -277,7 +287,7 @@ const EditVehicle: React.FC = () => {
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-4xl mx-auto px-4">
         <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
-          {}
+          {/* Header */}
           <div className="bg-white px-8 py-6 border-b">
             <h1 className="text-3xl font-bold text-gray-900">
               {vehicle.isRejected ? 'Reapply Vehicle' : 'Edit Vehicle'}
@@ -298,7 +308,7 @@ const EditVehicle: React.FC = () => {
           )}
 
           <form onSubmit={handleSubmit} className="p-8 space-y-10" noValidate>
-            {}
+            {/* Basic Information Section */}
             <div>
               <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
                 <div className="w-2 h-6 bg-blue-600 rounded-full"></div>
@@ -353,7 +363,7 @@ const EditVehicle: React.FC = () => {
               </div>
             </div>
 
-            {}
+            {/* Vehicle Images */}
             <div>
               <h2 className="text-lg font-bold text-gray-900 mb-4">Vehicle Images</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -379,9 +389,9 @@ const EditVehicle: React.FC = () => {
               </div>
             </div>
 
-            {}
+            {/* Legal Documents */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10 border-t pt-10">
-              {}
+              {/* RC Details */}
               <div className="space-y-6">
                 <h3 className="font-bold text-gray-900 flex items-center gap-2">
                   <FileText className="w-5 h-5 text-blue-600" />
@@ -398,7 +408,7 @@ const EditVehicle: React.FC = () => {
                 />
               </div>
 
-              {}
+              {/* Insurance Details */}
               <div className="space-y-6">
                 <h3 className="font-bold text-gray-900 flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-green-600" />
@@ -417,7 +427,7 @@ const EditVehicle: React.FC = () => {
               </div>
             </div>
 
-            {}
+            {/* Pickup Location */}
             <div className="border-t pt-10">
               <h2 className="text-lg font-bold text-gray-900 mb-6">Location & Pickup</h2>
               <div className="space-y-6">
@@ -464,7 +474,7 @@ const EditVehicle: React.FC = () => {
               </div>
             </div>
 
-            {}
+            {/* Action Buttons */}
             <div className="flex justify-end gap-4 pt-8 border-t border-gray-100">
               <button
                 type="button"
@@ -491,7 +501,8 @@ const EditVehicle: React.FC = () => {
           </form>
         </div>
       </div>
-      {}
+
+      {/* Super Cool Modal */}
       {modal.show && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeModal} />
@@ -552,6 +563,7 @@ const EditVehicle: React.FC = () => {
   );
 };
 
+// Sub-components
 interface InputGroupProps {
   label: string;
   value: string | number | undefined;

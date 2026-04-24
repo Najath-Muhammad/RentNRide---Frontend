@@ -4,8 +4,9 @@ import { Compass, LogIn, ChevronRight } from 'lucide-react';
 export default function GuestNotFound() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 relative overflow-hidden">
-      {}
+      {/* Decorative Background */}
       <div className="absolute top-1/4 left-0 w-full h-1/2 -skew-y-6 bg-gradient-to-r from-blue-50 to-indigo-50 z-0 transform origin-left opacity-60"></div>
+
       <div className="text-center relative z-10 p-6 max-w-lg w-full">
         <div className="mb-8 flex justify-center">
           <div className="relative">

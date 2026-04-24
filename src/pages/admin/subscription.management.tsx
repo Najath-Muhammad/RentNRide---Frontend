@@ -31,6 +31,7 @@ const defaultPlanForm: PlanFormState = {
 };
 
 const SubscriptionManagement: React.FC = () => {
+    // ── Plans state ──────────────────────────────────────────────────────────
     const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
     const [planPage, setPlanPage] = useState(1);
     const [planTotalPages, setPlanTotalPages] = useState(1);
@@ -44,6 +45,7 @@ const SubscriptionManagement: React.FC = () => {
     const [planForm, setPlanForm] = useState<PlanFormState>(defaultPlanForm);
     const [planSaving, setPlanSaving] = useState(false);
 
+    // ── User Subscriptions state ─────────────────────────────────────────────
     const [userSubs, setUserSubs] = useState<UserSubscription[]>([]);
     const [subPage, setSubPage] = useState(1);
     const [subTotalPages, setSubTotalPages] = useState(1);
@@ -59,6 +61,7 @@ const SubscriptionManagement: React.FC = () => {
     const [activePlans, setActivePlans] = useState<SubscriptionPlan[]>([]);
     const [assigning, setAssigning] = useState(false);
 
+    // User search for assign modal
     const [userSearch, setUserSearch] = useState('');
     const [userResults, setUserResults] = useState<AdminUser[]>([]);
     const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
@@ -66,6 +69,7 @@ const SubscriptionManagement: React.FC = () => {
     const [showUserDropdown, setShowUserDropdown] = useState(false);
     const userSearchRef = useRef<HTMLDivElement>(null);
 
+    // ── Modal ────────────────────────────────────────────────────────────────
     const [modal, setModal] = useState<{
         show: boolean;
         title: string;
@@ -82,6 +86,7 @@ const SubscriptionManagement: React.FC = () => {
     ) => setModal({ show: true, title, message, type, onConfirm });
     const closeModal = () => setModal((p) => ({ ...p, show: false }));
 
+    // ── Debounce ─────────────────────────────────────────────────────────────
     useEffect(() => {
         const t = setTimeout(() => { setDebouncedPlanSearch(planSearch); setPlanPage(1); }, 600);
         return () => clearTimeout(t);
@@ -92,6 +97,7 @@ const SubscriptionManagement: React.FC = () => {
         return () => clearTimeout(t);
     }, [subSearch]);
 
+    // ── Load Plans ────────────────────────────────────────────────────────────
     const loadPlans = useCallback(async () => {
         setPlansLoading(true);
         try {
@@ -110,6 +116,7 @@ const SubscriptionManagement: React.FC = () => {
         }
     }, [planPage, debouncedPlanSearch]);
 
+    // ── Load User Subscriptions ───────────────────────────────────────────────
     const loadUserSubs = useCallback(async () => {
         setSubsLoading(true);
         try {
@@ -133,6 +140,7 @@ const SubscriptionManagement: React.FC = () => {
     useEffect(() => { loadUserSubs(); }, [loadUserSubs]);
     useEffect(() => { setSubPage(1); }, [subStatus]);
 
+    // Close user dropdown on outside click
     useEffect(() => {
         const handler = (e: MouseEvent) => {
             if (userSearchRef.current && !userSearchRef.current.contains(e.target as Node)) {
@@ -143,6 +151,7 @@ const SubscriptionManagement: React.FC = () => {
         return () => document.removeEventListener('mousedown', handler);
     }, []);
 
+    // Debounced user search
     useEffect(() => {
         if (!userSearch.trim() || userSearch.length < 2) {
             setUserResults([]);
@@ -162,6 +171,7 @@ const SubscriptionManagement: React.FC = () => {
         return () => clearTimeout(t);
     }, [userSearch]);
 
+    // ── Plan Modal ────────────────────────────────────────────────────────────
     const openPlanModal = (plan?: SubscriptionPlan) => {
         if (plan) {
             setEditingPlan(plan);
@@ -240,6 +250,7 @@ const SubscriptionManagement: React.FC = () => {
         );
     };
 
+    // ── Assign Subscription Modal ─────────────────────────────────────────────
     const openAssignModal = async () => {
         try {
             const plans = await SubscriptionApi.getActivePlans();
@@ -288,6 +299,7 @@ const SubscriptionManagement: React.FC = () => {
         );
     };
 
+    // ── Table data ────────────────────────────────────────────────────────────
     const planTableData = plans.map((p) => ({
         _id: p._id,
         name: p.name,
@@ -327,7 +339,8 @@ const SubscriptionManagement: React.FC = () => {
 
     return (
         <AdminLayout activeItem="Payments & Subscriptions">
-            {}
+
+            {/* ── SECTION 1: Subscription Plans ── */}
             <div className="border-b border-gray-200 bg-white">
                 <div className="px-8 py-6 flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -378,7 +391,8 @@ const SubscriptionManagement: React.FC = () => {
                     />
                 </div>
             </div>
-            {}
+
+            {/* ── SECTION 2: User Subscriptions ── */}
             <div className="bg-white">
                 <div className="px-8 py-6 flex items-center justify-between border-b border-gray-200">
                     <div className="flex items-center gap-3">
@@ -444,7 +458,8 @@ const SubscriptionManagement: React.FC = () => {
                     />
                 </div>
             </div>
-            {}
+
+            {/* ── Plan Modal ── */}
             {
                 showPlanModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -580,7 +595,8 @@ const SubscriptionManagement: React.FC = () => {
                     </div>
                 )
             }
-            {}
+
+            {/* ── Assign Subscription Modal ── */}
             {
                 showAssignModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -593,7 +609,7 @@ const SubscriptionManagement: React.FC = () => {
                             </div>
 
                             <div className="p-6 space-y-4">
-                                {}
+                                {/* User search */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Search User *</label>
                                     {selectedUser ? (
@@ -646,7 +662,7 @@ const SubscriptionManagement: React.FC = () => {
                                     )}
                                 </div>
 
-                                {}
+                                {/* Plan select */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Subscription Plan *</label>
                                     <select
@@ -683,7 +699,8 @@ const SubscriptionManagement: React.FC = () => {
                     </div>
                 )
             }
-            {}
+
+            {/* ── Confirm Modal ── */}
             {
                 modal.show && (
                     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">

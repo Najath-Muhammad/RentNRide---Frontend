@@ -30,7 +30,7 @@ const Navbar: React.FC = () => {
 
   const [locationInputValue, setLocationInputValue] = useState(location || 'India');
   const [selectedLocation, setSelectedLocation] = useState<string | null>(location || 'India');
-  const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
+  const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]); // Store full objects
   const [isDetecting, setIsDetecting] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -54,6 +54,7 @@ const Navbar: React.FC = () => {
     }
   }, [location]);
 
+  // Close dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -67,6 +68,7 @@ const Navbar: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Close mobile menu on Escape key
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -78,6 +80,7 @@ const Navbar: React.FC = () => {
     return () => document.removeEventListener('keydown', handleEscape);
   }, []);
 
+  // Debounced search for suggestions
   const fetchSuggestions = useCallback(async (query: string) => {
     if (query.trim().length < 2) {
       setSuggestions([]);
@@ -100,11 +103,12 @@ const Navbar: React.FC = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchSuggestions(locationInputValue);
-    }, 400);
+    }, 400); // debounce 400ms
 
     return () => clearTimeout(timer);
   }, [locationInputValue, fetchSuggestions]);
 
+  // Notifications logic
   const fetchNotifications = useCallback(async () => {
     if (!isAuthenticated) return;
     try {
@@ -135,6 +139,7 @@ const Navbar: React.FC = () => {
       }
       setShowNotifications(false);
 
+      // Navigate based on type
       if (notif.type === 'chat') {
         navigate({ to: '/user/chat' });
       } else if (notif.type === 'booking') {
@@ -155,6 +160,7 @@ const Navbar: React.FC = () => {
     }
   };
 
+  // Handle current location detection
   const handleDetectLocation = async () => {
     if (!navigator.geolocation) {
       alert('Geolocation is not supported by your browser.');
@@ -180,9 +186,10 @@ const Navbar: React.FC = () => {
 
       setSelectedLocation(address);
       setLocationInputValue(address);
-      setLocation(address);
-      setCoordinates({ lat: latitude, lon: longitude });
+      setLocation(address); // Persist to store
+      setCoordinates({ lat: latitude, lon: longitude }); // Persist coords
 
+      // Auto-navigate to search page if not already there or just to refresh
       navigate({ to: '/vehicles/search' });
     } catch (err) {
       console.error('Location detection failed:', err);
@@ -197,13 +204,14 @@ const Navbar: React.FC = () => {
     const name = suggestion.display_name;
     setSelectedLocation(name);
     setLocationInputValue(name);
-    setLocation(name);
+    setLocation(name); // Persist to store
     if (suggestion.lat && suggestion.lon) {
       setCoordinates({ lat: parseFloat(suggestion.lat), lon: parseFloat(suggestion.lon) });
     }
     setSuggestions([]);
     setShowDropdown(false);
 
+    // Auto-navigate to search page
     navigate({ to: '/vehicles/search' });
   };
 
@@ -241,7 +249,7 @@ const Navbar: React.FC = () => {
     <nav className="bg-white sticky top-0 z-50 shadow-card backdrop-blur-md bg-white/80 border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          {}
+          {/* ── LEFT: Logo + Location ───────────────────────────────────── */}
           <div className="flex items-center gap-6">
             <div className="flex-shrink-0 cursor-pointer" onClick={() => navigate({ to: '/' })}>
               <h1 className="text-2xl font-bold tracking-tight text-blue-600">
@@ -249,7 +257,7 @@ const Navbar: React.FC = () => {
               </h1>
             </div>
 
-            {}
+            {/* Location Search Box */}
             <div className="hidden md:block relative w-72" ref={dropdownRef}>
               <div
                 className="flex items-center bg-gray-50 rounded-full px-4 py-2.5 border border-gray-100 focus-within:ring-2 focus-within:ring-blue-100 focus-within:border-blue-300 transition-all shadow-sm cursor-pointer"
@@ -269,7 +277,7 @@ const Navbar: React.FC = () => {
 
               {showDropdown && (
                 <div className="absolute top-full mt-2 w-full bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden z-50 max-h-80 overflow-y-auto">
-                  {}
+                  {/* Use current location button */}
                   <button
                     onClick={handleDetectLocation}
                     disabled={isDetecting}
@@ -288,7 +296,7 @@ const Navbar: React.FC = () => {
                     </div>
                   </button>
 
-                  {}
+                  {/* Suggestions list */}
                   {isSearching ? (
                     <div className="px-5 py-4 flex items-center justify-center">
                       <Loader2 className="w-5 h-5 animate-spin text-blue-600 mr-2" />
@@ -315,7 +323,7 @@ const Navbar: React.FC = () => {
             </div>
           </div>
 
-          {}
+          {/* ── CENTER: Nav links (authenticated) ───────────────────────── */}
           {isAuthenticated && (
             <div className="hidden lg:flex items-center gap-7">
               <button
@@ -339,9 +347,9 @@ const Navbar: React.FC = () => {
             </div>
           )}
 
-          {}
+          {/* ── RIGHT: Actions + Avatar ──────────────────────────────────── */}
           <div className="flex items-center gap-3">
-            {}
+            {/* Mobile Menu Toggle */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="lg:hidden p-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50/50 rounded-lg transition-all"
@@ -361,7 +369,7 @@ const Navbar: React.FC = () => {
 
                 <div className="h-7 w-px bg-gray-200 hidden sm:block" />
 
-                {}
+                {/* Icon buttons */}
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => navigate({ to: '/user/wallet' })}
@@ -390,7 +398,7 @@ const Navbar: React.FC = () => {
                       )}
                     </button>
 
-                    {}
+                    {/* Notification Dropdown */}
                     {showNotifications && (
                       <div className="absolute right-0 mt-4 w-80 sm:w-96 bg-white rounded-2xl shadow-soft border border-gray-100 opacity-100 transition-all z-50 overflow-hidden flex flex-col">
                         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/50">
@@ -442,7 +450,7 @@ const Navbar: React.FC = () => {
                   </div>
                 </div>
 
-                {}
+                {/* Avatar + Dropdown */}
                 <div className="relative group">
                   <button className="flex items-center gap-2 p-1 pl-2 pr-1 rounded-full hover:bg-gray-50 border border-transparent hover:border-gray-100 transition-all">
                     <span className="text-sm font-semibold text-gray-700 hidden lg:block mr-1">{getDisplayName()}</span>
@@ -523,7 +531,8 @@ const Navbar: React.FC = () => {
                 </div>
               </>
             ) : (
-              (<>
+              /* Guest User */
+              <>
                 <div className="hidden lg:flex items-center gap-7">
                   <button
                     onClick={() => navigate({ to: '/' })}
@@ -544,7 +553,9 @@ const Navbar: React.FC = () => {
                     Contact
                   </button>
                 </div>
+
                 <div className="h-6 w-px bg-gray-200 mx-1 hidden lg:block" />
+
                 <div className="hidden md:flex items-center gap-3">
                   <button
                     onClick={() => navigate({ to: '/auth/login' })}
@@ -559,12 +570,13 @@ const Navbar: React.FC = () => {
                     Sign Up
                   </button>
                 </div>
-              </>)
+              </>
             )}
           </div>
         </div>
       </div>
-      {}
+
+      {/* Mobile Menu (Slide-down panel) */}
       {isMobileMenuOpen && (
         <div className="lg:hidden border-t border-gray-100 bg-white shadow-lg">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 space-y-2">
@@ -589,7 +601,7 @@ const Navbar: React.FC = () => {
               Contact
             </button>
 
-            {}
+            {/* Authenticated user quick links in mobile menu */}
             {isAuthenticated && (
               <div className="pt-3 border-t border-gray-100 space-y-1">
                 <button
@@ -645,7 +657,7 @@ const Navbar: React.FC = () => {
               </div>
             )}
 
-            {}
+            {/* Show auth buttons on mobile if not authenticated */}
             {!isAuthenticated && (
               <div className="pt-4 border-t border-gray-100 space-y-2">
                 <button

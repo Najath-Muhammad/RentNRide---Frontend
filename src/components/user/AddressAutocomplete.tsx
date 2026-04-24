@@ -35,6 +35,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
 
     try {
       const results = await searchLocations(query);
+      // Ensure we treat results as proper objects we can map
       setSuggestions(results);
       setIsOpen(true);
     } catch (err) {
@@ -74,6 +75,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       <label className="block text-sm font-medium text-gray-700 mb-1">
         Pickup Address Location
       </label>
+
       <input
         type="text"
         value={value}
@@ -84,12 +86,13 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
         className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${touched && error ? 'border-red-500' : 'border-gray-300'
           }`}
       />
+
       {isOpen && suggestions.length > 0 && (
         <ul className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
           {suggestions.map((sugg, idx) => (
             <li
               key={sugg.place_id || idx}
-              onMouseDown={(e) => e.preventDefault()}
+              onMouseDown={(e) => e.preventDefault()} // Prevent blur before click
               onClick={() => handleSelect(sugg)}
               className="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm text-gray-800"
             >
@@ -98,6 +101,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
           ))}
         </ul>
       )}
+
       {touched && error && (
         <p className="text-red-500 text-xs mt-1">{error}</p>
       )}

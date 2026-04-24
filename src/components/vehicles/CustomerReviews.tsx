@@ -15,6 +15,7 @@ const CustomerReviews: React.FC<CustomerReviewsProps> = ({ vehicleId }) => {
   const [bookingId, setBookingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
 
+  // Form State
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -22,11 +23,13 @@ const CustomerReviews: React.FC<CustomerReviewsProps> = ({ vehicleId }) => {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
+      // Fetch reviews
       const reviewsRes = await ReviewApi.getVehicleReviews(vehicleId);
       if (reviewsRes.success) {
         setReviews(reviewsRes.data);
       }
 
+      // Check eligibility if logged in
       if (isAuthenticated) {
         const eligibilityRes = await ReviewApi.checkEligibility(vehicleId);
         if (eligibilityRes.success) {
@@ -61,10 +64,12 @@ const CustomerReviews: React.FC<CustomerReviewsProps> = ({ vehicleId }) => {
       });
 
       if (res.success) {
+        // Refresh reviews and hide form
         await fetchData();
         setShowForm(false);
         setComment('');
         setRating(5);
+        // After submitting, user shouldn't theoretically review again immediately for same booking
         setCanReview(false);
       }
     } catch (error) {
@@ -96,7 +101,8 @@ const CustomerReviews: React.FC<CustomerReviewsProps> = ({ vehicleId }) => {
           </button>
         )}
       </div>
-      {}
+
+      {/* Summary */}
       <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
         <div className="text-4xl font-bold text-gray-900">{averageRating}</div>
         <div>
@@ -113,7 +119,8 @@ const CustomerReviews: React.FC<CustomerReviewsProps> = ({ vehicleId }) => {
           </p>
         </div>
       </div>
-      {}
+
+      {/* Review Form */}
       {showForm && (
         <form onSubmit={handleSubmit} className="bg-gray-50 p-6 rounded-xl border border-gray-200 animate-in fade-in slide-in-from-top-4">
           <h3 className="text-lg font-semibold mb-4">Share your experience</h3>
@@ -165,7 +172,8 @@ const CustomerReviews: React.FC<CustomerReviewsProps> = ({ vehicleId }) => {
           </div>
         </form>
       )}
-      {}
+
+      {/* Reviews List */}
       <div className="space-y-6">
         {reviews.length === 0 ? (
           <p className="text-center text-gray-500 py-8 italic">No reviews yet. Be the first to review!</p>

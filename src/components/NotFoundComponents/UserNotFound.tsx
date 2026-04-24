@@ -4,9 +4,10 @@ import { Home, Search, HelpCircle, ArrowRight } from 'lucide-react';
 export default function UserNotFound() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 relative overflow-hidden">
-      {}
+      {/* Abstract Background Shapes */}
       <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 rounded-full bg-blue-100 blur-3xl opacity-60"></div>
       <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-indigo-100 blur-3xl opacity-60"></div>
+
       <div className="text-center relative z-10 px-4 max-w-lg w-full">
         <div className="mb-6 relative inline-block">
           <div className="absolute inset-0 bg-blue-400 blur-xl opacity-20 rounded-full animate-pulse"></div>

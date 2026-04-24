@@ -53,7 +53,7 @@ const HeroCarousel: React.FC = () => {
 
     return (
         <div className="relative w-full h-[500px] md:h-[600px] lg:h-[700px] overflow-hidden rounded-3xl shadow-2xl group">
-            {}
+            {/* Background Slides */}
             {carouselItems.map((item, index) => (
                 <div
                     key={index}
@@ -70,7 +70,7 @@ const HeroCarousel: React.FC = () => {
                         }}
                     />
 
-                    {}
+                    {/* Content Overlay */}
                     <div className={`absolute bottom-0 left-0 right-0 p-8 md:p-16 z-30 transition-all duration-700 transform ${index === currentIndex ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
                         }`}>
                         <h2 className="text-4xl md:text-6xl font-extrabold text-white mb-4 drop-shadow-lg">
@@ -88,7 +88,8 @@ const HeroCarousel: React.FC = () => {
                     </div>
                 </div>
             ))}
-            {}
+
+            {/* Navigation Controls */}
             <button
                 onClick={prevSlide}
                 className="absolute left-6 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-white/10 backdrop-blur-md text-white border border-white/20 opacity-0 group-hover:opacity-100 transition-all hover:bg-white/20 active:scale-90"
@@ -101,7 +102,8 @@ const HeroCarousel: React.FC = () => {
             >
                 <ChevronRight className="w-8 h-8" />
             </button>
-            {}
+
+            {/* Progress Indicators */}
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-40 flex gap-3">
                 {carouselItems.map((_, index) => (
                     <button

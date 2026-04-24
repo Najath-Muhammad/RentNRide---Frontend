@@ -116,6 +116,7 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
+
       <div className="flex items-center justify-center px-4 py-8">
         <div className="bg-white rounded-lg w-full max-w-2xl p-8 shadow-lg">
           <div className="mb-8">
@@ -131,7 +132,7 @@ export default function SignupPage() {
           )}
 
           <div className="space-y-6">
-            {}
+            {/* Name Field */}
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-black mb-2">Name</label>
               <input
@@ -144,7 +145,7 @@ export default function SignupPage() {
               />
             </div>
 
-            {}
+            {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-black mb-2">Email</label>
               <input
@@ -157,7 +158,7 @@ export default function SignupPage() {
               />
             </div>
 
-            {}
+            {/* Password Field with Eye Toggle */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-black mb-2">Password</label>
               <div className="relative">
@@ -188,7 +189,7 @@ export default function SignupPage() {
                 </button>
               </div>
 
-              {}
+              {/* Password Strength Indicator */}
               {formData.password && (
                 <>
                   <div className="mt-2 h-2 rounded bg-gray-200 overflow-hidden">
@@ -208,7 +209,7 @@ export default function SignupPage() {
               )}
             </div>
 
-            {}
+            {/* Confirm Password Field with Eye Toggle */}
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-black mb-2">Confirm Password</label>
               <div className="relative">

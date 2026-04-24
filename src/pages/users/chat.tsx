@@ -37,10 +37,12 @@ const ChatPage: React.FC = () => {
     const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
+    // ── Scroll to bottom ─────────────────────────────────────────────────
     const scrollToBottom = useCallback(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, []);
 
+    // ── Socket setup ─────────────────────────────────────────────────────
     useEffect(() => {
         const socket = connectSocket();
 
@@ -59,7 +61,9 @@ const ChatPage: React.FC = () => {
             setTimeout(scrollToBottom, 100);
         });
 
-        socket.on('booking:updated', (data: { bookingId: string; action: string }) => {});
+        socket.on('booking:updated', (data: { bookingId: string; action: string }) => {
+            console.log('[Chat] Booking updated:', data);
+        });
 
         socket.on('typing:start', (data: { userId: string }) => {
             setTypingUsers((prev) => new Set([...prev, data.userId]));
@@ -96,6 +100,7 @@ const ChatPage: React.FC = () => {
         };
     }, [scrollToBottom]);
 
+    // ── Load conversations ────────────────────────────────────────────────
     useEffect(() => {
         (async () => {
             try {
@@ -110,11 +115,13 @@ const ChatPage: React.FC = () => {
         })();
     }, []);
 
+    // ── Open a conversation ───────────────────────────────────────────────
     const openConversation = async (conversation: Conversation) => {
         setActiveConversation(conversation);
         setLoadingMessages(true);
         setMessages([]);
 
+        // Mark as read in local state
         setConversations((prev) =>
             prev.map((c) =>
                 c._id === conversation._id && c.lastMessage
@@ -139,6 +146,7 @@ const ChatPage: React.FC = () => {
         }
     };
 
+    // ── Send message ──────────────────────────────────────────────────────
     const handleSendMessage = async () => {
         if (!messageText.trim() || !activeConversation || !user || sending) return;
 
@@ -168,6 +176,7 @@ const ChatPage: React.FC = () => {
         }
     };
 
+    // ── Approve / Reject booking ──────────────────────────────────────────
     const handleBookingActionClick = (bookingId: string, action: 'approved' | 'rejected') => {
         setActionModal({ isOpen: true, bookingId, action });
     };
@@ -189,17 +198,19 @@ const ChatPage: React.FC = () => {
         }
     };
 
+    // ── Confirm Vehicle Reached (Release Escrow) ──────────────────────────
     const handleVehicleReached = async (bookingId: string) => {
         try {
             await api.post('/payments/capture', { bookingId });
-            if (activeConversation)
-                openConversation(activeConversation);
+            // Refresh conversation to get updated status
+            if (activeConversation) openConversation(activeConversation);
         } catch (error) {
             console.error('Failed to confirm vehicle reached:', error);
             alert('Failed to confirm vehicle reached. Please try again.');
         }
     };
 
+    // ── Typing indicator ──────────────────────────────────────────────────
     const handleTyping = (text: string) => {
         setMessageText(text);
 
@@ -231,6 +242,7 @@ const ChatPage: React.FC = () => {
         }
     };
 
+    // ── Helpers ───────────────────────────────────────────────────────────
     const getOtherParticipant = (conv: Conversation) =>
         conv.participants.find((p) => p._id !== user?.id);
 
@@ -254,9 +266,12 @@ const ChatPage: React.FC = () => {
 
     const isOwnerInConversation = (conv: Conversation | null) => {
         if (!conv || !user) return false;
+        // The owner is the non-current-user who owns the vehicle (simple heuristic — they have the vehicle in conv)
+        // For action rendering: show approve/reject buttons only on booking_request messages if current user is NOT the sender
         return true;
     };
 
+    // ── Group messages by date ────────────────────────────────────────────
     const groupedMessages = messages.reduce<{ date: string; msgs: Message[] }[]>(
         (acc, msg) => {
             const dateKey = new Date(msg.createdAt).toDateString();
@@ -278,11 +293,13 @@ const ChatPage: React.FC = () => {
             .filter((id): id is string => !!id)
     );
 
+    // ─────────────────────────────────────────────────────────────────────
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
             <Navbar />
+
             <div className="flex flex-1 max-w-7xl mx-auto w-full px-4 py-6 gap-4 h-[calc(100vh-80px)]">
-                {}
+                {/* ── Conversation List ─────────────────────────────────── */}
                 <aside
                     className={`bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden transition-all duration-300
                         ${activeConversation ? 'hidden md:flex md:w-80 lg:w-96' : 'flex w-full md:w-80 lg:w-96'}`}
@@ -336,7 +353,7 @@ const ChatPage: React.FC = () => {
                                                         ? 'bg-blue-50/30 border-l-2 border-blue-400 hover:bg-gray-50'
                                                         : 'hover:bg-gray-50 border-l-2 border-transparent'}`}
                                         >
-                                            {}
+                                            {/* Avatar */}
                                             <div className="relative flex-shrink-0">
                                                 <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">
                                                     {other?.name?.charAt(0).toUpperCase() || '?'}
@@ -345,6 +362,7 @@ const ChatPage: React.FC = () => {
                                                     <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-white rounded-full" />
                                                 )}
                                             </div>
+
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex justify-between items-center">
                                                     <p className={`text-sm truncate ${isUnread ? 'font-bold text-gray-900' : 'font-semibold text-gray-900'}`}>
@@ -378,7 +396,7 @@ const ChatPage: React.FC = () => {
                     </div>
                 </aside>
 
-                {}
+                {/* ── Chat Window ───────────────────────────────────────── */}
                 <main
                     className={`bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden transition-all duration-300
                         ${activeConversation ? 'flex flex-1' : 'hidden md:flex flex-1'}`}
@@ -395,7 +413,7 @@ const ChatPage: React.FC = () => {
                         </div>
                     ) : (
                         <>
-                            {}
+                            {/* Chat Header */}
                             <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
                                 <button
                                     onClick={() => setActiveConversation(null)}
@@ -444,7 +462,7 @@ const ChatPage: React.FC = () => {
                                 })()}
                             </div>
 
-                            {}
+                            {/* Messages */}
                             <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
                                 {loadingMessages ? (
                                     <div className="flex items-center justify-center h-full">
@@ -457,7 +475,7 @@ const ChatPage: React.FC = () => {
                                 ) : (
                                     groupedMessages.map(({ date, msgs }) => (
                                         <div key={date}>
-                                            {}
+                                            {/* Date divider */}
                                             <div className="flex items-center gap-3 my-4">
                                                 <div className="flex-1 h-px bg-gray-100" />
                                                 <span className="text-xs text-gray-400 font-medium px-2">
@@ -475,7 +493,7 @@ const ChatPage: React.FC = () => {
                                                         className={`flex mb-2 ${own ? 'justify-end' : 'justify-start'}`}
                                                     >
                                                         <div className={`max-w-[75%] ${own ? 'items-end' : 'items-start'} flex flex-col`}>
-                                                            {}
+                                                            {/* Booking Request Card */}
                                                             {msg.messageType === 'booking_request' && (
                                                                 <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-4 mb-1 w-full">
                                                                     <div className="flex items-center gap-2 mb-3">
@@ -486,7 +504,7 @@ const ChatPage: React.FC = () => {
                                                                     </div>
                                                                     <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">{msg.content}</pre>
 
-                                                                    {}
+                                                                    {/* Approve/Reject buttons — show to non-sender only */}
                                                                     {(() => {
                                                                         const isExpired = typeof msg.bookingId === 'object' && msg.bookingId?.startDate ? new Date(msg.bookingId.startDate) < new Date() : false;
                                                                         const bId = typeof msg.bookingId === 'object' ? msg.bookingId?._id : msg.bookingId;
@@ -530,7 +548,7 @@ const ChatPage: React.FC = () => {
                                                                 </div>
                                                             )}
 
-                                                            {}
+                                                            {/* Booking Action Card */}
                                                             {msg.messageType === 'booking_action' && (
                                                                 <div className="flex flex-col gap-2 w-full">
                                                                     <div className={`border rounded-2xl p-3 mb-1 w-full flex items-center gap-3
@@ -552,7 +570,7 @@ const ChatPage: React.FC = () => {
                                                                             {msg.content}
                                                                         </p>
                                                                     </div>
-                                                                    {}
+                                                                    {/* Show Pay Advance button if it's approved and the renter is viewing */}
                                                                     {!own && msg.bookingAction === 'approved' && typeof msg.bookingId === 'object' && msg.bookingId?.bookingStatus === 'approved' && (
                                                                         <button
                                                                             onClick={() => {
@@ -565,7 +583,7 @@ const ChatPage: React.FC = () => {
                                                                             Pay Advance {typeof msg.bookingId === 'object' && msg.bookingId?.advancePaid ? `₹${msg.bookingId.advancePaid.toLocaleString("en-IN")}` : ''}
                                                                         </button>
                                                                     )}
-                                                                    {}
+                                                                    {/* Show Confirm Vehicle button if advance paid and the renter is viewing */}
                                                                     {!own && msg.bookingAction === 'approved' && typeof msg.bookingId === 'object' && msg.bookingId?.bookingStatus === 'advance_authorized' && (
                                                                         <button
                                                                             onClick={() => {
@@ -578,7 +596,7 @@ const ChatPage: React.FC = () => {
                                                                             Confirm Vehicle Reached
                                                                         </button>
                                                                     )}
-                                                                    {}
+                                                                    {/* Info indicator if payment was captured */}
                                                                     {msg.bookingAction === 'approved' && ['ride_started', 'payment_captured'].includes(typeof msg.bookingId === 'object' ? msg.bookingId?.bookingStatus || '' : '') && (
                                                                         <div className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-green-100 text-green-800 text-sm font-semibold rounded-xl border border-green-200 shadow-sm mt-1">
                                                                             <CheckCheck className="w-4 h-4 text-green-600" />
@@ -588,7 +606,7 @@ const ChatPage: React.FC = () => {
                                                                 </div>
                                                             )}
 
-                                                            {}
+                                                            {/* Regular text bubble */}
                                                             {msg.messageType === 'text' && (
                                                                 <div
                                                                     className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed
@@ -600,7 +618,7 @@ const ChatPage: React.FC = () => {
                                                                 </div>
                                                             )}
 
-                                                            {}
+                                                            {/* Timestamp + read status */}
                                                             <div className={`flex items-center gap-1 mt-0.5 ${own ? 'flex-row-reverse' : 'flex-row'}`}>
                                                                 <span className="text-xs text-gray-400">{formatTime(msg.createdAt)}</span>
                                                                 {own && (
@@ -619,7 +637,7 @@ const ChatPage: React.FC = () => {
                                 <div ref={messagesEndRef} />
                             </div>
 
-                            {}
+                            {/* Input */}
                             <div className="px-4 py-3 border-t border-gray-100 bg-white">
                                 <div className="flex items-center gap-2 bg-gray-50 rounded-2xl px-4 py-2 border border-gray-200 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-50 transition-all">
                                     <input
@@ -648,7 +666,8 @@ const ChatPage: React.FC = () => {
                     )}
                 </main>
             </div>
-            {}
+
+            {/* Confirmation Modal */}
             {actionModal && actionModal.isOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
                     <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-xl">

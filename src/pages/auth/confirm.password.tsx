@@ -20,6 +20,7 @@ const ResetPassword = () => {
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Password validation rules
   const validatePassword = (password: string): string | null => {
     if (password.length < 8) return 'Password must be at least 8 characters long';
     if (!/[A-Z]/.test(password)) return 'Must contain at least one uppercase letter';
@@ -92,9 +93,10 @@ const ResetPassword = () => {
       <header className="px-6 py-4">
         <h1 className="text-xl font-semibold text-gray-800">rentNride</h1>
       </header>
+
       <main className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md">
-          {}
+          {/* Visual Header */}
           <div className="mb-8 rounded-xl overflow-hidden shadow-lg">
             <img
               src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80"
@@ -111,7 +113,7 @@ const ResetPassword = () => {
               Please enter your new password below
             </p>
 
-            {}
+            {/* New Password */}
             <div className="mb-6">
               <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-2">
                 New Password
@@ -142,7 +144,7 @@ const ResetPassword = () => {
               </div>
             </div>
 
-            {}
+            {/* Confirm Password */}
             <div className="mb-6">
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
                 Confirm Password
@@ -172,7 +174,7 @@ const ResetPassword = () => {
               </div>
             </div>
 
-            {}
+            {/* Feedback Messages */}
             {error && (
               <div className="bg-red-50 text-red-700 p-3 rounded-lg mb-6 text-sm text-center">
                 {error}
@@ -185,7 +187,7 @@ const ResetPassword = () => {
               </div>
             )}
 
-            {}
+            {/* Password Requirements */}
             <div className="mb-6 text-xs text-gray-600 bg-gray-50 p-4 rounded-lg">
               <p className="font-medium mb-2">Password must contain:</p>
               <ul className="list-disc list-inside space-y-1">
@@ -196,7 +198,7 @@ const ResetPassword = () => {
               </ul>
             </div>
 
-            {}
+            {/* Submit Button */}
             <button
               onClick={handleSubmit}
               disabled={isLoading || !newPassword || !confirmPassword}
@@ -213,7 +215,7 @@ const ResetPassword = () => {
             </button>
           </div>
 
-          {}
+          {/* Back to Login */}
           <div className="mt-6 text-center text-sm text-gray-600">
             Remember your password?{' '}
             <button

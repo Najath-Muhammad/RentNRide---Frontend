@@ -28,6 +28,7 @@ function runWaitingList(error: unknown, ok: boolean = false) {
 
 
 function goToLogin() {
+  console.log('goToLogin called - Logging out user via axios interceptor.');
   const user = useAuthStore.getState().user;
   router.navigate({ to: user?.role === "admin" ? "/auth/admin-login" : "/auth/login" });
   useAuthStore.getState().setUser(null);
@@ -38,6 +39,9 @@ api.interceptors.response.use(
   (res) => res,
 
   async (err) => {
+    console.log('>>> Axios response interceptor triggered (any error)', err);
+    console.log('>>> Status:', err.response?.status);
+    console.log('>>> URL:', err.config?.url);
     const req = err.config;
     const res = err.response;
 
@@ -58,8 +62,10 @@ api.interceptors.response.use(
       return Promise.reject(err);
     }
 
+    // Now we know the status is 401
     const currentUser = useAuthStore.getState().user;
 
+    // If the user isn't logged in, there's no token to refresh.
     if (!currentUser) {
       goToLogin();
       return Promise.reject(err);
@@ -73,6 +79,8 @@ api.interceptors.response.use(
     if (req._skipAuthRefresh) {
       return Promise.reject(err);
     }
+
+    console.log('Intercepted 401 for:', req.url);
 
     req._retry = true;
 

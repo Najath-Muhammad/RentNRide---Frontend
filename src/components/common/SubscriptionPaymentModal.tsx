@@ -43,6 +43,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ planName, amount, clientSec
             setIsProcessing(false);
         } else if (paymentIntent && paymentIntent.status === "succeeded") {
             try {
+                // Verify payment manually to activate subscription immediately
                 await api.post("/subscriptions/verify-payment", { paymentIntentId: paymentIntent.id });
                 setSuccess(true);
                 setTimeout(onSuccess, 1800);
@@ -75,7 +76,8 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ planName, amount, clientSec
             {error && (
                 <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm border border-red-200">{error}</div>
             )}
-            {}
+
+            {/* Plan Summary */}
             <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -86,7 +88,8 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ planName, amount, clientSec
                 </div>
                 <p className="text-xs text-emerald-700 mt-1.5">One-time payment. Subscription activates immediately after payment.</p>
             </div>
-            {}
+
+            {/* Card Input */}
             <div className="border border-gray-300 rounded-xl p-4 bg-white shadow-sm">
                 <p className="text-xs font-medium text-gray-500 mb-3">Card Details</p>
                 <CardElement
@@ -102,6 +105,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ planName, amount, clientSec
                     }}
                 />
             </div>
+
             <div className="flex gap-3 mt-1">
                 <button
                     type="button"
@@ -190,7 +194,7 @@ export const SubscriptionPaymentModal: React.FC<SubscriptionPaymentModalProps> =
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden relative animate-in zoom-in-95 duration-200">
-                {}
+                {/* Header */}
                 <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50/50">
                     <div>
                         <h2 className="text-xl font-bold tracking-tight text-gray-900">Subscribe</h2>

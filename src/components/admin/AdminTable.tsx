@@ -63,14 +63,17 @@ const AdminTable = <T extends { _id?: string } & Record<string, unknown>>({
   const [openDropdowns, setOpenDropdowns] = React.useState<Record<string, boolean>>({});
   const [openActionMenus, setOpenActionMenus] = React.useState<Record<string, boolean>>({});
 
+  // Toggle filter dropdown
   const toggleDropdown = (key: string) => {
     setOpenDropdowns((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  // Toggle action menu dropdown
   const toggleActionMenu = (id: string) => {
     setOpenActionMenus((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
+  // Close action menu when clicking outside
   React.useEffect(() => {
     const handleClickOutside = () => {
       setOpenActionMenus({});
@@ -80,6 +83,7 @@ const AdminTable = <T extends { _id?: string } & Record<string, unknown>>({
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
+  // Handle filter selection
   const handleFilterSelect = (filterKey: string, value: string) => {
     if (onFilterChange) {
       onFilterChange(filterKey, value);
@@ -87,17 +91,18 @@ const AdminTable = <T extends { _id?: string } & Record<string, unknown>>({
     setOpenDropdowns((prev) => ({ ...prev, [filterKey]: false }));
   };
 
+  // Pagination helpers
   const canGoPrevious = page > 1;
   const canGoNext = page < totalPages;
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      {}
+      {/* Header */}
       <header className="bg-white border-b border-gray-200 px-4 sm:px-8 py-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">{title}</h1>
 
-          {}
+          {/* Search */}
           <div className="flex items-center gap-4 w-full sm:w-auto">
             <div className="relative w-full">
               <input
@@ -112,9 +117,10 @@ const AdminTable = <T extends { _id?: string } & Record<string, unknown>>({
           </div>
         </div>
       </header>
-      {}
+
+      {/* Table Body */}
       <main className="flex-1 overflow-auto p-8">
-        {}
+        {/* Filters */}
         {filters.length > 0 && (
           <div className="mb-6 flex gap-4 items-center flex-wrap">
             {filters.map((filter) => (
@@ -136,7 +142,7 @@ const AdminTable = <T extends { _id?: string } & Record<string, unknown>>({
                         key={option}
                         onClick={() => handleFilterSelect(filter.key, option === "All" ? "" : option)}
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
-                        style={{ borderBottomWidth: 0 }}
+                        style={{ borderBottomWidth: 0 }} /* Fixed style from previous potential lint */
                       >
                         {option}
                       </button>
@@ -154,7 +160,7 @@ const AdminTable = <T extends { _id?: string } & Record<string, unknown>>({
           </div>
         )}
 
-        {}
+        {/* Table */}
         <div className="bg-white rounded-lg shadow-sm">
           <div className="overflow-x-auto min-h-[400px]">
             <table className="w-full">
@@ -177,7 +183,7 @@ const AdminTable = <T extends { _id?: string } & Record<string, unknown>>({
                 </tr>
               </thead>
 
-              {}
+              {/* Table Body */}
               <tbody className="divide-y divide-gray-200">
                 {isLoading ? (
                   <tr>
@@ -257,7 +263,7 @@ const AdminTable = <T extends { _id?: string } & Record<string, unknown>>({
             </table>
           </div>
 
-          {}
+          {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
               <div className="text-sm text-gray-600">
@@ -277,7 +283,7 @@ const AdminTable = <T extends { _id?: string } & Record<string, unknown>>({
                   Previous
                 </button>
 
-                {}
+                {/* Page numbers */}
                 <div className="flex items-center gap-1">
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                     let pageNum: number;

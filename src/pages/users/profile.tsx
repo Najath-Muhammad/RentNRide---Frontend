@@ -58,6 +58,8 @@ const Profile: React.FC = () => {
       } else {
         setSubscription({ plan: 'free', expiresAt: null });
       }
+
+      console.log('subscription is : ', subRes)
     } catch {
       showError('main', 'An unexpected error occurred while loading profile');
     } finally {
@@ -91,10 +93,12 @@ const Profile: React.FC = () => {
 
   const handlePhotoUpload = async () => {
     if (!selectedFile) return;
+    console.log('this is working')
 
     try {
       setActionLoading(prev => ({ ...prev, photo: true }));
       const publicUrl = await uploadToS3(selectedFile);
+      console.log('upload to s3 and here is the public url:', publicUrl)
       await ProfileApi.updateProfilePhoto(publicUrl);
 
       setProfile(prev => prev ? { ...prev, profilePhoto: publicUrl } : null);
@@ -185,6 +189,7 @@ const Profile: React.FC = () => {
 
   const handleConfirmUpgrade = () => {
     if (!selectedPlanId) return;
+    // Close plan picker and open Stripe payment modal
     setShowUpgradeModal(false);
     setPaymentPlanId(selectedPlanId);
     setShowPaymentModal(true);
@@ -291,10 +296,11 @@ const Profile: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
+
       <main className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row gap-8 items-start">
 
-          {}
+          {/* Left Column: Sidebar Profile Card */}
           <div className="w-full md:w-1/3 lg:w-1/4 space-y-6">
             <div className="bg-white rounded-3xl shadow-card overflow-hidden border border-gray-100 relative group">
               <div className="h-32 bg-gradient-to-r from-blue-600 to-blue-700"></div>
@@ -357,7 +363,7 @@ const Profile: React.FC = () => {
               </div>
             </div>
 
-            {}
+            {/* Loyalty/Premium Banner */}
             {!isPremiumActive ? (
               <div className="bg-slate-900 rounded-3xl p-6 text-white shadow-card relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-8 opacity-10 transform translate-x-4 -translate-y-4">
@@ -400,10 +406,10 @@ const Profile: React.FC = () => {
             )}
           </div>
 
-          {}
+          {/* Right Column: Details & Security */}
           <div className="flex-1 space-y-6">
 
-            {}
+            {/* Account Details */}
             <section className="bg-white rounded-3xl shadow-card border border-gray-100 overflow-hidden">
               <div className="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
                 <div className="flex items-center gap-3">
@@ -502,7 +508,7 @@ const Profile: React.FC = () => {
               </div>
             </section>
 
-            {}
+            {/* Security Section */}
             {profile.googleId ? (
               <section className="bg-white rounded-3xl shadow-card border border-gray-100 overflow-hidden">
                 <div className="px-8 py-6 border-b border-gray-50 flex items-center gap-3 bg-gray-50/50">
@@ -593,16 +599,17 @@ const Profile: React.FC = () => {
           </div>
         </div>
       </main>
-      {}
+
+      {/* Plan Picker Upgrade Modal */}
       {showUpgradeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowUpgradeModal(false)} />
           <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-300">
-            {}
+            {/* Gradient top bar */}
             <div className="h-1.5 bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 rounded-t-3xl" />
 
             <div className="p-8">
-              {}
+              {/* Header */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-gradient-to-br from-yellow-50 to-amber-100 rounded-2xl flex items-center justify-center border border-amber-200">
@@ -618,7 +625,7 @@ const Profile: React.FC = () => {
                 </button>
               </div>
 
-              {}
+              {/* Plans */}
               {plansLoading ? (
                 <div className="flex items-center justify-center py-16">
                   <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
@@ -642,13 +649,14 @@ const Profile: React.FC = () => {
                           : 'border-gray-200 bg-white hover:border-amber-200 hover:bg-amber-50/30'
                           }`}
                       >
-                        {}
+                        {/* Selected checkmark */}
                         {isSelected && (
                           <div className="absolute top-3 right-3">
                             <CheckCircle className="w-5 h-5 text-amber-500" />
                           </div>
                         )}
-                        {}
+
+                        {/* Plan name & price */}
                         <div className="mb-3">
                           <p className="font-bold text-gray-900 text-base">{plan.name}</p>
                           <div className="flex items-baseline gap-1 mt-1">
@@ -656,12 +664,14 @@ const Profile: React.FC = () => {
                             <span className="text-sm text-gray-400">/ {plan.durationDays} days</span>
                           </div>
                         </div>
-                        {}
+
+                        {/* Vehicle limit */}
                         <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
                           <Car className="w-4 h-4 text-gray-400" />
                           <span>List up to <strong>{plan.vehicleLimit}</strong> vehicle{plan.vehicleLimit !== 1 ? 's' : ''}</span>
                         </div>
-                        {}
+
+                        {/* Features */}
                         {plan.features.length > 0 && (
                           <ul className="space-y-1.5">
                             {plan.features.slice(0, 3).map((f, i) => (
@@ -681,7 +691,7 @@ const Profile: React.FC = () => {
                 </div>
               )}
 
-              {}
+              {/* Actions */}
               {!plansLoading && availablePlans.length > 0 && (
                 <div className="flex gap-3">
                   <button
@@ -704,7 +714,8 @@ const Profile: React.FC = () => {
           </div>
         </div>
       )}
-      {}
+
+      {/* Stripe Subscription Payment Modal */}
       {paymentPlanId && (
         <SubscriptionPaymentModal
           isOpen={showPaymentModal}

@@ -16,7 +16,7 @@ export const DashboardCharts: React.FC<ChartsProps> = ({
 }) => {
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
-            {}
+            {/* Bookings Trend Line Chart */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 xl:col-span-2">
                 <h3 className="text-lg font-bold text-gray-900 mb-6">Bookings Overview</h3>
                 <div className="h-[300px]">
@@ -34,7 +34,8 @@ export const DashboardCharts: React.FC<ChartsProps> = ({
                     </ResponsiveContainer>
                 </div>
             </div>
-            {}
+
+            {/* Vehicle Usage Pie Chart */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                 <h3 className="text-lg font-bold text-gray-900 mb-6">Vehicle Usage</h3>
                 <div className="h-[300px] flex items-center justify-center">
@@ -62,7 +63,8 @@ export const DashboardCharts: React.FC<ChartsProps> = ({
                     </ResponsiveContainer>
                 </div>
             </div>
-            {}
+
+            {/* Revenue Bar Chart */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 lg:col-span-2 xl:col-span-3">
                 <h3 className="text-lg font-bold text-gray-900 mb-6">Revenue Overview</h3>
                 <div className="h-[300px]">

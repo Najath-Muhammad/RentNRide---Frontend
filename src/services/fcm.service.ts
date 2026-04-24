@@ -66,18 +66,24 @@ export async function initPushNotifications(): Promise<void> {
             return;
         }
 
+        console.log("[FCM] Token generated successfully:", token.slice(0, 10), "...");
+
         const stored = localStorage.getItem(FCM_TOKEN_KEY);
 
         if (stored !== token) {
             await syncTokenWithBackend(token);
             localStorage.setItem(FCM_TOKEN_KEY, token);
+            console.log("[FCM] Token registered with backend.");
         }
 
 
         onMessage(messaging, (payload) => {
+            console.log("[FCM] Foreground message received:", payload);
+
             const title = payload.notification?.title ?? "Notification";
             const body = payload.notification?.body ?? "";
 
+            // Dispatch a custom DOM event so any React component can listen
             window.dispatchEvent(
                 new CustomEvent("fcm:message", { detail: { title, body, data: payload.data } }),
             );

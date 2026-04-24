@@ -1,5 +1,6 @@
+// src/components/vehicles/VehicleCard.tsx
 import React from 'react';
-import { Link } from '@tanstack/react-router';
+import { Link } from '@tanstack/react-router'; // ← Correct import
 
 interface Vehicle {
   _id: string;

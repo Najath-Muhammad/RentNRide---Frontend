@@ -10,6 +10,7 @@ const Home: React.FC = () => {
   const { location, setLocation, setCoordinates, coordinates } = useAuthStore();
 
   useEffect(() => {
+    // Only auto-detect if location is the default 'India'
     if (location === 'India') {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -37,6 +38,7 @@ const Home: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <HeroSection />
+
       {coordinates ? (
         <>
           <VehicleGrid
@@ -55,7 +57,7 @@ const Home: React.FC = () => {
           <VehicleGrid
             title="All Available Rides"
             minRange={50}
-            showRangeSelector={true}
+            showRangeSelector={true} // Allow user to play with the range here
           />
         </>
       ) : (

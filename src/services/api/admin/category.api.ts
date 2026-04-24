@@ -22,6 +22,7 @@ export interface FuelType {
 }
 
 export const CategoryApi = {
+    // Category Methods
     getAllCategories: async (params?: { page?: number; limit?: number; search?: string }): Promise<{ data: Category[]; total: number; page: number; totalPages: number }> => {
         const response = await api.get<{ success: boolean; data: { data: Category[]; total: number; page: number; totalPages: number } }>("/admin/categories", { params });
         return response.data.data;
@@ -42,6 +43,7 @@ export const CategoryApi = {
         return response.data.data;
     },
 
+    // Fuel Type Methods
     getAllFuelTypes: async (): Promise<FuelType[]> => {
         const response = await api.get<{ success: boolean; data: FuelType[] }>("/admin/fuel-types");
         return response.data.data;

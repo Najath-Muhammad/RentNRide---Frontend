@@ -1,5 +1,9 @@
 import { useFcmToast } from "../../hooks/useFcmToast";
 
+/**
+ * Renders a stack of foreground FCM push notification toasts.
+ * Mount this once at the root of the app (inside App.tsx or your layout).
+ */
 export default function FcmToastContainer() {
     const { toasts, dismiss } = useFcmToast();
 
@@ -38,7 +42,7 @@ export default function FcmToastContainer() {
                         animation: "fcm-slide-in 0.3s ease",
                     }}
                 >
-                    {}
+                    {/* Bell icon */}
                     <div
                         style={{
                             width: "2.25rem",
@@ -106,6 +110,7 @@ export default function FcmToastContainer() {
                     </button>
                 </div>
             ))}
+
             <style>{`
                 @keyframes fcm-slide-in {
                     from { opacity: 0; transform: translateX(2rem); }
