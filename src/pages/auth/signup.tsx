@@ -5,6 +5,7 @@ import { type AxiosError } from "axios";
 import { AuthApi } from '../../services/api/auth/signup.api';
 import { useAuthStore } from '../../stores/authStore';
 import type { SignupFormState } from '../../types/auth.types';
+import Navbar from '../../components/user/Navbar';
 
 
 const calculatePasswordStrength = (password: string) => {
@@ -114,11 +115,7 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <h1 className="text-xl font-normal text-black">rentNride</h1>
-        </div>
-      </nav>
+      <Navbar />
 
       <div className="flex items-center justify-center px-4 py-8">
         <div className="bg-white rounded-lg w-full max-w-2xl p-8 shadow-lg">

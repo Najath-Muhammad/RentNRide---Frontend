@@ -6,6 +6,7 @@ import { AuthApi } from '../../services/api/auth/login.api'
 import { useAuthStore } from '../../stores/authStore';
 import { scheduleSilentRefresh } from '../../utils/silentRefresh';
 import type { AxiosError } from 'axios';
+import Navbar from '../../components/user/Navbar';
 
 interface FormErrors {
   email?: string;
@@ -128,11 +129,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <h1 className="text-xl font-semibold text-gray-900">rentNride</h1>
-        </div>
-      </nav>
+      <Navbar />
 
       <main className="flex-1 flex items-center justify-center p-4 pt-8">
         <div className="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden">

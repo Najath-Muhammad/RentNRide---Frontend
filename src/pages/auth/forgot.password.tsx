@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { AuthApiForgot } from '../../services/api/auth/forgot.pass.api';
+import Navbar from '../../components/user/Navbar';
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
@@ -68,9 +69,7 @@ const ForgotPassword = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="px-6 py-4">
-        <h1 className="text-xl font-semibold text-gray-800">rentNride</h1>
-      </header>
+      <Navbar />
 
       <main className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md">
