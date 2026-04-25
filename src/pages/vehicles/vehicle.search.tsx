@@ -269,8 +269,14 @@ const SearchPage = () => {
           CategoryApi.getAllCategories({ limit: 100 }),
           CategoryApi.getAllFuelTypes()
         ]);
-        setCategories(categoriesRes.data);
-        setFuelTypes(fuelTypesRes);
+        const activeCategories = categoriesRes.data
+          .filter(c => c.isActive)
+          .map(c => ({
+            ...c,
+            subCategories: c.subCategories ? c.subCategories.filter(sc => sc.isActive) : []
+          }));
+        setCategories(activeCategories);
+        setFuelTypes(fuelTypesRes.filter(f => f.isActive));
       } catch (error) {
         console.error("Failed to load filter options:", error);
       } finally {
