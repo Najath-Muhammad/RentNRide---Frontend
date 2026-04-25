@@ -16,7 +16,7 @@ interface Action {
 interface Filter {
   readonly key: string;
   readonly label: string;
-  readonly options: readonly string[];
+  readonly options: readonly (string | { value: string; label: string })[];
 }
 
 interface AdminTableProps<T> {
@@ -130,21 +130,32 @@ const AdminTable = <T extends { _id?: string } & Record<string, unknown>>({
                   onClick={() => toggleDropdown(filter.key)}
                 >
                   <span className="text-sm text-gray-700">
-                    {filter.label}: {activeFilters[filter.key] || "All"}
+                    {filter.label}: {
+                      (() => {
+                        const active = activeFilters[filter.key];
+                        if (!active) return 'All';
+                        const matched = filter.options.find(
+                          (o) => typeof o === 'object' ? o.value === active : o === active
+                        );
+                        return typeof matched === 'object' ? matched.label : (matched || active);
+                      })()
+                    }
                   </span>
                   <ChevronDown size={16} className="text-gray-500" />
                 </button>
 
                 {openDropdowns[filter.key] && (
-                  <div className="absolute top-full left-0 mt-1 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
-                    {["All", ...filter.options].map((option) => (
+                  <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
+                    {([{ value: '', label: 'All' }, ...filter.options.map((o) =>
+                      typeof o === 'string' ? { value: o, label: o } : o
+                    )] as { value: string; label: string }[]).map((option) => (
                       <button
-                        key={option}
-                        onClick={() => handleFilterSelect(filter.key, option === "All" ? "" : option)}
+                        key={option.value}
+                        onClick={() => handleFilterSelect(filter.key, option.value)}
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
-                        style={{ borderBottomWidth: 0 }} /* Fixed style from previous potential lint */
+                        style={{ borderBottomWidth: 0 }}
                       >
-                        {option}
+                        {option.label}
                       </button>
                     ))}
                   </div>

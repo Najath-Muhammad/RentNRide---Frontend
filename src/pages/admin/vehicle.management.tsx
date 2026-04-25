@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import AdminTable from '../../components/admin/AdminTable';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { VehicleApi, type VehicleListItem, type VehicleStats } from '../../services/api/admin/vehicle.management.api';
+import { CategoryApi, type Category, type FuelType } from '../../services/api/admin/category.api';
 
 const mockOwnerNames: Record<string, string> = {
   '69298eb111f3269be35d5c92': 'John Doe',
@@ -33,6 +34,8 @@ const AdminVehicleControl: React.FC = () => {
   const [vehicleToReject, setVehicleToReject] = useState<string | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleListItem | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [categoryOptions, setCategoryOptions] = useState<Category[]>([]);
+  const [fuelTypeOptions, setFuelTypeOptions] = useState<FuelType[]>([]);
 
   // Confirmation Modal State
   const [modalConfig, setModalConfig] = useState<{
@@ -95,6 +98,22 @@ const AdminVehicleControl: React.FC = () => {
     } catch (error) {
       console.error('Error fetching vehicle stats:', error);
     }
+  }, []);
+
+  useEffect(() => {
+    const fetchFilterOptions = async () => {
+      try {
+        const [catRes, fuelRes] = await Promise.all([
+          CategoryApi.getAllCategories({ limit: 100 }),
+          CategoryApi.getAllFuelTypes(),
+        ]);
+        setCategoryOptions(catRes.data);
+        setFuelTypeOptions(fuelRes);
+      } catch (err) {
+        console.error('Failed to load filter options:', err);
+      }
+    };
+    fetchFilterOptions();
   }, []);
 
   useEffect(() => {
@@ -277,7 +296,7 @@ const AdminVehicleControl: React.FC = () => {
     {
       key: 'category',
       label: 'Category',
-      options: ['Car', 'Bike', 'SUV', 'Sedan', 'Hatchback', 'Luxury'],
+      options: categoryOptions.map(c => ({ value: c._id, label: c.name })),
     },
     {
       key: 'status',
@@ -287,7 +306,7 @@ const AdminVehicleControl: React.FC = () => {
     {
       key: 'fuelType',
       label: 'Fuel Type',
-      options: ['Petrol', 'Diesel', 'Electric', 'Hybrid'],
+      options: fuelTypeOptions.map(f => ({ value: f._id, label: f.name })),
     },
   ];
 
