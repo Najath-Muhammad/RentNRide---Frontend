@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { User, LogOut, Settings, Car, Loader2, Bell, MapPin, Navigation, Menu, X, Crown, MessageCircle, Wallet } from 'lucide-react';
+import { User, LogOut, Settings, Car, Loader2, Bell, MapPin, Navigation, Menu, X, Crown, MessageCircle, Wallet, LayoutDashboard } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
 import { useAuthStore } from '../../stores/authStore';
 import { AuthApi } from '../../services/api/auth/login.api';
@@ -474,6 +474,13 @@ const Navbar: React.FC = () => {
                           Profile
                         </button>
                         <button
+                          onClick={() => navigate({ to: '/user/owner-dashboard' })}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg w-full text-left transition-colors"
+                        >
+                          <LayoutDashboard className="w-4 h-4" />
+                          Dashboard
+                        </button>
+                        <button
                           onClick={() => navigate({ to: '/vehicles/my-vehicles' })}
                           className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg w-full text-left transition-colors"
                         >
@@ -613,6 +620,16 @@ const Navbar: React.FC = () => {
                 >
                   <User className="w-4 h-4" />
                   Profile
+                </button>
+                <button
+                  onClick={() => {
+                    navigate({ to: '/user/owner-dashboard' });
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="flex items-center gap-3 w-full text-left px-4 py-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 font-semibold transition-all"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  Dashboard
                 </button>
                 <button
                   onClick={() => {

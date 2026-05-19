@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from '@tanstack/react-router';
+import Navbar from '../../components/user/Navbar';
 import {
   TrendingUp, Car, Calendar, Zap, Clock, AlertCircle,
   ArrowUpRight, RefreshCw, LayoutDashboard
@@ -160,6 +161,7 @@ const OwnerDashboardPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Navbar />
       {/* Header */}
       <div className="bg-white border-b border-gray-100 px-6 py-5 shadow-sm">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
