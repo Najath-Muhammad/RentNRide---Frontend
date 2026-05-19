@@ -28,10 +28,15 @@ export interface Booking {
     endDate: string;
     withFuel?: boolean;
     totalAmount: number;
-    bookingStatus: 'pending' | 'confirmed' | 'ongoing' | 'completed' | 'cancelled' | 'rejected';
+    bookingStatus: 'pending' | 'confirmed' | 'ongoing' | 'completed' | 'cancelled' | 'cancel_requested' | 'rejected' | 'no_show';
     paymentStatus: string;
-    cancelledBy?: 'user' | 'owner' | 'system';
+    cancelledBy?: 'user' | 'owner' | 'system' | 'admin';
     cancellationReason?: string;
+    cancelledAt?: string;
+    refundAmount?: number;
+    refundStatus?: 'pending' | 'processed' | 'failed';
+    cancellationCharge?: number;
+    advancePaid?: number;
 }
 
 export interface PaginatedBookings {

@@ -3,6 +3,7 @@ import { api } from "../../../utils/axios";
 export interface OwnerDashboardStats {
   totalRevenue: number;
   totalBookings: number;
+  totalCancelled: number;
   totalVehicles: number;
   activeVehicles: number;
   earningsThisMonth: number;

@@ -58,22 +58,26 @@ const MyBookings: React.FC = () => {
         }
     };
 
-    const [bookingToCancel, setBookingToCancel] = useState<string | null>(null);
+    const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
+    const [cancelReason, setCancelReason] = useState<string>('Change of plans');
 
-    const handleCancelClick = (bookingId: string) => {
-        setBookingToCancel(bookingId);
+    const handleCancelClick = (booking: Booking) => {
+        setBookingToCancel(booking);
+        setCancelReason('Change of plans');
     };
 
     const handleConfirmCancel = async () => {
         if (!bookingToCancel) return;
 
         try {
-            setCancellingId(bookingToCancel);
-            await BookingApi.cancelBooking(bookingToCancel, 'User requested cancellation');
+            setCancellingId(bookingToCancel._id);
+            await BookingApi.cancelBooking(bookingToCancel._id, cancelReason);
 
             setBookings(prev => prev.map(b =>
-                b._id === bookingToCancel ? { ...b, bookingStatus: 'cancelled' } : b
+                b._id === bookingToCancel._id ? { ...b, bookingStatus: 'cancel_requested' } : b
             ));
+            
+            showModal('success', 'Cancellation Requested', 'Your cancellation has been processed.');
         } catch (err) {
             const error = err as Error;
             showModal('error', 'Cancellation Failed', error.message || 'Failed to cancel booking');
@@ -151,17 +155,25 @@ const MyBookings: React.FC = () => {
             return 'text-orange-600 bg-orange-50 border-orange-200';
         }
         switch (status) {
+            case 'approved':
+            case 'advance_authorized':
             case 'confirmed':
                 return 'text-green-600 bg-green-50 border-green-200';
+            case 'requested':
             case 'pending':
                 return 'text-yellow-600 bg-yellow-50 border-yellow-200';
             case 'cancelled':
                 return 'text-red-600 bg-red-50 border-red-200';
+            case 'cancel_requested':
+                return 'text-orange-600 bg-orange-50 border-orange-200';
             case 'completed':
+            case 'payment_captured':
                 return 'text-blue-600 bg-blue-50 border-blue-200';
+            case 'ride_started':
             case 'ongoing':
                 return 'text-purple-600 bg-purple-50 border-purple-200';
             case 'rejected':
+            case 'no_show':
                 return 'text-red-600 bg-red-50 border-red-200';
             default:
                 return 'text-gray-600 bg-gray-50 border-gray-200';
@@ -170,21 +182,31 @@ const MyBookings: React.FC = () => {
 
     const getStatusLabel = (status: string, cancelledBy?: string) => {
         if (status === 'cancelled' && cancelledBy === 'system') return 'Expired';
-        return status.charAt(0).toUpperCase() + status.slice(1);
+        if (status === 'advance_authorized') return 'Authorized';
+        if (status === 'payment_captured') return 'Paid';
+        if (status === 'ride_started') return 'In Progress';
+        if (status === 'cancel_requested') return 'Cancel Pending';
+        return status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ');
     };
 
     const getStatusIcon = (status: string, cancelledBy?: string) => {
         switch (status) {
+            case 'approved':
+            case 'advance_authorized':
             case 'confirmed':
                 return <CheckCircle className="w-4 h-4" />;
+            case 'requested':
             case 'pending':
                 return <Clock className="w-4 h-4" />;
             case 'cancelled':
+            case 'cancel_requested':
                 if (cancelledBy === 'system') return <AlertCircle className="w-4 h-4" />;
                 return <XCircle className="w-4 h-4" />;
             case 'completed':
+            case 'payment_captured':
                 return <CheckCircle className="w-4 h-4" />;
             case 'rejected':
+            case 'no_show':
                 return <XCircle className="w-4 h-4" />;
             default:
                 return <AlertCircle className="w-4 h-4" />;
@@ -327,11 +349,22 @@ const MyBookings: React.FC = () => {
                                                     </div>
                                                 </div>
 
-                                                {/* Cancellation reason note */}
-                                                {booking.bookingStatus === 'cancelled' && booking.cancellationReason && (
-                                                    <div className="mt-3 flex items-start gap-2 text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
-                                                        <AlertCircle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-orange-400" />
-                                                        <span>{booking.cancellationReason}</span>
+                                                {/* Cancellation / Refund note */}
+                                                {(booking.bookingStatus === 'cancelled' || booking.bookingStatus === 'cancel_requested') && (
+                                                    <div className="mt-3 flex flex-col gap-2 text-xs text-gray-600 bg-orange-50 border border-orange-100 rounded-lg px-4 py-3">
+                                                        <div className="flex items-start gap-2">
+                                                            <AlertCircle className="w-4 h-4 flex-shrink-0 text-orange-500 mt-0.5" />
+                                                            <div>
+                                                                <span className="font-semibold block mb-0.5">Cancellation Reason:</span>
+                                                                <span>{booking.cancellationReason || 'No reason provided'}</span>
+                                                            </div>
+                                                        </div>
+                                                        {booking.refundAmount !== undefined && booking.advancePaid && booking.advancePaid > 0 ? (
+                                                            <div className="border-t border-orange-200/60 pt-2 mt-1 flex justify-between">
+                                                                <span>Refund Status: <strong className="capitalize">{booking.refundStatus || 'pending'}</strong></span>
+                                                                <span className="font-semibold text-green-700">Refund: ₹{booking.refundAmount.toLocaleString()}</span>
+                                                            </div>
+                                                        ) : null}
                                                     </div>
                                                 )}
                                             </div>
@@ -356,9 +389,9 @@ const MyBookings: React.FC = () => {
                                                             {chattingId === booking._id ? 'Opening...' : 'Chat with Owner'}
                                                         </button>
                                                     )}
-                                                    {booking.bookingStatus === 'pending' && (
+                                                    {['requested', 'approved', 'advance_authorized', 'pending', 'confirmed'].includes(booking.bookingStatus) && new Date(booking.startDate) > new Date() && (
                                                         <button
-                                                            onClick={() => handleCancelClick(booking._id)}
+                                                            onClick={() => handleCancelClick(booking)}
                                                             disabled={cancellingId === booking._id}
                                                             className="px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                                                         >
@@ -405,10 +438,57 @@ const MyBookings: React.FC = () => {
                                 </div>
                                 <div className="flex-1">
                                     <h3 className="text-2xl font-bold text-gray-900 mb-2">Cancel Booking</h3>
-                                    <p className="text-gray-600 leading-relaxed">
-                                        Are you sure you want to cancel this booking? This action cannot be undone.
+                                    <p className="text-gray-600 leading-relaxed text-sm">
+                                        Are you sure you want to cancel this booking? Please review our cancellation policy below.
                                     </p>
                                 </div>
+                            </div>
+                            
+                            <div className="mb-6 bg-gray-50 p-4 rounded-xl text-sm border border-gray-100">
+                                <h4 className="font-bold text-gray-900 mb-2">Cancellation Policy</h4>
+                                <ul className="list-disc pl-5 space-y-1 text-gray-600">
+                                    <li>More than 48h before pickup: <span className="font-semibold text-green-600">100% Refund</span></li>
+                                    <li>24h to 48h before pickup: <span className="font-semibold text-orange-600">50% Refund</span></li>
+                                    <li>Less than 24h before pickup: <span className="font-semibold text-red-600">No Refund</span></li>
+                                </ul>
+                                
+                                {(() => {
+                                    const hoursUntilPickup = (new Date(bookingToCancel.startDate).getTime() - new Date().getTime()) / (1000 * 60 * 60);
+                                    const advance = bookingToCancel.advancePaid || 0;
+                                    let estimatedRefund = 0;
+                                    if (hoursUntilPickup > 48) estimatedRefund = advance;
+                                    else if (hoursUntilPickup > 24) estimatedRefund = advance * 0.5;
+                                    
+                                    return advance > 0 ? (
+                                        <div className="mt-4 pt-4 border-t border-gray-200">
+                                            <p className="flex justify-between items-center text-gray-800">
+                                                <span>Advance Paid:</span>
+                                                <span className="font-semibold">₹{advance.toLocaleString()}</span>
+                                            </p>
+                                            <p className="flex justify-between items-center mt-1 text-gray-800">
+                                                <span>Estimated Refund:</span>
+                                                <span className={`font-bold ${estimatedRefund > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                                    ₹{estimatedRefund.toLocaleString()}
+                                                </span>
+                                            </p>
+                                        </div>
+                                    ) : null;
+                                })()}
+                            </div>
+                            
+                            <div className="mb-6">
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">Select Reason</label>
+                                <select 
+                                    value={cancelReason}
+                                    onChange={(e) => setCancelReason(e.target.value)}
+                                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
+                                >
+                                    <option value="Change of plans">Change of plans</option>
+                                    <option value="Found another vehicle">Found another vehicle</option>
+                                    <option value="Price issue">Price issue</option>
+                                    <option value="Booking mistake">Booking mistake</option>
+                                    <option value="Other">Other</option>
+                                </select>
                             </div>
 
                             <div className="flex gap-3">
@@ -425,7 +505,7 @@ const MyBookings: React.FC = () => {
                                     className="flex-1 px-6 py-3.5 rounded-xl font-bold text-white shadow-lg transition-all hover:shadow-xl hover:-translate-y-0.5 active:scale-95 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
                                     {cancellingId && <Loader2 className="w-5 h-5 animate-spin" />}
-                                    {cancellingId ? 'Cancelling...' : 'Yes, Cancel Booking'}
+                                    {cancellingId ? 'Cancelling...' : 'Yes, Cancel'}
                                 </button>
                             </div>
                         </div>

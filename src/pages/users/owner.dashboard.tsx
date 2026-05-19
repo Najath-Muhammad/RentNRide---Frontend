@@ -156,6 +156,16 @@ const OwnerDashboardPage: React.FC = () => {
               : null,
           delay: 400,
         },
+        {
+          title: 'Cancelled Bookings',
+          value: fmt(stats.totalCancelled),
+          subtitle: 'Total cancelled rentals',
+          icon: <AlertCircle className="w-6 h-6 text-white" />,
+          gradient: 'linear-gradient(135deg, #f43f5e 0%, #be123c 100%)',
+          iconBg: 'bg-white/20',
+          badge: null,
+          delay: 480,
+        },
       ]
     : [];
 

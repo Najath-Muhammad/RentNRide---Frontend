@@ -130,7 +130,7 @@ const AdminLogin: React.FC = () => {
           console.log('Search params:', searchParams);
           console.log('Redirect URL:', searchParams.redirect);
 
-          useAuthStore.getState().setUser(responseData.user);
+          useAuthStore.getState().setUser(responseData.data.user);
 
           // Navigate to redirect URL if provided, otherwise go to admin dashboard
           const redirectUrl = searchParams.redirect || '/admin/dashboard';
