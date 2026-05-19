@@ -22,6 +22,7 @@ import { Route as VehiclesIdRouteImport } from './routes/vehicles/$id'
 import { Route as UserWalletRouteImport } from './routes/user/wallet'
 import { Route as UserSubscriptionRouteImport } from './routes/user/subscription'
 import { Route as UserProfileRouteImport } from './routes/user/profile'
+import { Route as UserOwnerDashboardRouteImport } from './routes/user/owner-dashboard'
 import { Route as UserMyBookingsRouteImport } from './routes/user/my-bookings'
 import { Route as UserChatRouteImport } from './routes/user/chat'
 import { Route as AuthVerifyOtpForgotRouteImport } from './routes/auth/verify-otp-forgot'
@@ -104,6 +105,11 @@ const UserSubscriptionRoute = UserSubscriptionRouteImport.update({
 const UserProfileRoute = UserProfileRouteImport.update({
   id: '/user/profile',
   path: '/user/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UserOwnerDashboardRoute = UserOwnerDashboardRouteImport.update({
+  id: '/user/owner-dashboard',
+  path: '/user/owner-dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UserMyBookingsRoute = UserMyBookingsRouteImport.update({
@@ -219,6 +225,7 @@ export interface FileRoutesByFullPath {
   '/auth/verify-otp-forgot': typeof AuthVerifyOtpForgotRoute
   '/user/chat': typeof UserChatRoute
   '/user/my-bookings': typeof UserMyBookingsRoute
+  '/user/owner-dashboard': typeof UserOwnerDashboardRoute
   '/user/profile': typeof UserProfileRoute
   '/user/subscription': typeof UserSubscriptionRoute
   '/user/wallet': typeof UserWalletRoute
@@ -252,6 +259,7 @@ export interface FileRoutesByTo {
   '/auth/verify-otp-forgot': typeof AuthVerifyOtpForgotRoute
   '/user/chat': typeof UserChatRoute
   '/user/my-bookings': typeof UserMyBookingsRoute
+  '/user/owner-dashboard': typeof UserOwnerDashboardRoute
   '/user/profile': typeof UserProfileRoute
   '/user/subscription': typeof UserSubscriptionRoute
   '/user/wallet': typeof UserWalletRoute
@@ -286,6 +294,7 @@ export interface FileRoutesById {
   '/auth/verify-otp-forgot': typeof AuthVerifyOtpForgotRoute
   '/user/chat': typeof UserChatRoute
   '/user/my-bookings': typeof UserMyBookingsRoute
+  '/user/owner-dashboard': typeof UserOwnerDashboardRoute
   '/user/profile': typeof UserProfileRoute
   '/user/subscription': typeof UserSubscriptionRoute
   '/user/wallet': typeof UserWalletRoute
@@ -321,6 +330,7 @@ export interface FileRouteTypes {
     | '/auth/verify-otp-forgot'
     | '/user/chat'
     | '/user/my-bookings'
+    | '/user/owner-dashboard'
     | '/user/profile'
     | '/user/subscription'
     | '/user/wallet'
@@ -354,6 +364,7 @@ export interface FileRouteTypes {
     | '/auth/verify-otp-forgot'
     | '/user/chat'
     | '/user/my-bookings'
+    | '/user/owner-dashboard'
     | '/user/profile'
     | '/user/subscription'
     | '/user/wallet'
@@ -387,6 +398,7 @@ export interface FileRouteTypes {
     | '/auth/verify-otp-forgot'
     | '/user/chat'
     | '/user/my-bookings'
+    | '/user/owner-dashboard'
     | '/user/profile'
     | '/user/subscription'
     | '/user/wallet'
@@ -414,6 +426,7 @@ export interface RootRouteChildren {
   MeRoute: typeof MeRoute
   UserChatRoute: typeof UserChatRoute
   UserMyBookingsRoute: typeof UserMyBookingsRoute
+  UserOwnerDashboardRoute: typeof UserOwnerDashboardRoute
   UserProfileRoute: typeof UserProfileRoute
   UserSubscriptionRoute: typeof UserSubscriptionRoute
   UserWalletRoute: typeof UserWalletRoute
@@ -515,6 +528,13 @@ declare module '@tanstack/react-router' {
       path: '/user/profile'
       fullPath: '/user/profile'
       preLoaderRoute: typeof UserProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/user/owner-dashboard': {
+      id: '/user/owner-dashboard'
+      path: '/user/owner-dashboard'
+      fullPath: '/user/owner-dashboard'
+      preLoaderRoute: typeof UserOwnerDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/user/my-bookings': {
@@ -701,6 +721,7 @@ const rootRouteChildren: RootRouteChildren = {
   MeRoute: MeRoute,
   UserChatRoute: UserChatRoute,
   UserMyBookingsRoute: UserMyBookingsRoute,
+  UserOwnerDashboardRoute: UserOwnerDashboardRoute,
   UserProfileRoute: UserProfileRoute,
   UserSubscriptionRoute: UserSubscriptionRoute,
   UserWalletRoute: UserWalletRoute,
