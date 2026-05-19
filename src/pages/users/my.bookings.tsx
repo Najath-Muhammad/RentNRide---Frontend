@@ -14,6 +14,7 @@ const MyBookings: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [cancellingId, setCancellingId] = useState<string | null>(null);
     const [chattingId, setChattingId] = useState<string | null>(null);
+    const [activeTab, setActiveTab] = useState<'renter' | 'owner'>('renter');
     const navigate = useNavigate();
 
     const [showReviewModal, setShowReviewModal] = useState(false);
@@ -40,12 +41,15 @@ const MyBookings: React.FC = () => {
 
     useEffect(() => {
         fetchBookings();
-    }, []);
+    }, [activeTab]);
 
     const fetchBookings = async () => {
         try {
             setLoading(true);
-            const response = await BookingApi.getMyBookings();
+            const response = activeTab === 'renter' 
+                ? await BookingApi.getMyBookings() 
+                : await BookingApi.getOwnerBookings();
+            
             if (response.success && response.data) {
                 setBookings(response.data);
             }
@@ -87,22 +91,29 @@ const MyBookings: React.FC = () => {
         }
     };
 
-    const handleChatWithOwner = async (booking: Booking) => {
-        const ownerId = typeof booking.ownerId === 'object' ? (booking.ownerId as { _id?: string })?._id : booking.ownerId;
-        const vehicleId = typeof booking.vehicleId === 'object' ? (booking.vehicleId as { _id?: string })?._id : booking.vehicleId;
+    const handleChat = async (booking: Booking) => {
+        let targetUserId: string | undefined;
+        
+        if (activeTab === 'renter') {
+            targetUserId = typeof booking.ownerId === 'object' ? booking.ownerId._id : booking.ownerId;
+        } else {
+            targetUserId = typeof booking.userId === 'object' ? booking.userId?._id : booking.userId;
+        }
 
-        if (!ownerId) {
-            showModal('error', 'Cannot Open Chat', 'Owner information is not available for this booking.');
+        const vehicleId = typeof booking.vehicleId === 'object' ? booking.vehicleId._id : booking.vehicleId;
+
+        if (!targetUserId) {
+            showModal('error', 'Cannot Open Chat', 'User information is not available for this booking.');
             return;
         }
 
         try {
             setChattingId(booking._id);
-            await ChatApi.getOrCreateConversation(ownerId, vehicleId);
+            await ChatApi.getOrCreateConversation(targetUserId, vehicleId);
             navigate({ to: '/user/chat' });
         } catch (err) {
             console.error('Failed to open chat:', err);
-            showModal('error', 'Chat Failed', 'Unable to open chat with owner. Please try again.');
+            showModal('error', 'Chat Failed', 'Unable to open chat. Please try again.');
         } finally {
             setChattingId(null);
         }
@@ -255,9 +266,33 @@ const MyBookings: React.FC = () => {
             <Navbar />
             <div className="py-12 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-5xl mx-auto">
-                    <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900">My Bookings</h1>
-                        <p className="text-gray-500 mt-2">Manage and track all your vehicle bookings</p>
+                    <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-900">My Bookings</h1>
+                            <p className="text-gray-500 mt-2">Manage and track all your vehicle bookings</p>
+                        </div>
+                        <div className="flex bg-gray-100 p-1 rounded-xl w-full sm:w-auto">
+                            <button
+                                onClick={() => setActiveTab('renter')}
+                                className={`flex-1 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                                    activeTab === 'renter'
+                                        ? 'bg-white text-blue-600 shadow-sm'
+                                        : 'text-gray-500 hover:text-gray-700'
+                                }`}
+                            >
+                                My Trips
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('owner')}
+                                className={`flex-1 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                                    activeTab === 'owner'
+                                        ? 'bg-white text-blue-600 shadow-sm'
+                                        : 'text-gray-500 hover:text-gray-700'
+                                }`}
+                            >
+                                My Car Bookings
+                            </button>
+                        </div>
                     </div>
 
                     {bookings.length === 0 ? (
@@ -372,21 +407,25 @@ const MyBookings: React.FC = () => {
                                             <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                                                 <div className="flex items-center gap-2 text-sm text-gray-500">
                                                     <span className="w-2 h-2 rounded-full bg-gray-300"></span>
-                                                    Owner: <span className="font-medium text-gray-900">{booking.ownerId?.name || 'Unknown'}</span>
+                                                    {activeTab === 'renter' ? 'Owner:' : 'Renter:'} <span className="font-medium text-gray-900">
+                                                        {activeTab === 'renter' 
+                                                            ? booking.ownerId?.name || 'Unknown' 
+                                                            : booking.userId?.name || 'Unknown'}
+                                                    </span>
                                                 </div>
 
                                                 <div className="flex items-center gap-3 flex-wrap">
-                                                    {/* Chat with Owner — visible on active/pending/confirmed bookings */}
+                                                    {/* Chat with Owner/Renter — visible on active/pending/confirmed bookings */}
                                                     {!['cancelled', 'rejected'].includes(booking.bookingStatus) && (
                                                         <button
-                                                            onClick={() => handleChatWithOwner(booking)}
+                                                            onClick={() => handleChat(booking)}
                                                             disabled={chattingId === booking._id}
                                                             className="px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
                                                         >
                                                             {chattingId === booking._id
                                                                 ? <Loader2 className="w-4 h-4 animate-spin" />
                                                                 : <MessageCircle className="w-4 h-4" />}
-                                                            {chattingId === booking._id ? 'Opening...' : 'Chat with Owner'}
+                                                            {chattingId === booking._id ? 'Opening...' : `Chat with ${activeTab === 'renter' ? 'Owner' : 'Renter'}`}
                                                         </button>
                                                     )}
                                                     {['requested', 'approved', 'advance_authorized', 'pending', 'confirmed'].includes(booking.bookingStatus) && new Date(booking.startDate) > new Date() && (
@@ -453,6 +492,16 @@ const MyBookings: React.FC = () => {
                                 </ul>
                                 
                                 {(() => {
+                                    if (activeTab === 'owner') {
+                                        return (
+                                            <div className="mt-4 pt-4 border-t border-gray-200">
+                                                <p className="text-gray-800 font-medium text-sm">
+                                                    As the owner, cancelling this booking will automatically issue a <span className="text-green-600 font-bold">100% refund</span> to the renter.
+                                                </p>
+                                            </div>
+                                        );
+                                    }
+
                                     const hoursUntilPickup = (new Date(bookingToCancel.startDate).getTime() - new Date().getTime()) / (1000 * 60 * 60);
                                     const advance = bookingToCancel.advancePaid || 0;
                                     let estimatedRefund = 0;

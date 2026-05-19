@@ -21,6 +21,12 @@ export interface Booking {
         images?: string[];
     };
     ownerId: {
+        _id?: string;
+        name: string;
+        email: string;
+    };
+    userId?: {
+        _id?: string;
         name: string;
         email: string;
     };
@@ -63,6 +69,29 @@ export const BookingApi = {
 
     getMyBookings: async (): Promise<{ success: boolean; data: Booking[] }> => {
         const response = await api.get<{ success: boolean; data: PaginatedBookings | Booking[] }>('/bookings/user', {
+            withCredentials: true
+        });
+
+        // Handle paginated response structure from backend
+        let bookings: Booking[] = [];
+        const responseData = response.data.data;
+
+        if (responseData) {
+            if (Array.isArray(responseData)) {
+                bookings = responseData;
+            } else if ('data' in responseData && Array.isArray(responseData.data)) {
+                bookings = responseData.data;
+            }
+        }
+
+        return {
+            success: response.data.success,
+            data: bookings
+        };
+    },
+
+    getOwnerBookings: async (): Promise<{ success: boolean; data: Booking[] }> => {
+        const response = await api.get<{ success: boolean; data: PaginatedBookings | Booking[] }>('/bookings/owner', {
             withCredentials: true
         });
 
