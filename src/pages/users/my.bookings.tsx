@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { BookingApi, type Booking } from '../../services/api/booking/booking.api';
 import { AxiosError } from 'axios';
 import Navbar from '../../components/user/Navbar';
-import { Loader2, Calendar, AlertCircle, Clock, CheckCircle, XCircle, MessageCircle } from 'lucide-react';
+import { Loader2, Calendar, AlertCircle, Clock, CheckCircle, XCircle, MessageCircle, RotateCcw, CalendarClock, TimerReset } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
 import { ChatApi } from '../../services/api/chat/chat.api';
 import { ReviewApi } from '../../services/api/review/review.api';
@@ -15,6 +15,12 @@ const MyBookings: React.FC = () => {
     const [cancellingId, setCancellingId] = useState<string | null>(null);
     const [chattingId, setChattingId] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'renter' | 'owner'>('renter');
+    const [returningId, setReturningId] = useState<string | null>(null);
+    const [extensionBooking, setExtensionBooking] = useState<Booking | null>(null);
+    const [extensionDate, setExtensionDate] = useState('');
+    const [extensionReason, setExtensionReason] = useState('');
+    const [submittingExtension, setSubmittingExtension] = useState(false);
+    const [approvingId, setApprovingId] = useState<string | null>(null);
     const navigate = useNavigate();
 
     const [showReviewModal, setShowReviewModal] = useState(false);
@@ -88,6 +94,59 @@ const MyBookings: React.FC = () => {
         } finally {
             setCancellingId(null);
             setBookingToCancel(null);
+        }
+    };
+
+    const handleReturnVehicle = async (bookingId: string) => {
+        try {
+            setReturningId(bookingId);
+            const response = await BookingApi.returnVehicle(bookingId);
+            if (response.success) {
+                showModal('success', 'Vehicle Returned', 'The vehicle has been successfully returned.');
+                fetchBookings(); // Refresh bookings to get updated status and fees
+            }
+        } catch (err) {
+            const error = err as Error;
+            showModal('error', 'Return Failed', error.message || 'Failed to mark vehicle as returned');
+        } finally {
+            setReturningId(null);
+        }
+    };
+
+    const handleRequestExtension = async () => {
+        if (!extensionBooking || !extensionDate) return;
+        
+        try {
+            setSubmittingExtension(true);
+            const response = await BookingApi.requestExtension(extensionBooking._id, extensionDate, extensionReason);
+            if (response.success) {
+                showModal('success', 'Extension Requested', 'Your request has been sent to the owner.');
+                fetchBookings();
+            }
+        } catch (err) {
+            const error = err as Error;
+            showModal('error', 'Request Failed', error.message || 'Failed to request extension');
+        } finally {
+            setSubmittingExtension(false);
+            setExtensionBooking(null);
+            setExtensionDate('');
+            setExtensionReason('');
+        }
+    };
+
+    const handleApproveExtension = async (bookingId: string, approved: boolean) => {
+        try {
+            setApprovingId(bookingId);
+            const response = await BookingApi.approveExtension(bookingId, approved);
+            if (response.success) {
+                showModal('success', approved ? 'Extension Approved' : 'Extension Rejected', response.message || 'Action completed successfully');
+                fetchBookings();
+            }
+        } catch (err) {
+            const error = err as Error;
+            showModal('error', 'Action Failed', error.message || 'Failed to process extension');
+        } finally {
+            setApprovingId(null);
         }
     };
 
@@ -183,8 +242,11 @@ const MyBookings: React.FC = () => {
             case 'ride_started':
             case 'ongoing':
                 return 'text-purple-600 bg-purple-50 border-purple-200';
+            case 'extended':
+                return 'text-indigo-600 bg-indigo-50 border-indigo-200';
             case 'rejected':
             case 'no_show':
+            case 'overdue':
                 return 'text-red-600 bg-red-50 border-red-200';
             default:
                 return 'text-gray-600 bg-gray-50 border-gray-200';
@@ -197,6 +259,8 @@ const MyBookings: React.FC = () => {
         if (status === 'payment_captured') return 'Paid';
         if (status === 'ride_started') return 'In Progress';
         if (status === 'cancel_requested') return 'Cancel Pending';
+        if (status === 'extended') return 'Extended';
+        if (status === 'overdue') return 'Overdue';
         return status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ');
     };
 
@@ -216,8 +280,11 @@ const MyBookings: React.FC = () => {
             case 'completed':
             case 'payment_captured':
                 return <CheckCircle className="w-4 h-4" />;
+            case 'extended':
+                return <CalendarClock className="w-4 h-4" />;
             case 'rejected':
             case 'no_show':
+            case 'overdue':
                 return <XCircle className="w-4 h-4" />;
             default:
                 return <AlertCircle className="w-4 h-4" />;
@@ -402,6 +469,38 @@ const MyBookings: React.FC = () => {
                                                         ) : null}
                                                     </div>
                                                 )}
+
+                                                {/* Extension & Overdue note */}
+                                                {(booking.bookingStatus === 'extended' || booking.bookingStatus === 'overdue' || booking.returnStatus === 'overdue' || booking.extensionRequested) && (
+                                                    <div className={`mt-3 flex flex-col gap-2 text-xs border rounded-lg px-4 py-3 ${
+                                                        booking.bookingStatus === 'overdue' || booking.returnStatus === 'overdue'
+                                                            ? 'bg-red-50 border-red-100 text-red-700'
+                                                            : 'bg-blue-50 border-blue-100 text-blue-700'
+                                                    }`}>
+                                                        {booking.bookingStatus === 'overdue' || booking.returnStatus === 'overdue' ? (
+                                                            <div className="flex items-start gap-2">
+                                                                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                                                <div className="w-full">
+                                                                    <span className="font-bold block mb-1">Vehicle Overdue</span>
+                                                                    <div className="flex justify-between items-center bg-white/50 px-2 py-1.5 rounded text-sm mt-1">
+                                                                        <span>Late Fee Generated:</span>
+                                                                        <span className="font-bold text-red-600">₹{(booking.lateFee || booking.pendingDues || 0).toLocaleString()}</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ) : booking.extensionRequested && !booking.extensionApproved && !booking.extensionRejected ? (
+                                                            <div className="flex justify-between items-center">
+                                                                <span className="flex items-center gap-2"><TimerReset className="w-4 h-4" /> Extension Requested till {new Date(booking.extendedTill!).toLocaleDateString()}</span>
+                                                                <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded font-medium">Pending Approval</span>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex justify-between items-center">
+                                                                <span className="flex items-center gap-2"><CalendarClock className="w-4 h-4" /> Extended Return Date</span>
+                                                                <span className="font-bold">{new Date(booking.extendedTill || booking.expectedReturnDate!).toLocaleDateString()}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
 
                                             <div className="flex items-center justify-between pt-4 border-t border-gray-100">
@@ -437,6 +536,49 @@ const MyBookings: React.FC = () => {
                                                             {cancellingId === booking._id ? 'Cancelling...' : 'Cancel Booking'}
                                                         </button>
                                                     )}
+
+                                                    {/* Return Vehicle (Visible to both if started/overdue/extended) */}
+                                                    {['ride_started', 'extended', 'overdue'].includes(booking.bookingStatus) && (
+                                                        <button
+                                                            onClick={() => handleReturnVehicle(booking._id)}
+                                                            disabled={returningId === booking._id}
+                                                            className="px-4 py-2 text-sm font-semibold text-green-700 hover:bg-green-50 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 border border-green-200"
+                                                        >
+                                                            {returningId === booking._id ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+                                                            Mark Returned
+                                                        </button>
+                                                    )}
+
+                                                    {/* Request Extension (Renter only, if started/overdue/extended) */}
+                                                    {activeTab === 'renter' && ['ride_started', 'extended', 'overdue'].includes(booking.bookingStatus) && !booking.extensionRequested && (
+                                                        <button
+                                                            onClick={() => setExtensionBooking(booking)}
+                                                            className="px-4 py-2 text-sm font-semibold text-purple-700 hover:bg-purple-50 rounded-lg transition-colors flex items-center gap-2 border border-purple-200"
+                                                        >
+                                                            <CalendarClock className="w-4 h-4" /> Request Extension
+                                                        </button>
+                                                    )}
+
+                                                    {/* Approve/Reject Extension (Owner only) */}
+                                                    {activeTab === 'owner' && booking.extensionRequested && !booking.extensionApproved && !booking.extensionRejected && (
+                                                        <div className="flex gap-2 bg-yellow-50 p-1.5 rounded-lg border border-yellow-200">
+                                                            <button
+                                                                onClick={() => handleApproveExtension(booking._id, true)}
+                                                                disabled={approvingId === booking._id}
+                                                                className="px-3 py-1.5 text-xs font-bold text-white bg-green-600 hover:bg-green-700 rounded transition-colors disabled:opacity-50"
+                                                            >
+                                                                Approve
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleApproveExtension(booking._id, false)}
+                                                                disabled={approvingId === booking._id}
+                                                                className="px-3 py-1.5 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded transition-colors disabled:opacity-50"
+                                                            >
+                                                                Reject
+                                                            </button>
+                                                        </div>
+                                                    )}
+
                                                     {['completed', 'ride_started', 'payment_captured'].includes(booking.bookingStatus) && (
                                                         <button
                                                             onClick={() => openReviewModal(booking)}
@@ -618,6 +760,65 @@ const MyBookings: React.FC = () => {
                     </div>
                 )
             }
+
+            {/* Request Extension Modal */}
+            {extensionBooking && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div
+                        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                        onClick={() => !submittingExtension && setExtensionBooking(null)}
+                    />
+                    <div className="relative bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden transform animate-in zoom-in-95 duration-300">
+                        <div className="h-2 bg-gradient-to-r from-purple-400 via-purple-500 to-indigo-500" />
+                        <div className="p-8">
+                            <h3 className="text-2xl font-bold text-gray-900 mb-2">Request Extension</h3>
+                            <p className="text-gray-600 leading-relaxed text-sm mb-6">
+                                Choose a new return date for your vehicle. The owner will need to approve this request.
+                            </p>
+
+                            <div className="space-y-5">
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">New Return Date & Time <span className="text-red-500">*</span></label>
+                                    <input
+                                        type="datetime-local"
+                                        value={extensionDate}
+                                        min={new Date(extensionBooking.endDate).toISOString().slice(0, 16)}
+                                        onChange={(e) => setExtensionDate(e.target.value)}
+                                        className="w-full border-gray-300 rounded-xl px-4 py-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all outline-none"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Reason (Optional)</label>
+                                    <textarea
+                                        value={extensionReason}
+                                        onChange={(e) => setExtensionReason(e.target.value)}
+                                        className="w-full border-gray-300 rounded-xl px-4 py-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all outline-none min-h-[100px] resize-none"
+                                        placeholder="Why do you need an extension?"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3 mt-8 pt-6 border-t border-gray-100">
+                                <button
+                                    onClick={() => setExtensionBooking(null)}
+                                    disabled={submittingExtension}
+                                    className="px-6 py-2.5 rounded-xl text-gray-700 font-semibold hover:bg-gray-100 transition-colors disabled:opacity-50"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleRequestExtension}
+                                    disabled={submittingExtension || !extensionDate}
+                                    className="flex-1 px-4 py-2.5 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                >
+                                    {submittingExtension ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Send Request'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Super Cool Modal */}
             {modal.show && (

@@ -34,7 +34,13 @@ export interface Booking {
     endDate: string;
     withFuel?: boolean;
     totalAmount: number;
-    bookingStatus: 'pending' | 'confirmed' | 'ongoing' | 'completed' | 'cancelled' | 'cancel_requested' | 'rejected' | 'no_show';
+    pricePerDay?: number;
+    advancePaid?: number;
+    bookingStatus:
+        | 'pending' | 'confirmed' | 'ongoing' | 'completed'
+        | 'cancelled' | 'cancel_requested' | 'rejected' | 'no_show'
+        | 'requested' | 'approved' | 'advance_authorized' | 'ride_started'
+        | 'payment_captured' | 'overdue' | 'extended';
     paymentStatus: string;
     cancelledBy?: 'user' | 'owner' | 'system' | 'admin';
     cancellationReason?: string;
@@ -42,7 +48,23 @@ export interface Booking {
     refundAmount?: number;
     refundStatus?: 'pending' | 'processed' | 'failed';
     cancellationCharge?: number;
-    advancePaid?: number;
+    // Return tracking
+    expectedReturnDate?: string;
+    actualReturnDate?: string;
+    returnStatus?: 'pending' | 'returned' | 'overdue' | 'extended';
+    // Extension
+    extensionRequested?: boolean;
+    extensionApproved?: boolean;
+    extensionRejected?: boolean;
+    extensionReason?: string;
+    extendedTill?: string;
+    extensionRequestedAt?: string;
+    // Late fees
+    extraHours?: number;
+    extraDays?: number;
+    lateFee?: number;
+    overtimeCharge?: number;
+    pendingDues?: number;
 }
 
 export interface PaginatedBookings {
@@ -125,5 +147,41 @@ export const BookingApi = {
             withCredentials: true
         });
         return response.data;
-    }
-};
+    },
+
+    returnVehicle: async (bookingId: string): Promise<{ success: boolean; data: Booking }> => {
+        const response = await api.patch<{ success: boolean; data: Booking }>(`/bookings/${bookingId}/return`, {}, {
+            withCredentials: true
+        });
+        return response.data;
+    },
+
+    requestExtension: async (bookingId: string, newReturnDate: string, reason?: string): Promise<{ success: boolean; data: Booking }> => {
+        const response = await api.patch<{ success: boolean; data: Booking }>(`/bookings/${bookingId}/request-extension`, { newReturnDate, reason }, {
+            withCredentials: true
+        });
+        return response.data;
+    },
+
+    approveExtension: async (bookingId: string, approved: boolean): Promise<{ success: boolean; data: Booking }> => {
+        const response = await api.patch<{ success: boolean; data: Booking }>(`/bookings/${bookingId}/approve-extension`, { approved }, {
+            withCredentials: true
+        });
+        return response.data;
+    },
+
+    getOverdueBookings: async (): Promise<{ success: boolean; data: Booking[] }> => {
+        const response = await api.get<{ success: boolean; data: Booking[] }>('/bookings/owner/overdue', { withCredentials: true });
+        return response.data;
+    },
+
+    getPendingExtensions: async (): Promise<{ success: boolean; data: Booking[] }> => {
+        const response = await api.get<{ success: boolean; data: Booking[] }>('/bookings/owner/pending-extensions', { withCredentials: true });
+        return response.data;
+    },
+
+    getRunningOvertimeFee: async (bookingId: string): Promise<{ success: boolean; data: { extraHours: number; extraDays: number; lateFee: number; isOverGrace: boolean } }> => {
+        const response = await api.get(`/bookings/${bookingId}/overtime-fee`, { withCredentials: true });
+        return response.data;
+    },
+};
