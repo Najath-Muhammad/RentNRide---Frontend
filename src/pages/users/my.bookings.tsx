@@ -140,7 +140,7 @@ const MyBookings: React.FC = () => {
             setApprovingId(bookingId);
             const response = await BookingApi.approveExtension(bookingId, approved);
             if (response.success) {
-                showModal('success', approved ? 'Extension Approved' : 'Extension Rejected', response.message || 'Action completed successfully');
+                showModal('success', approved ? 'Extension Approved' : 'Extension Rejected', approved ? 'Extension has been approved successfully.' : 'Extension has been rejected.');
                 fetchBookings();
             }
         } catch (err) {
