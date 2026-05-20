@@ -612,6 +612,21 @@ const ChatPage: React.FC = () => {
                                                                 </div>
                                                             )}
 
+                                                            {/* Booking Cancelled Card */}
+                                                            {msg.messageType === 'booking_cancelled' && (
+                                                                <div className="w-full bg-red-50 border border-red-200 rounded-2xl p-4 mb-1">
+                                                                    <div className="flex items-center gap-2 mb-3">
+                                                                        <div className="w-7 h-7 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                                                            <X className="w-4 h-4 text-red-600" />
+                                                                        </div>
+                                                                        <p className="font-bold text-red-800 text-sm">Booking Cancelled</p>
+                                                                    </div>
+                                                                    <pre className="text-sm text-red-700 whitespace-pre-wrap font-sans leading-relaxed">
+                                                                        {msg.content}
+                                                                    </pre>
+                                                                </div>
+                                                            )}
+
                                                             {/* Regular text bubble */}
                                                             {msg.messageType === 'text' && (
                                                                 <div
