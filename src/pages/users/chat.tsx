@@ -51,13 +51,19 @@ const ChatPage: React.FC = () => {
                 const exists = prev.some((m) => m._id === msg._id);
                 return exists ? prev : [...prev, msg];
             });
-            setConversations((prev) =>
-                prev.map((c) =>
+            setConversations((prev) => {
+                const updated = prev.map((c) =>
                     c._id === msg.conversationId
                         ? { ...c, lastMessage: msg, lastMessageAt: msg.createdAt }
                         : c
-                )
-            );
+                );
+                // Re-sort so the most recently messaged conversation floats to the top
+                return updated.sort((a, b) => {
+                    const aTime = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+                    const bTime = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+                    return bTime - aTime;
+                });
+            });
             setTimeout(scrollToBottom, 100);
         });
 
