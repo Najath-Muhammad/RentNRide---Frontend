@@ -295,7 +295,7 @@ const ChatPage: React.FC = () => {
 
     // ─────────────────────────────────────────────────────────────────────
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="h-screen overflow-hidden bg-gray-50 flex flex-col">
             <Navbar />
 
             <div className="flex flex-1 max-w-7xl mx-auto w-full px-4 py-6 gap-4 h-[calc(100vh-80px)]">
