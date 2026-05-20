@@ -6,6 +6,7 @@ import { AuthApi } from '../../services/api/auth/login.api';
 import { searchLocations, reverseGeocode, type LocationSuggestion } from "../../utils/locationiq";
 import { NotificationApi } from '../../services/api/notification/notification.api';
 import type { INotification } from '../../services/api/notification/notification.api';
+import { registerFcmToken } from '../../utils/fcm';
 
 const timeAgo = (dateStr: string) => {
   const date = new Date(dateStr);
@@ -123,13 +124,16 @@ const Navbar: React.FC = () => {
   }, [isAuthenticated]);
 
   useEffect(() => {
+    if (isAuthenticated) {
+      registerFcmToken();
+    }
     fetchNotifications();
     const handleFcmMessage = () => fetchNotifications();
     window.addEventListener("fcm:message", handleFcmMessage);
     return () => {
       window.removeEventListener("fcm:message", handleFcmMessage);
     };
-  }, [fetchNotifications]);
+  }, [fetchNotifications, isAuthenticated]);
 
   const handleReadNotification = async (notif: INotification) => {
     try {
