@@ -12,6 +12,7 @@ export interface VerifyOtpResponse {
     message: string;
     data: {
         user: User;
+        accessToken?: string;
     };
 }
 
