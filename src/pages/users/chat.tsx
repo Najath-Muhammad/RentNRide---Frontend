@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import {
     AlertCircle,
     Check,
@@ -20,6 +20,8 @@ import { useAuthStore } from '../../stores/authStore';
 const ChatPage: React.FC = () => {
     const { user } = useAuthStore();
     const navigate = useNavigate();
+    // Read optional conversationId from URL (set when clicking a chat notification)
+    const searchParams = useSearch({ strict: false }) as { conversationId?: string };
 
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
@@ -120,6 +122,15 @@ const ChatPage: React.FC = () => {
             }
         })();
     }, []);
+
+    // ── Auto-open conversation from notification link ─────────────────────
+    useEffect(() => {
+        const targetId = searchParams.conversationId;
+        if (!targetId || conversations.length === 0 || activeConversation) return;
+        const match = conversations.find((c) => c._id === targetId);
+        if (match) openConversation(match);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [conversations, searchParams.conversationId]);
 
     // ── Open a conversation ───────────────────────────────────────────────
     const openConversation = async (conversation: Conversation) => {
