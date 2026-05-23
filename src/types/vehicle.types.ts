@@ -1,5 +1,5 @@
 export interface Vehicle {
-    ownerId: string;
+    ownerId: string | { _id: string; name: string; email: string; mobileNumber?: string; profileImage?: string };
     _id: string;
     brand: string;
     modelName: string;

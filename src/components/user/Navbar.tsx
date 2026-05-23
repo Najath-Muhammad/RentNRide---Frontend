@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { User, LogOut, Settings, Car, Loader2, Bell, MapPin, Navigation, Menu, X, Crown, MessageCircle, Wallet, LayoutDashboard } from 'lucide-react';
+import { User, LogOut, Settings, Car, Loader2, Bell, MapPin, Navigation, Menu, X, Crown, MessageCircle, Wallet, LayoutDashboard, Trash2, CheckCheck } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
 import { useAuthStore } from '../../stores/authStore';
 import { AuthApi } from '../../services/api/auth/login.api';
 import { searchLocations, reverseGeocode, type LocationSuggestion } from "../../utils/locationiq";
 import { NotificationApi } from '../../services/api/notification/notification.api';
 import type { INotification } from '../../services/api/notification/notification.api';
-
 const timeAgo = (dateStr: string) => {
   const date = new Date(dateStr);
   const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
@@ -139,9 +138,14 @@ const Navbar: React.FC = () => {
       }
       setShowNotifications(false);
 
-      // Navigate based on type
+      // Navigate based on type — chat goes to the specific conversation
       if (notif.type === 'chat') {
-        navigate({ to: '/user/chat' });
+        const conversationId = notif.metadata?.conversationId as string | undefined;
+        if (conversationId) {
+          navigate({ to: '/user/chat', search: { conversationId } as never });
+        } else {
+          navigate({ to: '/user/chat' });
+        }
       } else if (notif.type === 'booking') {
         navigate({ to: '/user/my-bookings' });
       }
@@ -155,6 +159,17 @@ const Navbar: React.FC = () => {
     try {
       await NotificationApi.deleteNotification(id);
       fetchNotifications();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleClearAllNotifications = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await NotificationApi.clearAllNotifications();
+      setNotifications([]);
+      setUnreadCount(0);
     } catch (err) {
       console.error(err);
     }
@@ -389,62 +404,121 @@ const Navbar: React.FC = () => {
 
                   <div className="relative" ref={notificationRef}>
                     <button
-                      className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50/50 rounded-full transition-all relative"
+                      className="relative p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50/50 rounded-full transition-all"
                       onClick={() => setShowNotifications(!showNotifications)}
+                      title="Notifications"
                     >
-                      <Bell className="w-5 h-5" />
+                      <Bell className={`w-5 h-5 ${unreadCount > 0 ? 'text-blue-600' : ''}`} />
                       {unreadCount > 0 && (
-                        <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                        <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-md border-2 border-white animate-pulse">
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
                       )}
                     </button>
 
                     {/* Notification Dropdown */}
                     {showNotifications && (
-                      <div className="absolute right-0 mt-4 w-80 sm:w-96 bg-white rounded-2xl shadow-soft border border-gray-100 opacity-100 transition-all z-50 overflow-hidden flex flex-col">
-                        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/50">
-                          <h3 className="font-bold text-gray-900">Notifications</h3>
-                          {unreadCount > 0 && (
-                            <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded-full">
-                              {unreadCount} new
-                            </span>
+                      <div className="absolute right-0 mt-4 w-[360px] bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden flex flex-col" style={{boxShadow: '0 20px 60px -10px rgba(0,0,0,0.15)'}}>
+                        {/* Header */}
+                        <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+                          <div className="flex items-center gap-2.5">
+                            <Bell className="w-4 h-4 text-blue-600" />
+                            <h3 className="font-bold text-gray-900 text-sm">Notifications</h3>
+                            {unreadCount > 0 && (
+                              <span className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 bg-red-500 text-white text-xs font-bold rounded-full">
+                                {unreadCount > 99 ? '99+' : unreadCount}
+                              </span>
+                            )}
+                          </div>
+                          {notifications.length > 0 && (
+                            <button
+                              onClick={handleClearAllNotifications}
+                              className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-red-500 hover:bg-red-50 px-2.5 py-1.5 rounded-lg transition-all font-medium"
+                              title="Clear all notifications"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              Clear all
+                            </button>
                           )}
                         </div>
 
-                        <div className="max-h-[24rem] overflow-y-auto">
-                          {notifications.filter(n => !n.isRead).length > 0 ? (
-                            notifications.filter(n => !n.isRead).map((notif) => (
+                        <div className="max-h-[22rem] overflow-y-auto divide-y divide-gray-50">
+                          {notifications.length > 0 ? (
+                            notifications.map((notif) => (
                               <div
                                 key={notif._id}
                                 onClick={() => handleReadNotification(notif)}
-                                className="flex items-start gap-3 p-4 border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors bg-blue-50/30"
+                                className={`flex items-start gap-3 px-4 py-3.5 hover:bg-gray-50 cursor-pointer transition-colors group ${
+                                  !notif.isRead ? 'bg-blue-50/40' : 'bg-white'
+                                }`}
                               >
-                                <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-blue-500" />
+                                {/* Type icon */}
+                                <div className={`flex-shrink-0 mt-0.5 w-9 h-9 rounded-full flex items-center justify-center ${
+                                  notif.type === 'chat' ? 'bg-blue-100' :
+                                  notif.type === 'booking' ? 'bg-green-100' :
+                                  'bg-gray-100'
+                                }`}>
+                                  {notif.type === 'chat' ? (
+                                    <MessageCircle className="w-4 h-4 text-blue-600" />
+                                  ) : notif.type === 'booking' ? (
+                                    <Car className="w-4 h-4 text-green-600" />
+                                  ) : (
+                                    <Bell className="w-4 h-4 text-gray-500" />
+                                  )}
+                                </div>
+
+                                {/* Content */}
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-semibold text-gray-900">
-                                    {notif.title}
-                                  </p>
-                                  <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">
+                                  <div className="flex items-start justify-between gap-2">
+                                    <p className={`text-sm leading-snug ${
+                                      !notif.isRead ? 'font-semibold text-gray-900' : 'font-medium text-gray-700'
+                                    }`}>
+                                      {notif.title}
+                                    </p>
+                                    {!notif.isRead && (
+                                      <span className="flex-shrink-0 w-2 h-2 rounded-full bg-blue-500 mt-1.5" />
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-gray-500 mt-0.5 line-clamp-2 leading-relaxed">
                                     {notif.message}
                                   </p>
-                                  <p className="text-xs text-gray-400 mt-1.5 font-medium">
+                                  <p className="text-[10px] text-gray-400 mt-1 font-medium">
                                     {timeAgo(notif.createdAt)}
                                   </p>
                                 </div>
+
+                                {/* Delete button */}
                                 <button
                                   onClick={(e) => handleDeleteNotification(e, notif._id)}
-                                  className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                                  className="flex-shrink-0 p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                                  title="Remove"
                                 >
-                                  <X className="w-4 h-4" />
+                                  <X className="w-3.5 h-3.5" />
                                 </button>
                               </div>
                             ))
                           ) : (
-                            <div className="px-4 py-8 text-center flex flex-col items-center">
-                              <Bell className="w-8 h-8 text-gray-300 mb-2" />
-                              <p className="text-sm text-gray-500 font-medium">You're all caught up!</p>
+                            <div className="px-4 py-10 text-center flex flex-col items-center gap-3">
+                              <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center">
+                                <CheckCheck className="w-7 h-7 text-gray-300" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-semibold text-gray-700">All caught up!</p>
+                                <p className="text-xs text-gray-400 mt-0.5">No new notifications</p>
+                              </div>
                             </div>
                           )}
                         </div>
+
+                        {/* Footer */}
+                        {notifications.length > 0 && (
+                          <div className="px-4 py-2.5 border-t border-gray-100 bg-gray-50/50">
+                            <p className="text-center text-xs text-gray-400">
+                              {notifications.length} notification{notifications.length !== 1 ? 's' : ''} &nbsp;·&nbsp;
+                              {unreadCount} unread
+                            </p>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

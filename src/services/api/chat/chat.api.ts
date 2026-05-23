@@ -30,7 +30,7 @@ export interface Message {
     senderId: ChatParticipant;
     receiverId: ChatParticipant;
     content: string;
-    messageType: 'text' | 'booking_request' | 'booking_action';
+    messageType: 'text' | 'booking_request' | 'booking_action' | 'booking_cancelled';
     bookingId?: ChatBooking | string;
     bookingAction?: 'approved' | 'rejected';
     isRead: boolean;

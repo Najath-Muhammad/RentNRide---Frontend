@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import {
     AlertCircle,
     Check,
@@ -20,6 +20,8 @@ import { useAuthStore } from '../../stores/authStore';
 const ChatPage: React.FC = () => {
     const { user } = useAuthStore();
     const navigate = useNavigate();
+    // Read optional conversationId from URL (set when clicking a chat notification)
+    const searchParams = useSearch({ strict: false }) as { conversationId?: string };
 
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
@@ -51,13 +53,19 @@ const ChatPage: React.FC = () => {
                 const exists = prev.some((m) => m._id === msg._id);
                 return exists ? prev : [...prev, msg];
             });
-            setConversations((prev) =>
-                prev.map((c) =>
+            setConversations((prev) => {
+                const updated = prev.map((c) =>
                     c._id === msg.conversationId
                         ? { ...c, lastMessage: msg, lastMessageAt: msg.createdAt }
                         : c
-                )
-            );
+                );
+                // Re-sort so the most recently messaged conversation floats to the top
+                return updated.sort((a, b) => {
+                    const aTime = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+                    const bTime = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+                    return bTime - aTime;
+                });
+            });
             setTimeout(scrollToBottom, 100);
         });
 
@@ -114,6 +122,15 @@ const ChatPage: React.FC = () => {
             }
         })();
     }, []);
+
+    // ── Auto-open conversation from notification link ─────────────────────
+    useEffect(() => {
+        const targetId = searchParams.conversationId;
+        if (!targetId || conversations.length === 0 || activeConversation) return;
+        const match = conversations.find((c) => c._id === targetId);
+        if (match) openConversation(match);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [conversations, searchParams.conversationId]);
 
     // ── Open a conversation ───────────────────────────────────────────────
     const openConversation = async (conversation: Conversation) => {
@@ -603,6 +620,21 @@ const ChatPage: React.FC = () => {
                                                                             {own ? "Advance payment confirmed & captured" : "Vehicle reached & payment confirmed"}
                                                                         </div>
                                                                     )}
+                                                                </div>
+                                                            )}
+
+                                                            {/* Booking Cancelled Card */}
+                                                            {msg.messageType === 'booking_cancelled' && (
+                                                                <div className="w-full bg-red-50 border border-red-200 rounded-2xl p-4 mb-1">
+                                                                    <div className="flex items-center gap-2 mb-3">
+                                                                        <div className="w-7 h-7 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                                                            <X className="w-4 h-4 text-red-600" />
+                                                                        </div>
+                                                                        <p className="font-bold text-red-800 text-sm">Booking Cancelled</p>
+                                                                    </div>
+                                                                    <pre className="text-sm text-red-700 whitespace-pre-wrap font-sans leading-relaxed">
+                                                                        {msg.content}
+                                                                    </pre>
                                                                 </div>
                                                             )}
 

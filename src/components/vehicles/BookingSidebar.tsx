@@ -1,13 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { CheckCircle, MessageCircle, CalendarCheck } from 'lucide-react';
+import { CheckCircle, MessageCircle, CalendarCheck, Loader2, CalendarX } from 'lucide-react';
 import { BookingApi } from '../../services/api/booking/booking.api';
+import { api } from '../../utils/axios';
 import { AxiosError } from 'axios';
 
 interface BookingSidebarProps {
   pricePerDay?: number;
   vehicleId?: string;
   ownerId?: string;
+}
+
+interface BookedRange {
+  startDate: string;
+  endDate: string;
+}
+
+// Returns all YYYY-MM-DD strings in [start, end] inclusive
+function expandRange(start: string, end: string): Set<string> {
+  const dates = new Set<string>();
+  const cur = new Date(start);
+  const last = new Date(end);
+  cur.setHours(0, 0, 0, 0);
+  last.setHours(0, 0, 0, 0);
+  while (cur <= last) {
+    dates.add(cur.toISOString().split('T')[0]);
+    cur.setDate(cur.getDate() + 1);
+  }
+  return dates;
+}
+
+// Returns true if [pickupDate, returnDate] overlaps any booked range
+function rangeOverlapsBooked(pickup: string, ret: string, bookedRanges: BookedRange[]): boolean {
+  const p = new Date(pickup);
+  const r = new Date(ret);
+  return bookedRanges.some((b) => {
+    const bs = new Date(b.startDate);
+    const be = new Date(b.endDate);
+    return p < be && r > bs;
+  });
 }
 
 const BookingSidebar: React.FC<BookingSidebarProps> = ({
@@ -23,6 +54,35 @@ const BookingSidebar: React.FC<BookingSidebarProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Booked dates state
+  const [bookedRanges, setBookedRanges] = useState<BookedRange[]>([]);
+  const [loadingDates, setLoadingDates] = useState(false);
+  const [bookedDatesSet, setBookedDatesSet] = useState<Set<string>>(new Set());
+
+  // Fetch booked dates when vehicleId is available
+  useEffect(() => {
+    if (!vehicleId) return;
+    setLoadingDates(true);
+    api.get(`/bookings/vehicle/${vehicleId}/booked-dates`)
+      .then((res) => {
+        const ranges: BookedRange[] = res.data.data || [];
+        setBookedRanges(ranges);
+        // Pre-expand all booked dates for quick lookup in the UI
+        const all = new Set<string>();
+        ranges.forEach((r) => {
+          expandRange(
+            new Date(r.startDate).toISOString().split('T')[0],
+            new Date(r.endDate).toISOString().split('T')[0]
+          ).forEach((d) => all.add(d));
+        });
+        setBookedDatesSet(all);
+      })
+      .catch(() => {
+        // non-fatal — just show no blocked dates
+      })
+      .finally(() => setLoadingDates(false));
+  }, [vehicleId]);
 
   useEffect(() => {
     if (!pickupDate || !returnDate) {
@@ -42,10 +102,17 @@ const BookingSidebar: React.FC<BookingSidebarProps> = ({
       return;
     }
 
+    // Check overlap with booked ranges
+    if (rangeOverlapsBooked(pickupDate, returnDate, bookedRanges)) {
+      setError('Your selected dates overlap with an existing booking. Please choose different dates.');
+      setDays(1);
+      return;
+    }
+
     const diffDays = Math.ceil((returnD.getTime() - pickup.getTime()) / (1000 * 3600 * 24));
     setDays(Math.max(1, diffDays));
     setError(null);
-  }, [pickupDate, returnDate]);
+  }, [pickupDate, returnDate, bookedRanges]);
 
   const total = pricePerDay * days;
 
@@ -75,29 +142,25 @@ const BookingSidebar: React.FC<BookingSidebarProps> = ({
       };
 
       const response = await BookingApi.createBooking(bookingData);
-
       console.log('Booking created successfully:', response.data);
-
       setShowSuccessModal(true);
-
-      setTimeout(() => {
-        navigate({ to: '/user/my-bookings' });
-      }, 3000);
+      setTimeout(() => navigate({ to: '/user/my-bookings' }), 3000);
     } catch (err: unknown) {
       console.error('Booking failed:', err);
       let errorMessage = 'Booking failed. Please try again.';
-
       if (err instanceof AxiosError) {
         errorMessage = err.response?.data?.message || errorMessage;
       } else if (err instanceof Error) {
         errorMessage = err.message;
       }
-
       setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // Returns minimum allowed date for the return date input
+  const returnDateMin = pickupDate || new Date().toISOString().split('T')[0];
 
   if (!pricePerDay || pricePerDay <= 0) {
     return (
@@ -117,27 +180,76 @@ const BookingSidebar: React.FC<BookingSidebarProps> = ({
         <p className="text-sm text-gray-600 mb-6">{fuelOption}</p>
 
         <div className="space-y-4">
+          {/* Pickup Date */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Pickup Date</label>
             <input
               type="date"
               min={new Date().toISOString().split('T')[0]}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:border-emerald-500 focus:ring-emerald-500"
+              className={`w-full border rounded-lg px-3 py-2 focus:ring-1 transition-colors ${
+                pickupDate && bookedDatesSet.has(pickupDate)
+                  ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-500'
+                  : 'border-gray-300 focus:border-emerald-500 focus:ring-emerald-500'
+              }`}
               value={pickupDate}
-              onChange={(e) => setPickupDate(e.target.value)}
+              onChange={(e) => {
+                setPickupDate(e.target.value);
+                // Reset return date if it's now before pickup
+                if (returnDate && e.target.value > returnDate) setReturnDate('');
+              }}
             />
+            {pickupDate && bookedDatesSet.has(pickupDate) && (
+              <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                <CalendarX className="w-3 h-3" /> This date is already booked
+              </p>
+            )}
           </div>
 
+          {/* Return Date */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Return Date</label>
             <input
               type="date"
-              min={pickupDate || new Date().toISOString().split('T')[0]}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:border-emerald-500 focus:ring-emerald-500"
+              min={returnDateMin}
+              className={`w-full border rounded-lg px-3 py-2 focus:ring-1 transition-colors ${
+                returnDate && bookedDatesSet.has(returnDate)
+                  ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-500'
+                  : 'border-gray-300 focus:border-emerald-500 focus:ring-emerald-500'
+              }`}
               value={returnDate}
               onChange={(e) => setReturnDate(e.target.value)}
             />
+            {returnDate && bookedDatesSet.has(returnDate) && (
+              <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                <CalendarX className="w-3 h-3" /> This date is already booked
+              </p>
+            )}
           </div>
+
+          {/* Booked dates legend */}
+          {!loadingDates && bookedRanges.length > 0 && (
+            <div className="bg-red-50 border border-red-100 rounded-lg p-3">
+              <p className="text-xs font-semibold text-red-700 mb-2 flex items-center gap-1.5">
+                <CalendarX className="w-3.5 h-3.5" /> Already Booked Periods
+              </p>
+              <ul className="space-y-1">
+                {bookedRanges.map((r, i) => (
+                  <li key={i} className="text-xs text-red-600 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0" />
+                    {new Date(r.startDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                    {' → '}
+                    {new Date(r.endDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {loadingDates && (
+            <div className="flex items-center gap-2 text-xs text-gray-400">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" /> Checking availability...
+            </div>
+          )}
 
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-3">
@@ -145,6 +257,7 @@ const BookingSidebar: React.FC<BookingSidebarProps> = ({
             </div>
           )}
 
+          {/* Fuel Option */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Fuel Option</label>
             <select
@@ -157,6 +270,7 @@ const BookingSidebar: React.FC<BookingSidebarProps> = ({
             </select>
           </div>
 
+          {/* Pricing */}
           <div className="pt-4 border-t border-gray-200">
             <div className="flex justify-between text-sm text-gray-600 mb-2">
               <span>Duration</span>
@@ -171,10 +285,11 @@ const BookingSidebar: React.FC<BookingSidebarProps> = ({
           <button
             onClick={handleBookNow}
             disabled={!pickupDate || !returnDate || !!error || isSubmitting}
-            className={`w-full py-4 rounded-lg font-semibold text-lg transition ${!pickupDate || !returnDate || !!error || isSubmitting
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-emerald-600 text-white hover:bg-emerald-700'
-              }`}
+            className={`w-full py-4 rounded-lg font-semibold text-lg transition ${
+              !pickupDate || !returnDate || !!error || isSubmitting
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-emerald-600 text-white hover:bg-emerald-700'
+            }`}
           >
             {isSubmitting ? 'Processing...' : 'Book Now'}
           </button>

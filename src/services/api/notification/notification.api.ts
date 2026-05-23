@@ -25,5 +25,10 @@ export const NotificationApi = {
     deleteNotification: async (id: string) => {
         const response = await api.delete(`/notifications/${id}`);
         return response.data;
-    }
+    },
+
+    clearAllNotifications: async () => {
+        const response = await api.delete('/notifications');
+        return response.data;
+    },
 };
