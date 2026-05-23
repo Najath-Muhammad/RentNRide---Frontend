@@ -27,7 +27,7 @@ const OwnerInfo: React.FC<OwnerInfoProps> = ({ owner }) => {
             return;
         }
 
-        if (user._id === owner._id) {
+        if (user.id === owner._id) {
             // Cannot chat with yourself
             return;
         }
@@ -70,7 +70,7 @@ const OwnerInfo: React.FC<OwnerInfoProps> = ({ owner }) => {
                     </div>
                 </div>
 
-                {user?._id !== owner._id && (
+                {user?.id !== owner._id && (
                     <button
                         onClick={handleChatClick}
                         disabled={isLoading}
