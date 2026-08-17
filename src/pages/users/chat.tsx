@@ -61,8 +61,8 @@ const ChatPage: React.FC = () => {
                 );
                 // Re-sort so the most recently messaged conversation floats to the top
                 return updated.sort((a, b) => {
-                    const aTime = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
-                    const bTime = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+                    const aTime = new Date(a.lastMessageAt || a.createdAt || 0).getTime();
+                    const bTime = new Date(b.lastMessageAt || b.createdAt || 0).getTime();
                     return bTime - aTime;
                 });
             });
@@ -114,7 +114,14 @@ const ChatPage: React.FC = () => {
             try {
                 setLoadingConversations(true);
                 const res = await ChatApi.getConversations();
-                if (res.success) setConversations(res.data);
+                if (res.success) {
+                    const sorted = res.data.sort((a, b) => {
+                        const aTime = new Date(a.lastMessageAt || a.createdAt || 0).getTime();
+                        const bTime = new Date(b.lastMessageAt || b.createdAt || 0).getTime();
+                        return bTime - aTime;
+                    });
+                    setConversations(sorted);
+                }
             } catch (e) {
                 console.error('Failed to load conversations:', e);
             } finally {
