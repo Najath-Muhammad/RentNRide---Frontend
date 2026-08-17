@@ -6,6 +6,7 @@ import { AuthApi } from '../../services/api/auth/login.api';
 import { searchLocations, reverseGeocode, type LocationSuggestion } from "../../utils/locationiq";
 import { NotificationApi } from '../../services/api/notification/notification.api';
 import type { INotification } from '../../services/api/notification/notification.api';
+import { ChatApi } from '../../services/api/chat/chat.api';
 const timeAgo = (dateStr: string) => {
   const date = new Date(dateStr);
   const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
@@ -38,6 +39,7 @@ const Navbar: React.FC = () => {
 
   const [notifications, setNotifications] = useState<INotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
@@ -121,14 +123,41 @@ const Navbar: React.FC = () => {
     }
   }, [isAuthenticated]);
 
+  const fetchUnreadChatCount = useCallback(async () => {
+    if (!isAuthenticated || !user) return;
+    try {
+      const res = await ChatApi.getConversations();
+      if (res.success && res.data) {
+        let count = 0;
+        res.data.forEach((conv) => {
+          if (conv.lastMessage && !conv.lastMessage.isRead) {
+            const senderId = typeof conv.lastMessage.senderId === 'object' 
+                ? (conv.lastMessage.senderId as any)._id 
+                : conv.lastMessage.senderId;
+            if (senderId !== user.id) {
+              count++;
+            }
+          }
+        });
+        setUnreadChatCount(count);
+      }
+    } catch (err) {
+      console.error('Failed to fetch unread chats:', err);
+    }
+  }, [isAuthenticated, user]);
+
   useEffect(() => {
     fetchNotifications();
-    const handleFcmMessage = () => fetchNotifications();
+    fetchUnreadChatCount();
+    const handleFcmMessage = () => {
+      fetchNotifications();
+      fetchUnreadChatCount();
+    };
     window.addEventListener("fcm:message", handleFcmMessage);
     return () => {
       window.removeEventListener("fcm:message", handleFcmMessage);
     };
-  }, [fetchNotifications]);
+  }, [fetchNotifications, fetchUnreadChatCount]);
 
   const handleReadNotification = async (notif: INotification) => {
     try {
@@ -396,10 +425,15 @@ const Navbar: React.FC = () => {
 
                   <button
                     onClick={() => navigate({ to: '/user/chat' })}
-                    className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50/50 rounded-full transition-all"
+                    className="relative p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50/50 rounded-full transition-all"
                     title="Messages"
                   >
-                    <MessageCircle className="w-5 h-5" />
+                    <MessageCircle className={`w-5 h-5 ${unreadChatCount > 0 ? 'text-blue-600' : ''}`} />
+                    {unreadChatCount > 0 && (
+                      <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-blue-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-md border-2 border-white">
+                        {unreadChatCount > 99 ? '99+' : unreadChatCount}
+                      </span>
+                    )}
                   </button>
 
                   <div className="relative" ref={notificationRef}>
