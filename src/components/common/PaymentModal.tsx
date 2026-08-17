@@ -145,6 +145,8 @@ const WalletPanel: React.FC<WalletPanelProps> = ({ bookingId, amount, walletBala
         }
     };
 
+    const hasEnough = walletBalance >= amount;
+
     return (
         <div className="flex flex-col gap-4">
             {error && (
@@ -183,10 +185,16 @@ const WalletPanel: React.FC<WalletPanelProps> = ({ bookingId, amount, walletBala
                 </div>
             </div>
 
+            {!hasEnough && (
+                <div className="bg-amber-50 text-amber-700 p-3 rounded-lg text-sm border border-amber-200 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    Insufficient wallet balance. Please add funds or use a card.
+                </div>
+            )}
             <button
                 onClick={handlePay}
-                disabled={paying}
-                className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-semibold py-3 px-4 rounded-xl transition-colors"
+                disabled={paying || !hasEnough}
+                className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-xl transition-colors"
             >
                 {paying
                     ? <><Loader2 className="w-5 h-5 animate-spin" />Processing...</>
@@ -240,6 +248,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, boo
 
     if (!isOpen) return null;
 
+    const hasWalletData = walletBalance !== null;
     const hasSufficientWallet = walletBalance !== null && walletBalance >= amount;
 
     return (
@@ -250,7 +259,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, boo
                     <div>
                         <h2 className="text-xl font-bold tracking-tight text-gray-900">Advance Payment</h2>
                         <p className="text-sm text-gray-500 mt-0.5">
-                            {loadingWallet ? "Checking wallet balance..." : hasSufficientWallet ? "Pay from wallet or card" : "Pay with card"}
+                            {loadingWallet ? "Checking wallet balance..." : hasWalletData ? "Pay from wallet or card" : "Pay with card"}
                         </p>
                     </div>
                     <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0">
@@ -266,8 +275,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, boo
                         </div>
                     ) : (
                         <>
-                            {/* Tab bar — only show if wallet has enough balance */}
-                            {hasSufficientWallet && (
+                            {/* Tab bar — show if wallet data loaded */}
+                            {hasWalletData && (
                                 <div className="flex gap-2 mb-5">
                                     <button
                                         onClick={() => setTab("wallet")}
@@ -284,7 +293,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, boo
                                 </div>
                             )}
 
-                            {tab === "wallet" && hasSufficientWallet ? (
+                            {tab === "wallet" && hasWalletData ? (
                                 <WalletPanel
                                     bookingId={bookingId}
                                     amount={amount}
