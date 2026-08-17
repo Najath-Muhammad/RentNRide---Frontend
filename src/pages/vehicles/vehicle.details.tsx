@@ -8,6 +8,7 @@ import SpecsTable from '../../components/vehicles/SpecsTable';
 import LegalSafety from '../../components/vehicles/LegalSafety';
 import LocationMap from '../../components/vehicles/LocationMap';
 import CustomerReviews from '../../components/vehicles/CustomerReviews';
+import OwnerInfo from '../../components/vehicles/OwnerInfo';
 
 import Navbar from '../../components/user/Navbar';
 
@@ -67,6 +68,9 @@ const VehicleDetails: React.FC = () => {
             </div>
 
             <LegalSafety vehicle={vehicle} />
+            {typeof vehicle.ownerId === 'object' && vehicle.ownerId !== null && (
+              <OwnerInfo owner={vehicle.ownerId as any} />
+            )}
             <LocationMap address={vehicle.pickupAddress} location={vehicle.location} />
             <CustomerReviews vehicleId={vehicle._id} />
           </div>

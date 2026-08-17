@@ -3,6 +3,7 @@ import { type AxiosError } from 'axios';
 import { useLocation, useNavigate } from '@tanstack/react-router';
 import { AuthApi } from '../../services/api/auth/verify.otp.api';
 import { useAuthStore } from '../../stores/authStore';
+import { setSessionToken } from '../../utils/axios';
 
 export default function VerifyOtp() {
   const [otp, setOtp] = useState('');
@@ -79,11 +80,8 @@ export default function VerifyOtp() {
       if (response.success) {
         setSuccess(response.message);
         useAuthStore.getState().setUser(response.data.user);
-
-        // if (response.data.user) {
-        //   localStorage.setItem('user', JSON.stringify(response.data.user));
-        //   localStorage.setItem('token', response.data.token); 
-        // }
+        // Store token for cross-domain Authorization header auth
+        if (response.data.accessToken) setSessionToken(response.data.accessToken);
 
         setTimeout(() => {
           navigate({ to: "/" });

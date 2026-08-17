@@ -5,6 +5,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { AuthApi } from '../../services/api/auth/login.api'
 import { useAuthStore } from '../../stores/authStore';
 import { scheduleSilentRefresh } from '../../utils/silentRefresh';
+import { setSessionToken } from '../../utils/axios';
 import type { AxiosError } from 'axios';
 import Navbar from '../../components/user/Navbar';
 
@@ -66,6 +67,8 @@ const Login = () => {
 
       if (response.success) {
         useAuthStore.getState().setUser(response.data.user);
+        // Store token for cross-domain Authorization header auth
+        if (response.data.accessToken) setSessionToken(response.data.accessToken);
         if (response.data.expiresIn) {
           useAuthStore.getState().setTokenExpiry(Date.now() + response.data.expiresIn);
           scheduleSilentRefresh(response.data.expiresIn);
@@ -104,6 +107,8 @@ const Login = () => {
 
       if (response.success) {
         useAuthStore.getState().setUser(response.data.user);
+        // Store token for cross-domain Authorization header auth
+        if (response.data.accessToken) setSessionToken(response.data.accessToken);
         if (response.data.expiresIn) {
           useAuthStore.getState().setTokenExpiry(Date.now() + response.data.expiresIn);
           scheduleSilentRefresh(response.data.expiresIn);

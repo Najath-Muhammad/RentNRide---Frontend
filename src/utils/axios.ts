@@ -11,6 +11,27 @@ export const api = axios.create({
   withCredentials: true,
 });
 
+// ── Token helpers (cross-domain fallback) ─────────────────────────────────
+export function setSessionToken(token: string): void {
+  sessionStorage.setItem('_t', token);
+}
+export function getSessionToken(): string | null {
+  return sessionStorage.getItem('_t');
+}
+export function clearSessionToken(): void {
+  sessionStorage.removeItem('_t');
+}
+
+// Attach Bearer token on every request if present
+api.interceptors.request.use((config) => {
+  const token = getSessionToken();
+  if (token) {
+    config.headers = config.headers ?? {};
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
+  return config;
+});
+
 let refreshing = false
 let waitingList: WaitingRequest[] = []
 
@@ -32,6 +53,7 @@ function goToLogin() {
   const user = useAuthStore.getState().user;
   router.navigate({ to: user?.role === "admin" ? "/auth/admin-login" : "/auth/login" });
   useAuthStore.getState().setUser(null);
+  clearSessionToken();
   localStorage.clear();
 }
 
@@ -100,7 +122,11 @@ api.interceptors.response.use(
     refreshing = true;
 
     try {
-      await api.post("/auth/refresh", {}, { withCredentials: true });
+      const response = await api.post<{ data: { accessToken?: string; expiresIn?: number } }>("/auth/refresh", {}, { withCredentials: true });
+
+      // Store the new token if returned in body (cross-domain)
+      const newToken = response.data?.data?.accessToken;
+      if (newToken) setSessionToken(newToken);
 
       runWaitingList(null, true);
       refreshing = false;
@@ -109,6 +135,7 @@ api.interceptors.response.use(
     } catch (refreshErr) {
       runWaitingList(refreshErr);
       refreshing = false;
+      clearSessionToken();
       goToLogin();
       return Promise.reject(refreshErr);
     }

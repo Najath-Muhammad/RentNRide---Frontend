@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { SlidersHorizontal, X, Search } from 'lucide-react';
+import { SlidersHorizontal, X, Search, ChevronDown, ChevronUp, SlidersVertical, RotateCcw } from 'lucide-react';
 import VehicleGrid from '../../components/home/VehicleGrid';
 import { useAuthStore } from '../../stores/authStore';
 
@@ -8,21 +8,7 @@ import { CategoryApi, type Category, type FuelType } from '../../services/api/ad
 
 import type { SearchFilters } from '../../types/vehicle.types';
 
-// Helper Components
-interface FilterSectionProps {
-  title: string;
-  children: React.ReactNode;
-}
-
-const FilterSection: React.FC<FilterSectionProps> = ({ title, children }) => (
-  <div className="mb-6">
-    <h4 className="font-bold text-gray-900 mb-4">{title}</h4>
-    <div className="space-y-2.5">
-      {children}
-    </div>
-  </div>
-);
-
+// ── Checkbox ──────────────────────────────────────────────────────────────────
 interface CheckboxProps {
   label: string;
   checked: boolean;
@@ -31,7 +17,7 @@ interface CheckboxProps {
 
 const Checkbox: React.FC<CheckboxProps> = ({ label, checked, onChange }) => (
   <label className="flex items-center gap-3 cursor-pointer group p-1.5 -ml-1.5 rounded-xl hover:bg-gray-50 transition-colors">
-    <div className="relative flex items-center justify-center">
+    <div className="relative flex items-center justify-center flex-shrink-0">
       <input
         type="checkbox"
         checked={checked}
@@ -44,10 +30,46 @@ const Checkbox: React.FC<CheckboxProps> = ({ label, checked, onChange }) => (
         </svg>
       </div>
     </div>
-    <span className="text-gray-700 font-medium group-hover:text-gray-900 transition-colors">{label}</span>
+    <span className={`text-sm font-medium transition-colors ${checked ? 'text-blue-700' : 'text-gray-700 group-hover:text-gray-900'}`}>
+      {label}
+    </span>
   </label>
 );
 
+// ── Collapsible FilterSection ──────────────────────────────────────────────────
+interface FilterSectionProps {
+  title: string;
+  count?: number;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}
+
+const FilterSection: React.FC<FilterSectionProps> = ({ title, count = 0, defaultOpen = true, children }) => {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="border-b border-gray-100 last:border-0">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center justify-between w-full py-3.5 text-left group"
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{title}</span>
+          {count > 0 && (
+            <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1 bg-blue-600 text-white text-[10px] font-bold rounded-full">
+              {count}
+            </span>
+          )}
+        </div>
+        {open
+          ? <ChevronUp className="w-4 h-4 text-gray-400 flex-shrink-0" />
+          : <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />}
+      </button>
+      {open && <div className="pb-4 space-y-1">{children}</div>}
+    </div>
+  );
+};
+
+// ── FilterPanel ───────────────────────────────────────────────────────────────
 interface FilterPanelProps {
   searchInput: string;
   setSearchInput: (val: string) => void;
@@ -66,6 +88,8 @@ interface FilterPanelProps {
   hasActiveFilters: boolean;
 }
 
+const VISIBLE_CATEGORY_LIMIT = 3;
+
 const FilterPanel: React.FC<FilterPanelProps> = React.memo(({
   searchInput,
   setSearchInput,
@@ -82,63 +106,76 @@ const FilterPanel: React.FC<FilterPanelProps> = React.memo(({
   handlePriceKeyDown,
   resetFilters,
   hasActiveFilters
-}) => (
-  <div className="space-y-6">
-    {/* Search Input */}
-    <div>
-      <h3 className="font-semibold text-gray-800 mb-3">Search Vehicles</h3>
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Search by brand or model..."
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none font-medium"
-        />
-      </div>
-      {searchInput && searchInput !== filters.search && (
-        <p className="text-xs text-gray-500 mt-1.5 ml-1">Searching...</p>
-      )}
-    </div>
+}) => {
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
+  const [showAllCategories, setShowAllCategories] = useState(false);
 
-    {/* Range Selection */}
-    <div>
-      <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-        <span>Distance Range</span>
-        <span className="text-sm font-normal text-blue-600 bg-blue-50 px-2 py-1 rounded">Proximity</span>
-      </h3>
-      <div className="flex gap-2">
-        {[10, 20, 50].map(r => (
-          <button
-            key={r}
-            onClick={() => setRange(r)}
-            className={`flex-1 py-2 px-3 rounded-lg font-medium transition-all ${range === r
-              ? 'bg-blue-600 text-white shadow-md'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+  const activeMoreCount = [
+    filters.fuelType.length,
+    filters.transmission.length,
+    filters.priceRange.min || filters.priceRange.max ? 1 : 0,
+    filters.sortBy ? 1 : 0,
+  ].reduce((a, b) => a + b, 0);
+
+  const visibleCategories = showAllCategories ? categories : categories.slice(0, VISIBLE_CATEGORY_LIMIT);
+  const hiddenCategoryCount = categories.length - VISIBLE_CATEGORY_LIMIT;
+
+  return (
+    <div className="flex flex-col gap-0">
+      {/* ── Search ─────────────────────────────────────────────────────── */}
+      <div className="pb-4 border-b border-gray-100">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Brand, model..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none font-medium bg-gray-50 focus:bg-white transition-all"
+          />
+          {searchInput && (
+            <button onClick={() => setSearchInput('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* ── Distance Range ─────────────────────────────────────────────── */}
+      <div className="py-4 border-b border-gray-100">
+        <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Distance</p>
+        <div className="flex gap-2">
+          {[10, 20, 50].map(r => (
+            <button
+              key={r}
+              onClick={() => setRange(r)}
+              className={`flex-1 py-2 text-sm rounded-lg font-bold transition-all ${range === r
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
-          >
-            {r}km
-          </button>
-        ))}
+            >
+              {r}km
+            </button>
+          ))}
+        </div>
       </div>
-    </div>
 
-    <div className="border-t pt-6">
-      {/* Vehicle Type (Dynamic Categories) */}
+      {/* ── Vehicle Type (core — always visible) ───────────────────────── */}
       {!isFiltersLoading && categories.length > 0 && (
-        <FilterSection title="Vehicle Type">
-          {categories.map(cat => (
+        <FilterSection
+          title="Vehicle Type"
+          count={filters.vehicleType.length}
+          defaultOpen={true}
+        >
+          {visibleCategories.map(cat => (
             <React.Fragment key={cat._id}>
-              {/* Main Category */}
               <Checkbox
                 label={cat.name}
                 checked={filters.vehicleType.includes(cat._id)}
                 onChange={() => handleFilterChange('vehicleType', cat._id)}
               />
-              {/* Sub Categories */}
-              {cat.subCategories && cat.subCategories.length > 0 && (
-                <div className="ml-6 space-y-2 mt-2 border-l-2 border-gray-100 pl-3">
+              {cat.subCategories && cat.subCategories.length > 0 && filters.vehicleType.includes(cat._id) && (
+                <div className="ml-6 space-y-1 border-l-2 border-blue-100 pl-3">
                   {cat.subCategories.map(sub => (
                     <Checkbox
                       key={sub._id}
@@ -151,85 +188,131 @@ const FilterPanel: React.FC<FilterPanelProps> = React.memo(({
               )}
             </React.Fragment>
           ))}
+          {hiddenCategoryCount > 0 && (
+            <button
+              onClick={() => setShowAllCategories(!showAllCategories)}
+              className="flex items-center gap-1.5 mt-1 ml-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+            >
+              {showAllCategories
+                ? <><ChevronUp className="w-3.5 h-3.5" /> Show less</>
+                : <><ChevronDown className="w-3.5 h-3.5" /> +{hiddenCategoryCount} more types</>}
+            </button>
+          )}
         </FilterSection>
       )}
 
-      {/* Fuel Type (Dynamic Fuel Types) */}
-      {!isFiltersLoading && fuelTypes.length > 0 && (
-        <FilterSection title="Fuel Type">
-          {fuelTypes.map(fuel => (
-            <Checkbox
-              key={fuel._id}
-              label={fuel.name}
-              checked={filters.fuelType.includes(fuel._id)}
-              onChange={() => handleFilterChange('fuelType', fuel._id)}
-            />
-          ))}
-        </FilterSection>
-      )}
-
-      {/* Transmission */}
-      <FilterSection title="Transmission">
-        {['Manual', 'Automatic'].map(trans => (
-          <Checkbox
-            key={trans}
-            label={trans}
-            checked={filters.transmission.includes(trans as never)}
-            onChange={() => handleFilterChange('transmission', trans)}
-          />
-        ))}
-      </FilterSection>
-
-      {/* Price Range */}
-      <FilterSection title="Price Range (₹/day)">
-        <div className="flex gap-2 items-center">
-          <input
-            type="number"
-            placeholder="Min"
-            value={localPriceRange.min}
-            onChange={(e) => handlePriceChange('min', e.target.value)}
-            onBlur={handlePriceCommit}
-            onKeyDown={handlePriceKeyDown}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-          />
-          <span className="text-gray-500">–</span>
-          <input
-            type="number"
-            placeholder="Max"
-            value={localPriceRange.max}
-            onChange={(e) => handlePriceChange('max', e.target.value)}
-            onBlur={handlePriceCommit}
-            onKeyDown={handlePriceKeyDown}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-          />
-        </div>
-      </FilterSection>
-
-      {/* Sort By */}
-      <FilterSection title="Sort By">
-        <select
-          value={filters.sortBy}
-          onChange={(e) => handleFilterChange('sortBy', e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white font-medium"
+      {/* ── More Filters accordion ─────────────────────────────────────── */}
+      <div className="mt-2">
+        <button
+          onClick={() => setShowMoreFilters(!showMoreFilters)}
+          className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all ${showMoreFilters
+            ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
         >
-          <option value="">Default (Near & New)</option>
-          <option value="price_asc">Price: Low to High</option>
-          <option value="price_desc">Price: High to Low</option>
-        </select>
-      </FilterSection>
+          <div className="flex items-center gap-2">
+            <SlidersVertical className="w-4 h-4" />
+            <span>More Filters</span>
+            {activeMoreCount > 0 && (
+              <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1 text-[10px] font-bold rounded-full ${showMoreFilters ? 'bg-white text-blue-600' : 'bg-blue-600 text-white'}`}>
+                {activeMoreCount}
+              </span>
+            )}
+          </div>
+          {showMoreFilters
+            ? <ChevronUp className="w-4 h-4" />
+            : <ChevronDown className="w-4 h-4" />}
+        </button>
 
-      {/* Reset Filters */}
+        {/* Expandable section */}
+        {showMoreFilters && (
+          <div className="mt-3 border border-gray-100 rounded-xl overflow-hidden bg-white px-4">
+            {/* Fuel Type */}
+            {!isFiltersLoading && fuelTypes.length > 0 && (
+              <FilterSection title="Fuel Type" count={filters.fuelType.length} defaultOpen={true}>
+                {fuelTypes.map(fuel => (
+                  <Checkbox
+                    key={fuel._id}
+                    label={fuel.name}
+                    checked={filters.fuelType.includes(fuel._id)}
+                    onChange={() => handleFilterChange('fuelType', fuel._id)}
+                  />
+                ))}
+              </FilterSection>
+            )}
+
+            {/* Transmission */}
+            <FilterSection title="Transmission" count={filters.transmission.length} defaultOpen={true}>
+              {['Manual', 'Automatic'].map(trans => (
+                <Checkbox
+                  key={trans}
+                  label={trans}
+                  checked={filters.transmission.includes(trans as never)}
+                  onChange={() => handleFilterChange('transmission', trans)}
+                />
+              ))}
+            </FilterSection>
+
+            {/* Price Range */}
+            <FilterSection
+              title="Price Range (₹/day)"
+              count={filters.priceRange.min || filters.priceRange.max ? 1 : 0}
+              defaultOpen={true}
+            >
+              <div className="flex gap-2 items-center pt-1">
+                <input
+                  type="number"
+                  placeholder="Min"
+                  value={localPriceRange.min}
+                  onChange={(e) => handlePriceChange('min', e.target.value)}
+                  onBlur={handlePriceCommit}
+                  onKeyDown={handlePriceKeyDown}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-gray-50 focus:bg-white"
+                />
+                <span className="text-gray-400 font-medium">–</span>
+                <input
+                  type="number"
+                  placeholder="Max"
+                  value={localPriceRange.max}
+                  onChange={(e) => handlePriceChange('max', e.target.value)}
+                  onBlur={handlePriceCommit}
+                  onKeyDown={handlePriceKeyDown}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-gray-50 focus:bg-white"
+                />
+              </div>
+            </FilterSection>
+
+            {/* Sort By */}
+            <FilterSection title="Sort By" count={filters.sortBy ? 1 : 0} defaultOpen={true}>
+              <select
+                value={filters.sortBy}
+                onChange={(e) => handleFilterChange('sortBy', e.target.value)}
+                className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-gray-50 focus:bg-white font-medium"
+              >
+                <option value="">Default (Near &amp; New)</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+              </select>
+            </FilterSection>
+          </div>
+        )}
+      </div>
+
+      {/* ── Reset ──────────────────────────────────────────────────────── */}
       {hasActiveFilters && (
         <button
           onClick={resetFilters}
-          className="w-full mt-4 py-2 px-4 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+          className="flex items-center justify-center gap-2 w-full mt-4 py-2.5 px-4 text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors"
         >
-          Reset Filters
+          <RotateCcw className="w-3.5 h-3.5" />
+          Reset all filters
         </button>
       )}
     </div>
-  </div>
-));
+  );
+});
+
+
 
 const SearchPage = () => {
   const [range, setRange] = useState(10);

@@ -19,7 +19,7 @@ const SpecsTable: React.FC<SpecsTableProps> = ({ vehicle }) => {
     { label: 'Model', value: vehicle.modelName },
     { label: 'Category', value: typeof vehicle.category === 'object' ? vehicle.category.name : vehicle.category },
     { label: 'Fuel Type', value: typeof vehicle.fuelType === 'object' ? vehicle.fuelType.name : vehicle.fuelType },
-    { label: 'Seating Capacity', value: `${vehicle.seatingCapacity} seats` },
+    { label: 'Seating Capacity', value: vehicle.seatingCapacity ? `${vehicle.seatingCapacity} seats` : 'N/A' },
     { label: 'Doors', value: vehicle.doors ?? 'N/A' },
   ];
 
